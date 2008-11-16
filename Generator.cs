@@ -11,6 +11,8 @@ namespace ExportSQLCE
         private IRepository _repository;
         private StringBuilder _sbScript;
         private List<string> _tableNames;
+
+        private string _sep = "GO" + System.Environment.NewLine; 
         
         public Generator(IRepository repository)
         {
@@ -55,13 +57,14 @@ namespace ExportSQLCE
                                     , System.Environment.NewLine);
                                 break;
                             default :
-                                _sbScript.AppendFormat("[{0}] {1} {2} {3} {4} {5}{6}, "
+                                _sbScript.AppendFormat("[{0}] {1} {2} {3} {4} {5}, "
                                     , col.ColumnName
                                     , col.DataType
                                     , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
                                     , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
                                     , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                    , (col.AutoIncrementBy > 0 ? string.Format("IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                                    // Support for CREATE TABLE with IDENTITY removed for now - another solution is coming up
+                                    //, (col.AutoIncrementBy > 0 ? string.Format("IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
                                     , System.Environment.NewLine);
                                 break;
                         }   
@@ -70,6 +73,7 @@ namespace ExportSQLCE
                     // Remove the last comma
                     _sbScript.Remove(_sbScript.Length - 2, 2);
                     _sbScript.AppendFormat(");{0}", System.Environment.NewLine);
+                    _sbScript.Append(_sep);
                 }
             });
 
@@ -90,14 +94,32 @@ namespace ExportSQLCE
                     for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
                     {
                         if (dt.Rows[iRow][iColumn] == System.DBNull.Value)
-                            _sbScript.Append("null");                               
+                        {
+                            _sbScript.Append("null");
+                        }
+                        else if (dt.Columns[iColumn].DataType == typeof(System.String))
+                        {
+                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''"));
+                        }
+                        else if (dt.Columns[iColumn].DataType == typeof(System.DateTime))
+                        {
+                            DateTime date = (DateTime)dt.Rows[iRow][iColumn];
+                            //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                            _sbScript.Append("{ts '");
+                            _sbScript.Append(date.ToString("yyyy-MM-dd hh:mm:ss"));
+                            _sbScript.Append("'}");
+                        }
                         else
-                            _sbScript.AppendFormat("'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''"));
-
+                        {
+                            //Decimal point globalization
+                            string value = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
+                            _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
+                        }
                         _sbScript.Append(iColumn != dt.Columns.Count - 1 ? "," : "");
                     }
                     _sbScript.Append(");");
                     _sbScript.Append(System.Environment.NewLine);
+                    _sbScript.Append(_sep);
                 }
             });
 
@@ -123,6 +145,7 @@ namespace ExportSQLCE
                     // Remove the last comma
                     _sbScript.Remove(_sbScript.Length - 1, 1);
                     _sbScript.AppendFormat(");{0}", System.Environment.NewLine);
+                    _sbScript.Append(_sep);
                 }
             });
 
@@ -143,7 +166,7 @@ namespace ExportSQLCE
                     , constraint.UniqueColumnName
                     , System.Environment.NewLine);
             });
-
+            _sbScript.Append(_sep);
             return _sbScript.ToString();
         }
         /// <summary>
@@ -187,6 +210,7 @@ namespace ExportSQLCE
                         // Remove the last comma
                         _sbScript.Remove(_sbScript.Length - 1, 1);
                         _sbScript.AppendLine(");");
+                        _sbScript.Append(_sep);
                     }                    
                 }
             });
@@ -211,7 +235,6 @@ namespace ExportSQLCE
             {
                 sbScriptTemplate.AppendFormat("[{0}]{1}", dt.Columns[iColumn].ColumnName, (iColumn != dt.Columns.Count - 1 ? "," : ""));
             }
-
             sbScriptTemplate.AppendFormat(") Values (", tableName);
             return sbScriptTemplate.ToString();
         }

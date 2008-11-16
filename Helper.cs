@@ -11,7 +11,7 @@ namespace ExportSQLCE
         {
             using (FileStream fs = new FileStream(fileLocation, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
-                using (StreamWriter sw = new StreamWriter(fs, Encoding.ASCII))
+                using (StreamWriter sw = new StreamWriter(fs, Encoding.Unicode))
                 {
                     sw.WriteLine(script);
                     sw.Flush();
