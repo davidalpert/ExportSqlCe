@@ -1,5 +1,0 @@
-C:\Data\SQLCE\ExportSQLCE\bin\Debug\ExportSQLCE.exe
-C:\Data\SQLCE\ExportSQLCE\bin\Debug\ExportSQLCE.pdb
-C:\Data\SQLCE\ExportSQLCE\obj\Debug\ResolveAssemblyReference.cache
-C:\Data\SQLCE\ExportSQLCE\obj\Debug\ExportSQLCE.exe
-C:\Data\SQLCE\ExportSQLCE\obj\Debug\ExportSQLCE.pdb
