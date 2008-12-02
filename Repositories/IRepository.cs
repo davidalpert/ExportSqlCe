@@ -15,6 +15,7 @@ namespace ExportSQLCE
         List<string> GetPrimaryKeysFromTable(string tableName);
         List<Constraint> GetAllForeignKeys();
         List<Index> GetIndexesFromTable(string tableName);
+        Boolean HasIdentityColumn(string tabelName);
     }
 
 

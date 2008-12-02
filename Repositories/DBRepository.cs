@@ -101,7 +101,28 @@ namespace ExportSQLCE
             return dt;
         }
 
+        private object ExecuteScalar(string commandText)
+        {
+            object val = null;
+            using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
+            {
+                cn.Open();
+                using (SqlCeCommand cmd = new SqlCeCommand(
+                    commandText, cn))
+                {
+                    val = cmd.ExecuteScalar();
+                }
+            }
+            return val;
+        }
+
+
         #region IRepository Members
+
+        public bool HasIdentityColumn(string tabelName)
+        {
+            return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = '" + tabelName + "' AND AUTOINC_SEED IS NOT NULL") != null);
+        }
 
         public List<string> GetAllTableNames()
         {
@@ -154,6 +175,11 @@ namespace ExportSQLCE
                 "ORDER BY TABLE_NAME, INDEX_NAME, ORDINAL_POSITION"
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
+
+        #endregion
+
+        #region IRepository Members
+
 
         #endregion
     }

@@ -57,14 +57,13 @@ namespace ExportSQLCE
                                     , System.Environment.NewLine);
                                 break;
                             default :
-                                _sbScript.AppendFormat("[{0}] {1} {2} {3} {4} {5}, "
+                                _sbScript.AppendFormat("[{0}] {1} {2} {3} {4}{5} {6}, "
                                     , col.ColumnName
                                     , col.DataType
                                     , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
                                     , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
                                     , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                    // Support for CREATE TABLE with IDENTITY removed for now - another solution is coming up
-                                    //, (col.AutoIncrementBy > 0 ? string.Format("IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                                    , (col.AutoIncrementBy > 0 ? string.Format("IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
                                     , System.Environment.NewLine);
                                 break;
                         }   
@@ -85,6 +84,13 @@ namespace ExportSQLCE
             _tableNames.ForEach(delegate(string tableName)
             {
                 DataTable dt = _repository.GetDataFromTable(tableName);
+                bool hasIdentity = _repository.HasIdentityColumn(tableName);
+                if (hasIdentity)
+                {
+                    _sbScript.Append(string.Format("SET IDENTITY_INSERT [{0}] ON", tableName));
+                    _sbScript.Append(System.Environment.NewLine);
+                    _sbScript.Append(_sep);
+                }
                 
                 string scriptPrefix = GetInsertScriptPrefix(tableName, dt);
                 
@@ -109,6 +115,15 @@ namespace ExportSQLCE
                             _sbScript.Append(date.ToString("yyyy-MM-dd hh:mm:ss"));
                             _sbScript.Append("'}");
                         }
+                        else if (dt.Columns[iColumn].DataType == typeof(System.Byte[]))
+                        {
+                            Byte[] buffer = (Byte[])dt.Rows[iRow][iColumn];
+                            _sbScript.Append("0x");
+                            for (int i = 0; i < buffer.Length; i++)
+                            {
+                                _sbScript.Append(buffer[i].ToString("X2"));
+                            }
+                        }
                         else
                         {
                             //Decimal point globalization
@@ -121,6 +136,13 @@ namespace ExportSQLCE
                     _sbScript.Append(System.Environment.NewLine);
                     _sbScript.Append(_sep);
                 }
+                if (hasIdentity)
+                {
+                    _sbScript.Append(string.Format("SET IDENTITY_INSERT [{0}] OFF", tableName));
+                    _sbScript.Append(System.Environment.NewLine);
+                    _sbScript.Append(_sep);
+                }
+
             });
 
             return _sbScript.ToString();
