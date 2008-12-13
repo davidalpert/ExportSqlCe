@@ -19,6 +19,23 @@ namespace ExportSQLCE
             _repository = repository;
             _sbScript = new StringBuilder(10000);
 
+            _sbScript.AppendFormat("-- {0} {1}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
+            _sbScript.AppendLine();
+
+            _sbScript.Append("-- Database information:");
+            _sbScript.AppendLine();
+
+            List<KeyValuePair<string, string>> dbinfo = _repository.GetDatabaseInfo();
+            //3.5 feature (not 3.0)
+            foreach (KeyValuePair<string, string> kv in _repository.GetDatabaseInfo())
+            {
+                _sbScript.Append("-- ");
+                _sbScript.Append(kv.Key);
+                _sbScript.Append(": ");
+                _sbScript.Append(kv.Value);
+                _sbScript.AppendLine();
+            }
+            _sbScript.AppendLine();
             // Populate all tablenames
             _tableNames = _repository.GetAllTableNames();
         }
@@ -41,7 +58,7 @@ namespace ExportSQLCE
                             case "nvarchar":
                                 _sbScript.AppendFormat("[{0}] {1}({2}) {3} {4} {5}, "
                                     , col.ColumnName
-                                    , "nvarchar"
+                                    , col.DataType
                                     , col.CharacterMaxLength
                                     , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
                                     , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
@@ -52,6 +69,16 @@ namespace ExportSQLCE
                                     , col.ColumnName
                                     , "nchar"
                                     , col.CharacterMaxLength
+                                    , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , System.Environment.NewLine);
+                                break;
+                            case "numeric":
+                                _sbScript.AppendFormat("[{0}] {1}({2},{3}) {4} {5}, "
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , col.NumericPrecision
+                                    , col.NumericScale
                                     , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
                                     , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
                                     , System.Environment.NewLine);

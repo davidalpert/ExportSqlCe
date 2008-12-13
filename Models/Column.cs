@@ -12,6 +12,7 @@ namespace ExportSQLCE
         public string DataType { get; set; }
         public int CharacterMaxLength { get; set; }
         public int NumericPrecision { get; set; }
+        public int NumericScale { get; set; }
         public Int64 AutoIncrementBy { get; set; }
         public Int64 AutoIncrementSeed { get; set; }
         public bool ColumnHasDefault { get; set; }

@@ -34,6 +34,7 @@ namespace ExportSQLCE
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
                 , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378)
+                , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10]))
             });
         }
         private void AddToListConstraints(ref List<Constraint> list, SqlCeDataReader dr)
@@ -83,6 +84,7 @@ namespace ExportSQLCE
             }
             return list;
         }
+
         private DataTable ExecuteDataTable(string commandText)
         {
             DataTable dt = new DataTable();
@@ -116,6 +118,14 @@ namespace ExportSQLCE
             return val;
         }
 
+        private List<KeyValuePair<string, string>> GetSqlCeInfo()
+        {
+            using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
+            {
+                cn.Open();
+                return cn.GetDatabaseInfo();
+            }
+        }
 
         #region IRepository Members
 
@@ -130,15 +140,22 @@ namespace ExportSQLCE
                 "SELECT table_name FROM information_schema.tables"
                 , new AddToListDelegate<string>(AddToListString));
         }
+
+        public List<KeyValuePair<string, string>> GetDatabaseInfo()
+        {
+            return GetSqlCeInfo();
+        }
+
         public List<Column> GetColumnsFromTable(string tableName)
         {
             return ExecuteReader<Column>(
-                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags " +
+                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale " +
                 "FROM         information_schema.columns " +
                 "WHERE     (table_name = '" + tableName + "') " +
                 "ORDER BY ordinal_position ASC "
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
+        
         public DataTable GetDataFromTable(string tableName)
         {
             return ExecuteDataTable(string.Format("Select * From [{0}]", tableName));
