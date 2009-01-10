@@ -45,7 +45,7 @@ namespace ExportSQLCE
             Console.WriteLine("Generating the tables....");
             _tableNames.ForEach(delegate(string tableName)
             {
-                List<Column> columns = _repository.GetColumnsFromTable(tableName);
+                List<Column> columns = _repository.GetColumnsFromTable(tableName);                
 
                 if (columns.Count > 0)
                 {
@@ -74,7 +74,7 @@ namespace ExportSQLCE
                                     , System.Environment.NewLine);
                                 break;
                             case "numeric":
-                                _sbScript.AppendFormat("[{0}] {1}({2},{3}) {4} {5}, "
+                                _sbScript.AppendFormat("[{0}] {1}({2},{3}) {4} {5} {6}, "
                                     , col.ColumnName
                                     , col.DataType
                                     , col.NumericPrecision
@@ -110,6 +110,8 @@ namespace ExportSQLCE
             Console.WriteLine("Generating the data....");
             _tableNames.ForEach(delegate(string tableName)
             {
+                // Skip rowversion column
+                Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
                 DataTable dt = _repository.GetDataFromTable(tableName);
                 bool hasIdentity = _repository.HasIdentityColumn(tableName);
                 if (hasIdentity)
@@ -126,6 +128,11 @@ namespace ExportSQLCE
                     _sbScript.Append(scriptPrefix);
                     for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
                     {
+                        //Skip rowversion column
+                        if (rowVersionOrdinal == iColumn)
+                        {
+                            continue;
+                        }
                         if (dt.Rows[iRow][iColumn] == System.DBNull.Value)
                         {
                             _sbScript.Append("null");
@@ -151,13 +158,29 @@ namespace ExportSQLCE
                                 _sbScript.Append(buffer[i].ToString("X2"));
                             }
                         }
+                        else if (dt.Columns[iColumn].DataType == typeof(System.Byte) || dt.Columns[iColumn].DataType == typeof(System.Int16) || dt.Columns[iColumn].DataType == typeof(System.Int32) || dt.Columns[iColumn].DataType == typeof(System.Int64) || dt.Columns[iColumn].DataType == typeof(System.Double) || dt.Columns[iColumn].DataType == typeof(System.Single) || dt.Columns[iColumn].DataType == typeof(System.Decimal))
+                        {
+                            string intString = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
+                            _sbScript.Append(intString);
+                        }
+                        else if (dt.Columns[iColumn].DataType == typeof(System.Boolean))
+                        {
+                            bool boolVal = (Boolean)dt.Rows[iRow][iColumn];
+                            if (boolVal) 
+                            { _sbScript.Append("1"); } 
+                            else
+                            { _sbScript.Append("0"); }
+                        }
                         else
                         {
                             //Decimal point globalization
                             string value = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
                             _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
                         }
-                        _sbScript.Append(iColumn != dt.Columns.Count - 1 ? "," : "");
+                        if (iColumn != (rowVersionOrdinal -1))
+                        {
+                            _sbScript.Append(iColumn != dt.Columns.Count - 1 ? "," : "");
+                        }
                     }
                     _sbScript.Append(");");
                     _sbScript.Append(System.Environment.NewLine);
@@ -277,12 +300,20 @@ namespace ExportSQLCE
         private string GetInsertScriptPrefix(string tableName, DataTable dt)
         {
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
+            Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
+
             sbScriptTemplate.AppendFormat("Insert Into [{0}] (", tableName);
 
             // Generate the field names first
             for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
             {
-                sbScriptTemplate.AppendFormat("[{0}]{1}", dt.Columns[iColumn].ColumnName, (iColumn != dt.Columns.Count - 1 ? "," : ""));
+                if (iColumn != rowVersionOrdinal)
+                {
+                    bool useComma = iColumn != (rowVersionOrdinal - 1);
+                    if (useComma)
+                        useComma = iColumn != dt.Columns.Count - 1;
+                    sbScriptTemplate.AppendFormat("[{0}]{1}", dt.Columns[iColumn].ColumnName, (useComma ? "," : ""));
+                }
             }
             sbScriptTemplate.AppendFormat(") Values (", tableName);
             return sbScriptTemplate.ToString();

@@ -129,9 +129,22 @@ namespace ExportSQLCE
 
         #region IRepository Members
 
-        public bool HasIdentityColumn(string tabelName)
+        public Int32 GetRowVersionOrdinal(string tableName)
         {
-            return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = '" + tabelName + "' AND AUTOINC_SEED IS NOT NULL") != null);
+            object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'rowversion'");
+            if (value != null)
+            {
+                return (int)value - 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        public bool HasIdentityColumn(string tableName)
+        {
+            return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND AUTOINC_SEED IS NOT NULL") != null);
         }
 
         public List<string> GetAllTableNames()
@@ -148,6 +161,15 @@ namespace ExportSQLCE
 
         public List<Column> GetColumnsFromTable(string tableName)
         {
+            //object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'rowversion'");
+            //if (value != null)
+            //{
+            //    RowVersionOrdinal = (int)value;
+            //}
+            //else
+            //{
+            //    RowVersionOrdinal = -1;
+            //}
             return ExecuteReader<Column>(
                 "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale " +
                 "FROM         information_schema.columns " +
@@ -195,9 +217,5 @@ namespace ExportSQLCE
 
         #endregion
 
-        #region IRepository Members
-
-
-        #endregion
     }
 }
