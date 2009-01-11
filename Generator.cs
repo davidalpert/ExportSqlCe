@@ -9,13 +9,16 @@ namespace ExportSQLCE
     class Generator
     {
         private IRepository _repository;
+        private String _outFile;
         private StringBuilder _sbScript;
         private List<string> _tableNames;
+        private Int32 _fileCounter = -1;
 
         private string _sep = "GO" + System.Environment.NewLine; 
         
-        public Generator(IRepository repository)
+        public Generator(IRepository repository, string outFile)
         {
+            _outFile = outFile;
             _repository = repository;
             _sbScript = new StringBuilder(10000);
 
@@ -129,7 +132,7 @@ namespace ExportSQLCE
                     for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
                     {
                         //Skip rowversion column
-                        if (rowVersionOrdinal == iColumn)
+                        if (rowVersionOrdinal == iColumn || dt.Columns[iColumn].ColumnName.StartsWith("__sys"))
                         {
                             continue;
                         }
@@ -177,9 +180,13 @@ namespace ExportSQLCE
                             string value = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
                             _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
                         }
-                        if (iColumn != (rowVersionOrdinal -1))
+                        if (iColumn != (rowVersionOrdinal - 1))
                         {
-                            _sbScript.Append(iColumn != dt.Columns.Count - 1 ? "," : "");
+                            if (dt.Columns.Count > iColumn + 1 && !dt.Columns[iColumn+1].ColumnName.StartsWith("__sys"))
+                            { 
+                                _sbScript.Append(iColumn != dt.Columns.Count - 1 ? "," : "");    
+                            }
+                            
                         }
                     }
                     _sbScript.Append(");");
@@ -192,7 +199,12 @@ namespace ExportSQLCE
                     _sbScript.Append(System.Environment.NewLine);
                     _sbScript.Append(_sep);
                 }
-
+                if (_sbScript.Length > 10485760)
+                {
+                    _fileCounter++;
+                    Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
+                    _sbScript.Remove(0, _sbScript.Length);
+                }
             });
 
             return _sbScript.ToString();
@@ -223,14 +235,18 @@ namespace ExportSQLCE
 
             return _sbScript.ToString();
         }
+
         public string GenerateForeignKeys()
         {
             Console.WriteLine("Generating the foreign keys....");
-            List<Constraint> foreignKeys = _repository.GetAllForeignKeys();
 
-            foreignKeys.ForEach(delegate(Constraint constraint)
+            List<Constraint> foreignKeys = _repository.GetAllForeignKeys();
+            //List<Constraint> foreignKeys = _repository.GetAllGroupedForeignKeys();
+            List<Constraint> foreingKeysGrouped = this.GetGroupForeingKeys(foreignKeys);
+
+            foreingKeysGrouped.ForEach(delegate(Constraint constraint)
             {
-                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ([{2}]) REFERENCES [{3}]([{4}]);{5}"
+                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4});{5}"
                     , constraint.ConstraintTableName
                     , constraint.ConstraintName
                     , constraint.ColumnName
@@ -241,6 +257,7 @@ namespace ExportSQLCE
             _sbScript.Append(_sep);
             return _sbScript.ToString();
         }
+
         /// <summary>
         /// Added at 18 September 2008, based on Todd Fulmino's comment on 28 August 2008, gosh it's almost a month man :P
         /// </summary>
@@ -290,31 +307,85 @@ namespace ExportSQLCE
             return _sbScript.ToString();            
         }
 
-        
-
         public string GeneratedScript
         {
             get { return _sbScript.ToString(); }
+        }
+
+        public int FileCounter
+        {
+
+            get 
+            {
+                if (_fileCounter > -1)
+                    _fileCounter++;        
+                return _fileCounter; 
+            }
+        }
+
+        // Contrib from hugo on CodePlex - thanks!
+        private List<Constraint> GetGroupForeingKeys(List<Constraint> foreignKeys)
+        {
+            List<Constraint> groupedForeingKeys = new List<Constraint>();
+
+            var uniqueConstaints = (from c in foreignKeys
+                                    select c.ConstraintName).Distinct();
+
+            foreach (string item in uniqueConstaints)
+            {
+                var constraints = (from c in foreignKeys
+                                   where c.ConstraintName.Equals(item, StringComparison.Ordinal)
+                                   select c).ToList();
+
+                if (constraints.Count == 1)
+                {
+                    groupedForeingKeys.Add(constraints[0]);
+                }
+                else
+                {
+                    Constraint newConstraint = new Constraint();
+                    newConstraint.ConstraintTableName = constraints[0].ConstraintTableName;
+                    newConstraint.ConstraintName = constraints[0].ConstraintName;
+                    newConstraint.UniqueConstraintTableName = constraints[0].UniqueConstraintTableName;
+                    newConstraint.UniqueConstraintName = constraints[0].UniqueConstraintName;
+
+                    StringBuilder columnNames = new StringBuilder();
+                    StringBuilder uniqueColumnsNames = new StringBuilder();
+                    foreach (Constraint c in constraints)
+                    {
+                        columnNames.Append(c.ColumnName).Append(", ");
+                        uniqueColumnsNames.Append(c.UniqueColumnName).Append(", ");
+                    }
+
+                    columnNames.Remove(columnNames.Length - 2, 2);
+                    uniqueColumnsNames.Remove(uniqueColumnsNames.Length - 2, 2);
+
+                    newConstraint.ColumnName = columnNames.ToString();
+                    newConstraint.UniqueColumnName = uniqueColumnsNames.ToString();
+
+                    groupedForeingKeys.Add(newConstraint);
+                }
+            }
+            return groupedForeingKeys;
         }
 
         private string GetInsertScriptPrefix(string tableName, DataTable dt)
         {
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
-
             sbScriptTemplate.AppendFormat("Insert Into [{0}] (", tableName);
 
+            StringBuilder columnNames = new StringBuilder();
             // Generate the field names first
             for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
             {
-                if (iColumn != rowVersionOrdinal)
+                if (iColumn != rowVersionOrdinal && !dt.Columns[iColumn].ColumnName.StartsWith("__sys"))
                 {
-                    bool useComma = iColumn != (rowVersionOrdinal - 1);
-                    if (useComma)
-                        useComma = iColumn != dt.Columns.Count - 1;
-                    sbScriptTemplate.AppendFormat("[{0}]{1}", dt.Columns[iColumn].ColumnName, (useComma ? "," : ""));
+                    columnNames.AppendFormat("[{0}]{1}", dt.Columns[iColumn].ColumnName, ",");
                 }
             }
+            columnNames.Remove(columnNames.Length - 1, 1);
+            sbScriptTemplate.Append(columnNames.ToString());
             sbScriptTemplate.AppendFormat(") Values (", tableName);
             return sbScriptTemplate.ToString();
         }

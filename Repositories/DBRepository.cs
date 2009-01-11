@@ -43,10 +43,10 @@ namespace ExportSQLCE
             {
                 ConstraintTableName = dr.GetString(0)
                 , ConstraintName = dr.GetString(1)
-                , ColumnName = dr.GetString(2)
+                , ColumnName = string.Format("[{0}]", dr.GetString(2))
                 , UniqueConstraintTableName = dr.GetString(3)
                 , UniqueConstraintName = dr.GetString(4)
-                , UniqueColumnName = dr.GetString(5)
+                , UniqueColumnName = string.Format("[{0}]", dr.GetString(5))
             });
         }
         private void AddToListIndexes(ref List<Index> list, SqlCeDataReader dr)
@@ -150,7 +150,7 @@ namespace ExportSQLCE
         public List<string> GetAllTableNames()
         {
             return ExecuteReader<string>(
-                "SELECT table_name FROM information_schema.tables"
+                "SELECT table_name FROM information_schema.tables WHERE table_name NOT LIKE '__sys%'"
                 , new AddToListDelegate<string>(AddToListString));
         }
 
@@ -161,19 +161,11 @@ namespace ExportSQLCE
 
         public List<Column> GetColumnsFromTable(string tableName)
         {
-            //object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'rowversion'");
-            //if (value != null)
-            //{
-            //    RowVersionOrdinal = (int)value;
-            //}
-            //else
-            //{
-            //    RowVersionOrdinal = -1;
-            //}
             return ExecuteReader<Column>(
                 "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale " +
                 "FROM         information_schema.columns " +
                 "WHERE     (table_name = '" + tableName + "') " +
+                "AND     (column_name NOT LIKE '__sys%') " +
                 "ORDER BY ordinal_position ASC "
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
@@ -182,6 +174,7 @@ namespace ExportSQLCE
         {
             return ExecuteDataTable(string.Format("Select * From [{0}]", tableName));
         }
+        
         public List<string> GetPrimaryKeysFromTable(string tableName)
         {
             return ExecuteReader<string>(
@@ -191,26 +184,31 @@ namespace ExportSQLCE
                 "where u.TABLE_NAME = '" + tableName + "' and c.CONSTRAINT_TYPE = 'PRIMARY KEY'"
                 , new AddToListDelegate<string>(AddToListString));
         }
+        
         public List<Constraint> GetAllForeignKeys()
         {
             return ExecuteReader<Constraint>(
-                "SELECT     r.constraint_table_name, r.constraint_name, c.column_name, r.unique_constraint_table_name, r.unique_constraint_name, u.column_name AS unique_column_name " +
-                "FROM         information_schema.REFERENTIAL_CONSTRAINTS AS r " +
-                "   INNER JOIN information_schema.key_column_usage AS c ON r.constraint_name = c.constraint_name AND r.constraint_table_name = c.table_name " +
-                "   INNER JOIN information_schema.key_column_usage AS u ON r.unique_constraint_name = u.constraint_name AND r.unique_constraint_table_name = u.table_name "
+                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME, KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
+                "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
+                "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
+                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
+                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, UQ_ORDINAL_POSITION"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
         }
+
         /// <summary>
         /// Get the query based on http://msdn.microsoft.com/en-us/library/ms174156.aspx
         /// </summary>
         /// <returns></returns>
+        
         public List<Index> GetIndexesFromTable(string tableName)
         {
             return ExecuteReader<Index>(
                 "SELECT     TABLE_NAME, INDEX_NAME, PRIMARY_KEY, [UNIQUE], [CLUSTERED], ORDINAL_POSITION, COLUMN_NAME, COLLATION AS SORT_ORDER " + // Weird column name COLLATION FOR SORT_ORDER
                 "FROM         Information_Schema.Indexes "+
                 "WHERE     (PRIMARY_KEY = 0) " +
-                "   AND (TABLE_NAME = '" + tableName + "') " +
+                "   AND (TABLE_NAME = '" + tableName + "')  " +
+                "   AND (INDEX_NAME NOT LIKE '__sys%')  " +
                 "ORDER BY TABLE_NAME, INDEX_NAME, ORDINAL_POSITION"
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }

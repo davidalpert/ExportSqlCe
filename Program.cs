@@ -17,7 +17,7 @@ namespace ExportSQLCE
                 string outputFileLocation = args[1];
 
                 IRepository repository = new DBRepository(connectionString);
-                Generator generator = new Generator(repository);
+                Generator generator = new Generator(repository, outputFileLocation);
 
                 // The execution below has to be in this sequence
                 generator.GenerateTables();
@@ -28,7 +28,7 @@ namespace ExportSQLCE
                 generator.GenerateIndex();
                 Console.WriteLine("Generate script Completed");
 
-                Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation);
+                Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                 Console.WriteLine("Sent the script into the output file : {0}", outputFileLocation);
             }
         }
