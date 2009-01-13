@@ -253,8 +253,8 @@ namespace ExportSQLCE
                     , constraint.UniqueConstraintTableName
                     , constraint.UniqueColumnName
                     , System.Environment.NewLine);
-            });
-            _sbScript.Append(_sep);
+                _sbScript.Append(_sep);
+            });            
             return _sbScript.ToString();
         }
 

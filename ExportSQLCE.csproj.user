@@ -4,6 +4,6 @@
     </StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <StartArguments>"Data Source=C:\Northwind.sdf" nwind.sql</StartArguments>
+    <StartArguments>"Data Source=C:\Data\SQLCE\ExportSqlCETest\Northwind.sdf" nwind.sql</StartArguments>
   </PropertyGroup>
 </Project>

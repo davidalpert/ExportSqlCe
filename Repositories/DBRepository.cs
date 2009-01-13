@@ -123,7 +123,11 @@ namespace ExportSQLCE
             using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
             {
                 cn.Open();
-                return cn.GetDatabaseInfo();
+                List<KeyValuePair<string, string>> valueList = new List<KeyValuePair<string, string>>();
+                valueList = cn.GetDatabaseInfo();
+                valueList.Add(new KeyValuePair<string,string>("Database", cn.Database));
+                valueList.Add(new KeyValuePair<string, string>("ServerVersion", cn.ServerVersion));
+                return valueList;
             }
         }
 
