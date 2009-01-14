@@ -146,15 +146,28 @@ namespace ExportSQLCE
             }
         }
 
+        public Int64 GetRowCount(string tableName)
+        {
+            object value = ExecuteScalar("SELECT CARDINALITY FROM INFORMATION_SCHEMA.INDEXES WHERE PRIMARY_KEY = 1 AND TABLE_NAME = N'" + tableName + "'");
+            if (value != null)
+            {
+                return (Int64)value;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
         public bool HasIdentityColumn(string tableName)
         {
-            return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND AUTOINC_SEED IS NOT NULL") != null);
+            return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = N'" + tableName + "' AND AUTOINC_SEED IS NOT NULL") != null);
         }
 
         public List<string> GetAllTableNames()
         {
             return ExecuteReader<string>(
-                "SELECT table_name FROM information_schema.tables WHERE table_name NOT LIKE '__sys%'"
+                "SELECT table_name FROM information_schema.tables WHERE TABLE_TYPE = N'TABLE'"
                 , new AddToListDelegate<string>(AddToListString));
         }
 

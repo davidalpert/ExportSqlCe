@@ -18,6 +18,7 @@ namespace ExportSQLCE
         List<KeyValuePair<string, string>> GetDatabaseInfo();
         Boolean HasIdentityColumn(string tableName);
         Int32 GetRowVersionOrdinal(string tableName);
+        Int64 GetRowCount(string tableName);
     }
 
 

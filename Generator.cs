@@ -39,8 +39,27 @@ namespace ExportSQLCE
                 _sbScript.AppendLine();
             }
             _sbScript.AppendLine();
+
             // Populate all tablenames
             _tableNames = _repository.GetAllTableNames();
+            _sbScript.Append("-- User Table information:");
+            _sbScript.AppendLine();
+            _sbScript.Append("-- ");
+            _sbScript.Append("Number of tables: ");
+            _sbScript.Append(_tableNames.Count);
+            _sbScript.AppendLine();
+            
+            foreach (string tableName in _tableNames)
+            {
+                Int64 rowCount = _repository.GetRowCount(tableName);
+                _sbScript.Append("-- ");
+                _sbScript.Append(tableName);
+                _sbScript.Append(": ");
+                _sbScript.Append(rowCount);
+                _sbScript.Append(" row(s)");
+                _sbScript.AppendLine();
+            }
+            _sbScript.AppendLine();
         }
 
         public string GenerateTables()
