@@ -29,7 +29,6 @@ namespace ExportSQLCE
             _sbScript.AppendLine();
 
             List<KeyValuePair<string, string>> dbinfo = _repository.GetDatabaseInfo();
-            //3.5 feature (not 3.0)
             foreach (KeyValuePair<string, string> kv in _repository.GetDatabaseInfo())
             {
                 _sbScript.Append("-- ");
@@ -136,13 +135,14 @@ namespace ExportSQLCE
                 Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
                 DataTable dt = _repository.GetDataFromTable(tableName);
                 bool hasIdentity = _repository.HasIdentityColumn(tableName);
+#if V35
                 if (hasIdentity)
                 {
                     _sbScript.Append(string.Format("SET IDENTITY_INSERT [{0}] ON", tableName));
                     _sbScript.Append(System.Environment.NewLine);
                     _sbScript.Append(_sep);
                 }
-                
+#endif         
                 string scriptPrefix = GetInsertScriptPrefix(tableName, dt);
                 
                 for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
@@ -212,12 +212,14 @@ namespace ExportSQLCE
                     _sbScript.Append(System.Environment.NewLine);
                     _sbScript.Append(_sep);
                 }
+#if V35
                 if (hasIdentity)
                 {
                     _sbScript.Append(string.Format("SET IDENTITY_INSERT [{0}] OFF", tableName));
                     _sbScript.Append(System.Environment.NewLine);
                     _sbScript.Append(_sep);
                 }
+#endif
                 if (_sbScript.Length > 10485760)
                 {
                     _fileCounter++;

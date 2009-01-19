@@ -29,8 +29,10 @@ namespace ExportSQLCE
                 , DataType = dr.GetString(2)
                 , CharacterMaxLength = (dr.IsDBNull(3) ? 0 : dr.GetInt32(3))
                 , NumericPrecision = (dr.IsDBNull(4) ? 0 : Convert.ToInt32(dr[4]))
+#if V35
                 , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5]))
                 , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6]))
+#endif
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
                 , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378)
@@ -124,7 +126,9 @@ namespace ExportSQLCE
             {
                 cn.Open();
                 List<KeyValuePair<string, string>> valueList = new List<KeyValuePair<string, string>>();
+#if V35
                 valueList = cn.GetDatabaseInfo();
+#endif
                 valueList.Add(new KeyValuePair<string,string>("Database", cn.Database));
                 valueList.Add(new KeyValuePair<string, string>("ServerVersion", cn.ServerVersion));
                 return valueList;
