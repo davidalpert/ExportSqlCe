@@ -104,7 +104,24 @@ namespace ExportSQLCE
                                     , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
                                     , System.Environment.NewLine);
                                 break;
-                            default :
+                            case "binary":
+                                _sbScript.AppendFormat("[{0}] {1}({2}) {3} {4} {5}, "
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , col.CharacterMaxLength
+                                    , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , System.Environment.NewLine);
+                                break;
+                            case "varbinary":
+                                _sbScript.AppendFormat("[{0}] {1}({2}) {3} {4} {5}, "
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , col.CharacterMaxLength                                    , (col.IsNullable == YesNoOptionEnum.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , System.Environment.NewLine);
+                                break;
+                            default:
                                 _sbScript.AppendFormat("[{0}] {1} {2} {3} {4}{5} {6}, "
                                     , col.ColumnName
                                     , col.DataType
