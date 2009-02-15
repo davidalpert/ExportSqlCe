@@ -284,12 +284,14 @@ namespace ExportSQLCE
 
             foreingKeysGrouped.ForEach(delegate(Constraint constraint)
             {
-                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4});{5}"
+                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
                     , constraint.ConstraintTableName
                     , constraint.ConstraintName
                     , constraint.ColumnName
                     , constraint.UniqueConstraintTableName
                     , constraint.UniqueColumnName
+                    , constraint.DeleteRule
+                    , constraint.UpdateRule
                     , System.Environment.NewLine);
                 _sbScript.Append(_sep);
             });            

@@ -12,5 +12,7 @@ namespace ExportSQLCE
         public string UniqueConstraintTableName { get; set; }
         public string UniqueConstraintName { get; set; }
         public string UniqueColumnName { get; set; }
+        public string DeleteRule { get; set; }
+        public string UpdateRule { get; set; }
     }
 }
