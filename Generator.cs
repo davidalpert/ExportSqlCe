@@ -146,7 +146,7 @@ namespace ExportSQLCE
         public string GenerateTableContent()
         {
             Console.WriteLine("Generating the data....");
-            _tableNames.ForEach(delegate(string tableName)
+            foreach (string tableName in _tableNames)
             {
                 // Skip rowversion column
                 Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
@@ -161,12 +161,13 @@ namespace ExportSQLCE
                 }
 #endif         
                 string scriptPrefix = GetInsertScriptPrefix(tableName, dt);
-                
+
                 for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
                 {
                     _sbScript.Append(scriptPrefix);
                     for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
                     {
+                        
                         //Skip rowversion column
                         if (rowVersionOrdinal == iColumn || dt.Columns[iColumn].ColumnName.StartsWith("__sys"))
                         {
@@ -205,7 +206,7 @@ namespace ExportSQLCE
                         else if (dt.Columns[iColumn].DataType == typeof(System.Boolean))
                         {
                             bool boolVal = (Boolean)dt.Rows[iRow][iColumn];
-                            if (boolVal) 
+                            if (boolVal)
                             { _sbScript.Append("1"); } 
                             else
                             { _sbScript.Append("0"); }
@@ -216,15 +217,11 @@ namespace ExportSQLCE
                             string value = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
                             _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
                         }
-                        if (iColumn != (rowVersionOrdinal - 1))
-                        {
-                            if (dt.Columns.Count > iColumn + 1 && !dt.Columns[iColumn+1].ColumnName.StartsWith("__sys"))
-                            { 
-                                _sbScript.Append(iColumn != dt.Columns.Count - 1 ? "," : "");    
-                            }
-                            
-                        }
+                        _sbScript.Append(",");
                     }
+                    // remove trailing comma
+                    _sbScript.Remove(_sbScript.Length - 1, 1);
+
                     _sbScript.Append(");");
                     _sbScript.Append(System.Environment.NewLine);
                     _sbScript.Append(_sep);
@@ -243,7 +240,7 @@ namespace ExportSQLCE
                     Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
                     _sbScript.Remove(0, _sbScript.Length);
                 }
-            });
+            };
 
             return _sbScript.ToString();
         }        
