@@ -133,6 +133,12 @@ namespace ExportSQLCE
 #endif
                 valueList.Add(new KeyValuePair<string,string>("Database", cn.Database));
                 valueList.Add(new KeyValuePair<string, string>("ServerVersion", cn.ServerVersion));
+                if (System.IO.File.Exists(cn.Database))
+                { 
+                    System.IO.FileInfo fi = new System.IO.FileInfo(cn.Database);
+                    valueList.Add(new KeyValuePair<string,string>("DatabaseSize", fi.Length.ToString()));
+                    valueList.Add(new KeyValuePair<string, string>("Created", fi.CreationTime.ToShortDateString() + " " + fi.CreationTime.ToShortTimeString()));
+                }
                 return valueList;
             }
         }
