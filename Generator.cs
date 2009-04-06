@@ -186,7 +186,7 @@ namespace ExportSQLCE
                             DateTime date = (DateTime)dt.Rows[iRow][iColumn];
                             //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
                             _sbScript.Append("{ts '");
-                            _sbScript.Append(date.ToString("yyyy-MM-dd hh:mm:ss"));
+                            _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss"));
                             _sbScript.Append("'}");
                         }
                         else if (dt.Columns[iColumn].DataType == typeof(System.Byte[]))
@@ -385,7 +385,8 @@ namespace ExportSQLCE
                     newConstraint.ConstraintName = constraints[0].ConstraintName;
                     newConstraint.UniqueConstraintTableName = constraints[0].UniqueConstraintTableName;
                     newConstraint.UniqueConstraintName = constraints[0].UniqueConstraintName;
-
+                    newConstraint.DeleteRule = constraints[0].DeleteRule;
+                    newConstraint.UpdateRule = constraints[0].UpdateRule;
                     StringBuilder columnNames = new StringBuilder();
                     StringBuilder uniqueColumnsNames = new StringBuilder();
                     foreach (Constraint c in constraints)
