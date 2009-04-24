@@ -8,8 +8,8 @@
     <ProjectGuid>{04C8B191-0701-444F-B249-92ED2811DD60}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ExportSQLCE</RootNamespace>
-    <AssemblyName>ExportSQLCE</AssemblyName>
+    <RootNamespace>ExportSqlCE</RootNamespace>
+    <AssemblyName>ExportSqlCE</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkSubset>

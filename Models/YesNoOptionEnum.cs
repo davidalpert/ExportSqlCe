@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ExportSQLCE
+﻿namespace ExportSqlCE
 {
-    public enum YesNoOptionEnum
+    public enum YesNoOption
     {
         YES
         , NO

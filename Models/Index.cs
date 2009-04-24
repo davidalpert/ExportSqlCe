@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ExportSQLCE
+﻿namespace ExportSqlCE
 {
     /// <summary>
     /// TABLE_NAME, INDEX_NAME, PRIMARY_KEY, [UNIQUE], [CLUSTERED], ORDINAL_POSITION, COLUMN_NAME, COLLATION as SORT_ORDER
@@ -12,7 +7,6 @@ namespace ExportSQLCE
     {
         public string TableName { get; set; }
         public string IndexName { get; set; }
-        public bool PrimaryKey { get; set; }
         public bool Unique { get; set; }
         public bool Clustered { get; set; }
         public int OrdinalPosition { get; set; }

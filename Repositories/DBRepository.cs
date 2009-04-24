@@ -2,64 +2,78 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
-using System.Linq;
-using System.Text;
 
-namespace ExportSQLCE
+namespace ExportSqlCE
 {
     class DBRepository : IRepository
     {
-        private string _connectionString;
+        private readonly string _connectionString;
+        private SqlCeConnection cn;
+        private delegate void AddToListDelegate<T>(ref List<T> list, SqlCeDataReader dr);
+
         public DBRepository(string connectionString)
         {
             _connectionString = connectionString;
+            cn = new SqlCeConnection(_connectionString);
+            cn.Open();
         }
 
-        private delegate void AddToListDelegate<T>(ref List<T> list, SqlCeDataReader dr);
-        private void AddToListString(ref List<string> list, SqlCeDataReader dr)
+        public void Dispose()
+        {
+            if (cn != null)
+            {
+                cn.Close();
+                cn = null;
+            }
+        }
+
+        private static void AddToListString(ref List<string> list, SqlCeDataReader dr)
         {
             list.Add(dr.GetString(0));
         }
-        private void AddToListColumns(ref List<Column> list, SqlCeDataReader dr)
+
+        private static void AddToListColumns(ref List<Column> list, SqlCeDataReader dr)
         {
-            list.Add(new Column()
+            list.Add(new Column
             {
                 ColumnName = dr.GetString(0)
-                , IsNullable = (YesNoOptionEnum)Enum.Parse(typeof(YesNoOptionEnum), dr.GetString(1))
+                , IsNullable = (YesNoOption)Enum.Parse(typeof(YesNoOption), dr.GetString(1))
                 , DataType = dr.GetString(2)
                 , CharacterMaxLength = (dr.IsDBNull(3) ? 0 : dr.GetInt32(3))
-                , NumericPrecision = (dr.IsDBNull(4) ? 0 : Convert.ToInt32(dr[4]))
+                , NumericPrecision = (dr.IsDBNull(4) ? 0 : Convert.ToInt32(dr[4], System.Globalization.CultureInfo.InvariantCulture))
 #if V35
-                , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5]))
-                , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6]))
+                , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5], System.Globalization.CultureInfo.InvariantCulture))
+                , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
 #endif
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
                 , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378)
-                , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10]))
+                , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
+                , TableName = dr.GetString(11)
             });
         }
-        private void AddToListConstraints(ref List<Constraint> list, SqlCeDataReader dr)
+
+        private static void AddToListConstraints(ref List<Constraint> list, SqlCeDataReader dr)
         {
-            list.Add(new Constraint()
+            list.Add(new Constraint
             {
                 ConstraintTableName = dr.GetString(0)
                 , ConstraintName = dr.GetString(1)
-                , ColumnName = string.Format("[{0}]", dr.GetString(2))
+                , ColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(2))
                 , UniqueConstraintTableName = dr.GetString(3)
                 , UniqueConstraintName = dr.GetString(4)
-                , UniqueColumnName = string.Format("[{0}]", dr.GetString(5))
+                , UniqueColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(5))
                 , UpdateRule = dr.GetString(6)
                 , DeleteRule  = dr.GetString(7)
             });
         }
+
         private void AddToListIndexes(ref List<Index> list, SqlCeDataReader dr)
         {
-            list.Add(new Index()
+            list.Add(new Index
             {
                 TableName = dr.GetString(0)
                 , IndexName = dr.GetString(1)
-                , PrimaryKey = dr.GetBoolean(2)
                 , Unique = dr.GetBoolean(3)
                 , Clustered = dr.GetBoolean(4)
                 , OrdinalPosition = dr.GetInt32(5)
@@ -72,36 +86,35 @@ namespace ExportSQLCE
         private List<T> ExecuteReader<T>(string commandText, AddToListDelegate<T> AddToListMethod)
         {
             List<T> list = new List<T>();
-            using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
+            using (var cmd = new SqlCeCommand(commandText, cn))
             {
-                cn.Open();
-                using (SqlCeCommand cmd = new SqlCeCommand(
-                    commandText, cn))
+                using (var dr = cmd.ExecuteReader())
                 {
-                    using (SqlCeDataReader dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                            AddToListMethod(ref list, dr);
-
-                    }
+                    while (dr.Read())
+                        AddToListMethod(ref list, dr);
                 }
             }
             return list;
         }
 
+        private IDataReader ExecuteDataReader(string commandText)
+        {
+            using (var cmd = new SqlCeCommand(commandText, cn))
+            {
+                cmd.CommandType = CommandType.TableDirect;
+                return cmd.ExecuteReader();
+            }
+        }
+
         private DataTable ExecuteDataTable(string commandText)
         {
             DataTable dt = new DataTable();
-            using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
+            dt.Locale = System.Globalization.CultureInfo.InvariantCulture;
+            using (var cmd = new SqlCeCommand(commandText, cn))
             {
-                cn.Open();
-                using (SqlCeCommand cmd = new SqlCeCommand(
-                    commandText, cn))
+                using (var da = new SqlCeDataAdapter(cmd))
                 {
-                    using (SqlCeDataAdapter da = new SqlCeDataAdapter(cmd))
-                    {
-                        da.Fill(dt);
-                    }
+                    da.Fill(dt);
                 }
             }
             return dt;
@@ -109,38 +122,29 @@ namespace ExportSQLCE
 
         private object ExecuteScalar(string commandText)
         {
-            object val = null;
-            using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
+            object val;
+            using (var cmd = new SqlCeCommand(commandText, cn))
             {
-                cn.Open();
-                using (SqlCeCommand cmd = new SqlCeCommand(
-                    commandText, cn))
-                {
-                    val = cmd.ExecuteScalar();
-                }
+                val = cmd.ExecuteScalar();
             }
             return val;
         }
 
         private List<KeyValuePair<string, string>> GetSqlCeInfo()
         {
-            using (SqlCeConnection cn = new SqlCeConnection(_connectionString))
-            {
-                cn.Open();
-                List<KeyValuePair<string, string>> valueList = new List<KeyValuePair<string, string>>();
+            List<KeyValuePair<string, string>> valueList = new List<KeyValuePair<string, string>>();
 #if V35
-                valueList = cn.GetDatabaseInfo();
+            valueList = cn.GetDatabaseInfo();
 #endif
-                valueList.Add(new KeyValuePair<string,string>("Database", cn.Database));
-                valueList.Add(new KeyValuePair<string, string>("ServerVersion", cn.ServerVersion));
-                if (System.IO.File.Exists(cn.Database))
-                { 
-                    System.IO.FileInfo fi = new System.IO.FileInfo(cn.Database);
-                    valueList.Add(new KeyValuePair<string,string>("DatabaseSize", fi.Length.ToString()));
-                    valueList.Add(new KeyValuePair<string, string>("Created", fi.CreationTime.ToShortDateString() + " " + fi.CreationTime.ToShortTimeString()));
-                }
-                return valueList;
+            valueList.Add(new KeyValuePair<string,string>("Database", cn.Database));
+            valueList.Add(new KeyValuePair<string, string>("ServerVersion", cn.ServerVersion));
+            if (System.IO.File.Exists(cn.Database))
+            { 
+                System.IO.FileInfo fi = new System.IO.FileInfo(cn.Database);
+                valueList.Add(new KeyValuePair<string, string>("DatabaseSize", fi.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                valueList.Add(new KeyValuePair<string, string>("Created", fi.CreationTime.ToShortDateString() + " " + fi.CreationTime.ToShortTimeString()));
             }
+            return valueList;
         }
 
         #region IRepository Members
@@ -152,10 +156,7 @@ namespace ExportSQLCE
             {
                 return (int)value - 1;
             }
-            else
-            {
-                return -1;
-            }
+            return -1;
         }
 
         public Int64 GetRowCount(string tableName)
@@ -165,10 +166,7 @@ namespace ExportSQLCE
             {
                 return (Int64)value;
             }
-            else
-            {
-                return -1;
-            }
+            return -1;
         }
 
         public bool HasIdentityColumn(string tableName)
@@ -178,7 +176,7 @@ namespace ExportSQLCE
 
         public List<string> GetAllTableNames()
         {
-            return ExecuteReader<string>(
+            return ExecuteReader(
                 "SELECT table_name FROM information_schema.tables WHERE TABLE_TYPE = N'TABLE'"
                 , new AddToListDelegate<string>(AddToListString));
         }
@@ -188,25 +186,29 @@ namespace ExportSQLCE
             return GetSqlCeInfo();
         }
 
-        public List<Column> GetColumnsFromTable(string tableName)
+        public List<Column> GetColumnsFromTable()
         {
-            return ExecuteReader<Column>(
-                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale " +
+            return ExecuteReader(
+                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name  " +
                 "FROM         information_schema.columns " +
-                "WHERE     (table_name = '" + tableName + "') " +
-                "AND     (column_name NOT LIKE '__sys%') " +
+                "WHERE      (column_name NOT LIKE '__sys%') " +
                 "ORDER BY ordinal_position ASC "
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
-        
+
+        public IDataReader GetDataFromReader(string tableName)
+        {
+            return ExecuteDataReader(tableName);
+        }
+
         public DataTable GetDataFromTable(string tableName)
         {
-            return ExecuteDataTable(string.Format("Select * From [{0}]", tableName));
+            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select * From [{0}]", tableName));
         }
         
         public List<string> GetPrimaryKeysFromTable(string tableName)
         {
-            return ExecuteReader<string>(
+            return ExecuteReader(
                 "SELECT u.COLUMN_NAME " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
                     "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME " +
@@ -216,7 +218,7 @@ namespace ExportSQLCE
         
         public List<Constraint> GetAllForeignKeys()
         {
-            return ExecuteReader<Constraint>(
+            return ExecuteReader(
                 "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
                 "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
                 "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
@@ -233,7 +235,7 @@ namespace ExportSQLCE
         
         public List<Index> GetIndexesFromTable(string tableName)
         {
-            return ExecuteReader<Index>(
+            return ExecuteReader(
                 "SELECT     TABLE_NAME, INDEX_NAME, PRIMARY_KEY, [UNIQUE], [CLUSTERED], ORDINAL_POSITION, COLUMN_NAME, COLLATION AS SORT_ORDER " + // Weird column name COLLATION FOR SORT_ORDER
                 "FROM         Information_Schema.Indexes "+
                 "WHERE     (PRIMARY_KEY = 0) " +
@@ -244,6 +246,5 @@ namespace ExportSQLCE
         }
 
         #endregion
-
     }
 }

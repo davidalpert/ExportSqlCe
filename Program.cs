@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
-namespace ExportSQLCE
+namespace ExportSqlCE
 {
     class Program
     {
@@ -18,21 +16,23 @@ namespace ExportSQLCE
                     string connectionString = args[0];
                     string outputFileLocation = args[1];
 
-                    IRepository repository = new DBRepository(connectionString);
-                    Generator generator = new Generator(repository, outputFileLocation);
+                    using (IRepository repository = new DBRepository(connectionString))
+                    {
+                        var generator = new Generator(repository, outputFileLocation);
+                        Console.WriteLine("Starting... " + DateTime.Now.ToLongTimeString());
+                        // The execution below has to be in this sequence
+                        generator.GenerateTables();
+                        generator.GenerateTableContent();
+                        generator.GeneratePrimaryKeys();
+                        generator.GenerateForeignKeys();
+                        // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
+                        generator.GenerateIndex();
+                        Console.WriteLine("Generate script Completed " + DateTime.Now.ToLongTimeString());
 
-                    // The execution below has to be in this sequence
-                    generator.GenerateTables();
-                    generator.GenerateTableContent();
-                    generator.GeneratePrimaryKeys();
-                    generator.GenerateForeignKeys();
-                    // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
-                    generator.GenerateIndex();
-                    Console.WriteLine("Generate script Completed");
+                        Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
 
-                    Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
-
-                    Console.WriteLine("Sent the script into the output file : {0}", outputFileLocation);
+                        Console.WriteLine("Sent the script into the output file : {0}", outputFileLocation);
+                    }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException e)
                 {
@@ -40,7 +40,7 @@ namespace ExportSQLCE
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error: " + ex.ToString());
+                    Console.WriteLine("Error: " + ex);
                 }
             }
         }
@@ -59,7 +59,7 @@ namespace ExportSQLCE
             // Enumerate the errors to a message box.
             foreach (System.Data.SqlServerCe.SqlCeError err in errorCollection)
             {
-                bld.Append("\n Error Code: " + err.HResult.ToString("X"));
+                bld.Append("\n Error Code: " + err.HResult.ToString("X", System.Globalization.CultureInfo.InvariantCulture));
                 bld.Append("\n Message   : " + err.Message);
                 bld.Append("\n Minor Err.: " + err.NativeError);
                 bld.Append("\n Source    : " + err.Source);
@@ -73,7 +73,7 @@ namespace ExportSQLCE
                 // Enumerate each string parameter for the error.
                 foreach (string errPar in err.ErrorParameters)
                 {
-                    if (String.Empty != errPar) bld.Append("\n Err. Par. : " + errPar);
+                    if (!string.IsNullOrEmpty(errPar)) bld.Append("\n Err. Par. : " + errPar);
                 }
 
                 Console.WriteLine(bld.ToString());
