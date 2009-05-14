@@ -18,8 +18,9 @@ namespace ExportSqlCE
 
                     using (IRepository repository = new DBRepository(connectionString))
                     {
+                        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                        sw.Start();
                         var generator = new Generator(repository, outputFileLocation);
-                        Console.WriteLine("Starting... " + DateTime.Now.ToLongTimeString());
                         // The execution below has to be in this sequence
                         generator.GenerateTables();
                         generator.GenerateTableContent();
@@ -27,11 +28,9 @@ namespace ExportSqlCE
                         generator.GenerateForeignKeys();
                         // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
                         generator.GenerateIndex();
-                        Console.WriteLine("Generate script Completed " + DateTime.Now.ToLongTimeString());
-
+                        
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
-
-                        Console.WriteLine("Sent the script into the output file : {0}", outputFileLocation);
+                        Console.WriteLine("Sent the script into the output file : {0} in {1} second(s)", outputFileLocation, (sw.ElapsedMilliseconds / 1000).ToString());
                     }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException e)
