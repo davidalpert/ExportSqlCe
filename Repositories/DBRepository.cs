@@ -191,7 +191,7 @@ namespace ExportSqlCE
             return ExecuteReader(
                 "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name  " +
                 "FROM         information_schema.columns " +
-                "WHERE      (column_name NOT LIKE '__sys%' ESCAPE '_')  " +
+                "WHERE      SUBSTRING(COLUMN_NAME, 1,5) <> '__sys'  " +
                 "ORDER BY ordinal_position ASC "
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
@@ -240,7 +240,7 @@ namespace ExportSqlCE
                 "FROM         Information_Schema.Indexes "+
                 "WHERE     (PRIMARY_KEY = 0) " +
                 "   AND (TABLE_NAME = '" + tableName + "')  " +
-                "   AND (INDEX_NAME NOT LIKE '__sys%' ESCAPE '_' )   " +
+                "   AND (SUBSTRING(COLUMN_NAME, 1,5) <> '__sys')   " +
                 "ORDER BY TABLE_NAME, INDEX_NAME, ORDINAL_POSITION"
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
