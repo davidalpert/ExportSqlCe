@@ -12,6 +12,7 @@ namespace ExportSqlCE
         IDataReader GetDataFromReader(string tableName);
         List<string> GetPrimaryKeysFromTable(string tableName);
         List<Constraint> GetAllForeignKeys();
+        List<Constraint> GetAllForeignKeys(string tableName);
         List<Index> GetIndexesFromTable(string tableName);
         List<KeyValuePair<string, string>> GetDatabaseInfo();
         Boolean HasIdentityColumn(string tableName);

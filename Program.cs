@@ -22,10 +22,15 @@ namespace ExportSqlCE
                         sw.Start();
                         var generator = new Generator(repository, outputFileLocation);
                         // The execution below has to be in this sequence
-                        generator.GenerateTables();
+                        Console.WriteLine("Generating the tables....");
+                        generator.GenerateTable();
+                        Console.WriteLine("Generating the data....");
                         generator.GenerateTableContent();
+                        Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
+                        Console.WriteLine("Generating the foreign keys....");
                         generator.GenerateForeignKeys();
+                        Console.WriteLine("Generating the indexes....");
                         // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
                         generator.GenerateIndex();
                         

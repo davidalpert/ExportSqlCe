@@ -1,6 +1,6 @@
 ﻿namespace ExportSqlCE
 {
-    public enum YesNoOption
+    internal enum YesNoOption
     {
         YES
         , NO

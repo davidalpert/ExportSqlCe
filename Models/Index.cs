@@ -18,7 +18,7 @@
 
     enum SortOrderEnum
     {
-        Asc
-        , Desc
+        ASC
+        , DESC
     }
 }

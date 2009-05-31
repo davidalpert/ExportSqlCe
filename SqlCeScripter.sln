@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCeScripter", "SqlCeScripter.csproj", "{2283F49B-5BAF-4A43-B636-48A0202B9C2E}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{6ADDA299-86DF-4051-A40A-63D8CC67BABE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2283F49B-5BAF-4A43-B636-48A0202B9C2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2283F49B-5BAF-4A43-B636-48A0202B9C2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2283F49B-5BAF-4A43-B636-48A0202B9C2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2283F49B-5BAF-4A43-B636-48A0202B9C2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ADDA299-86DF-4051-A40A-63D8CC67BABE}.Debug|Any CPU.ActiveCfg = Debug
+		{6ADDA299-86DF-4051-A40A-63D8CC67BABE}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
