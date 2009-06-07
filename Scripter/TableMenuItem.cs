@@ -42,7 +42,7 @@ namespace SqlCeScripter
 
             item.DropDownItems.Add(new ToolStripSeparator());
 
-            ToolStripMenuItem aboutItem = new ToolStripMenuItem("About");
+            ToolStripMenuItem aboutItem = new ToolStripMenuItem("About...");
             aboutItem.Image = Properties.Resources.data_out;
             aboutItem.Click += new EventHandler(AboutItem_Click);
             item.DropDownItems.Add(aboutItem);

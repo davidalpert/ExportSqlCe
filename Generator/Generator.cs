@@ -21,10 +21,13 @@ namespace ExportSqlCE
             Init(repository, outFile);
         }
 
-        internal void GenerateAllAndSave()
+        internal void GenerateAllAndSave(bool includeData)
         {
             GenerateTable();
-            GenerateTableContent();
+            if (includeData)
+            {
+                GenerateTableContent();
+            }
             GeneratePrimaryKeys();
             GenerateForeignKeys();
             GenerateIndex();

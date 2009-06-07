@@ -4126,7 +4126,7 @@
         "ARPHELPLINK" = "8:http://www.codeplex.com/ExportSqlCE"
         "Title" = "8:Setup"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:Laurent Lopez / Erik Ejlskov Jensen"
+        "ARPCONTACT" = "8:Erik Ejlskov Jensen"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:ExportSqlCe installer"
         "ARPURLINFOABOUT" = "8:http://erikej.blogspot.com"
@@ -4818,7 +4818,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D9BE09CFF60D4218BE321C3664FBD76E"
             {
-            "SourcePath" = "8:..\\obj\\Release\\SqlCeScripter.dll"
+            "SourcePath" = "8:..\\obj\\x86\\Release\\SqlCeScripter.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_728CBA6BCE324F7D83DD659E51A5BEC8"
