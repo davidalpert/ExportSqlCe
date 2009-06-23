@@ -5,9 +5,9 @@ using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 
 namespace SqlCeScripter
 {
-    public class MenuItem : ToolsMenuItemBase, IWinformsMenuHandler
+    internal class MenuItem : ToolsMenuItemBase, IWinformsMenuHandler
     {
-        public MenuItem()
+        internal MenuItem()
         {
             this.Text = "Script database...";
         }

@@ -9,9 +9,9 @@ using System.Diagnostics;
 
 namespace SqlCeScripter
 {
-    public partial class AboutDlg : Form
+    internal partial class AboutDlg : Form
     {
-        public AboutDlg()
+        internal AboutDlg()
         {
             InitializeComponent();
         }

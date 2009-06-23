@@ -36,12 +36,13 @@ namespace ExportSqlCE
 
         internal string GenerateTableScript(string tableName)
         {
-            GenerateTable(tableName);
+            GenerateTableCreate(tableName);
             GeneratePrimaryKeys(tableName);
             GenerateForeignKeys(tableName);
             GenerateIndex(tableName);
             return GeneratedScript;
         }
+
 
         internal string GenerateTableData(string tableName)
         {
@@ -116,11 +117,11 @@ namespace ExportSqlCE
         internal void GenerateTable()
         {
             foreach (string tableName in _tableNames)
-                GenerateTable(tableName);
+                GenerateTableCreate(tableName);
 
         }
 
-        internal void GenerateTable(string tableName)
+        internal void GenerateTableCreate(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
@@ -420,14 +421,145 @@ namespace ExportSqlCE
 
         }
 
+        internal void GenerateTableSelect(string tableName)
+        {
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            if (columns.Count > 0)
+            {
+                _sbScript.AppendFormat("SELECT ", tableName);
+
+                columns.ForEach(delegate(Column col)
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}]{1}      ,"
+                        , col.ColumnName
+                        , Environment.NewLine);
+                });
+
+                // Remove the last comma and spaces
+                _sbScript.Remove(_sbScript.Length - 7, 7);
+                _sbScript.AppendFormat("  FROM [{0}]{1}", tableName, Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+        }
+
+
+//INSERT INTO [Northwind].[dbo].[Customers]
+//           ([CustomerID]
+//           ,[CompanyName]
+//           ,[ContactName]
+//           ,[ContactTitle]
+//           ,[Address]
+//           ,[City]
+//           ,[Region]
+//           ,[PostalCode]
+//           ,[Country]
+//           ,[Phone]
+//           ,[Fax])
+//     VALUES
+//           (<CustomerID, nchar(5),>
+//           ,<CompanyName, nvarchar(40),>
+//           ,<ContactName, nvarchar(30),>
+//           ,<ContactTitle, nvarchar(30),>
+//           ,<Address, nvarchar(60),>
+//           ,<City, nvarchar(15),>
+//           ,<Region, nvarchar(15),>
+//           ,<PostalCode, nvarchar(10),>
+//           ,<Country, nvarchar(15),>
+//           ,<Phone, nvarchar(24),>
+//           ,<Fax, nvarchar(24),>)
+//GO
+
+        internal void GenerateTableInsert(string tableName)
+        {
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            if (columns.Count > 0)
+            {
+                _sbScript.AppendFormat("INSERT INTO [{0}]", tableName);
+                _sbScript.AppendFormat(Environment.NewLine);
+                _sbScript.Append("           (");
+
+                columns.ForEach(delegate(Column col)
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}]{1}           ,"
+                        , col.ColumnName
+                        , Environment.NewLine);
+                });
+
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 13, 13);
+                _sbScript.AppendFormat("){0}     VALUES{1}           (", Environment.NewLine, Environment.NewLine);
+                //TODO Script values...
+                _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+        }
+
+//UPDATE [Northwind].[dbo].[Customers]
+//   SET [CustomerID] = <CustomerID, nchar(5),>
+//      ,[CompanyName] = <CompanyName, nvarchar(40),>
+//      ,[ContactName] = <ContactName, nvarchar(30),>
+//      ,[ContactTitle] = <ContactTitle, nvarchar(30),>
+//      ,[Address] = <Address, nvarchar(60),>
+//      ,[City] = <City, nvarchar(15),>
+//      ,[Region] = <Region, nvarchar(15),>
+//      ,[PostalCode] = <PostalCode, nvarchar(10),>
+//      ,[Country] = <Country, nvarchar(15),>
+//      ,[Phone] = <Phone, nvarchar(24),>
+//      ,[Fax] = <Fax, nvarchar(24),>
+// WHERE <Search Conditions,,>
+//GO
+
+        internal void GenerateTableUpdate(string tableName)
+        {
+            return;
+
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            if (columns.Count > 0)
+            {
+                _sbScript.AppendFormat("CREATE TABLE [{0}] (", tableName);
+
+                columns.ForEach(delegate(Column col)
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1} {2} {3} {4}{5} {6}, "
+                        , col.ColumnName
+                        , col.DataType
+                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                        , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                        , Environment.NewLine);
+                });
+
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 11, 11);
+
+                _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+        }
+
+        internal void GenerateTableDelete(string tableName)
+        {
+            _sbScript.AppendFormat("DELETE FROM [{0}]{1}", tableName, Environment.NewLine);
+            _sbScript.AppendFormat("WHERE <Search Conditions,,>{0}", Environment.NewLine); 
+            _sbScript.Append(_sep);
+        }
+
+        internal void GenerateTableDrop(string tableName)
+        {
+            _sbScript.AppendFormat("DROP TABLE [{0}]{1}", tableName, Environment.NewLine);
+            _sbScript.Append(_sep);
+        }
+
         internal void GeneratePrimaryKeys()
         {
-
             foreach(string tableName in _tableNames)
             {
                 GeneratePrimaryKeys(tableName);
             }
-
         }
 
         public void GeneratePrimaryKeys(string tableName)
@@ -453,7 +585,6 @@ namespace ExportSqlCE
 
         internal void GenerateForeignKeys()
         {
-
             List<Constraint> foreignKeys = _repository.GetAllForeignKeys();
             //List<Constraint> foreignKeys = _repository.GetAllGroupedForeignKeys();
             List<Constraint> foreingKeysGrouped = GetGroupForeingKeys(foreignKeys);

@@ -7,7 +7,7 @@ using System.Windows.Forms;
 namespace SqlCeScripter
 {
     // menu item class to create a separator
-    public class ToolStripSeparatorMenuItem : ToolsMenuItemBase, IWinformsMenuHandler
+    internal class ToolStripSeparatorMenuItem : ToolsMenuItemBase, IWinformsMenuHandler
     {
         protected override void Invoke()
         {

@@ -6,9 +6,9 @@ using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 
 namespace SqlCeScripter
 {
-    public class TableMenuItem : ToolsMenuItemBase, IWinformsMenuHandler
+    internal class TableMenuItem : ToolsMenuItemBase, IWinformsMenuHandler
     {
-        public TableMenuItem()
+        internal TableMenuItem()
         {
             this.Text = "Script";
         }
@@ -23,29 +23,114 @@ namespace SqlCeScripter
             return new TableMenuItem();
         }
 
-        #region IWinformsMenuHandler Members
-
-        public System.Windows.Forms.ToolStripItem[] GetMenuItems()
+        private enum Action
         {
-            ToolStripMenuItem item = new ToolStripMenuItem("Script");
+            Create,
+            Drop,
+            DropAndCreate,
+            Select,
+            Insert,
+            Update,
+            Delete,
+            Data
+        }
 
-            ToolStripMenuItem insertItem = new ToolStripMenuItem("Table as CREATE");
-            insertItem.Tag = false;
-            insertItem.Click += new EventHandler(item_Click);
+        private enum Output
+        {
+            Editor,
+            File,
+            Clipboard
+        }
 
-            ToolStripMenuItem insertItem2 = new ToolStripMenuItem("Data as INSERT");
-            insertItem2.Tag = true;
-            insertItem2.Click += new EventHandler(item_Click);
-
-            item.DropDownItems.Add(insertItem);
-            item.DropDownItems.Add(insertItem2);
-
-            item.DropDownItems.Add(new ToolStripSeparator());
-
+        private ToolStripMenuItem AboutItem()
+        {
             ToolStripMenuItem aboutItem = new ToolStripMenuItem("About...");
             aboutItem.Image = Properties.Resources.data_out;
             aboutItem.Click += new EventHandler(AboutItem_Click);
-            item.DropDownItems.Add(aboutItem);
+            return aboutItem;
+        }
+
+        private ToolStripMenuItem ScriptItem()
+        {
+            ToolStripMenuItem scriptItem = new ToolStripMenuItem("New Query Editor Window");
+            scriptItem.Tag = Output.Editor;
+            scriptItem.Click += new EventHandler(item_Click);
+            return scriptItem;
+        }
+
+        private ToolStripMenuItem FileItem()
+        {
+            ToolStripMenuItem fileItem = new ToolStripMenuItem("File...");
+            fileItem.Tag = Output.File;
+            fileItem.Click += new EventHandler(item_Click);
+            return fileItem;
+        }
+
+        private ToolStripMenuItem ClipboardItem()
+        {
+            ToolStripMenuItem clipboardItem = new ToolStripMenuItem("Clipboard");
+            clipboardItem.Tag = Output.Clipboard;
+            clipboardItem.Click += new EventHandler(item_Click);
+            return clipboardItem;
+        }
+
+        #region IWinformsMenuHandler Members
+
+
+        public System.Windows.Forms.ToolStripItem[] GetMenuItems()
+        {
+            ToolStripMenuItem item = new ToolStripMenuItem("Script Table as");
+
+            ToolStripMenuItem createItem = new ToolStripMenuItem("CREATE To");
+            createItem.Tag = Action.Create;
+            createItem.DropDownItems.AddRange( 
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+
+            ToolStripMenuItem dropItem = new ToolStripMenuItem("DROP To");
+            dropItem.Tag = Action.Drop;
+            dropItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+
+            ToolStripMenuItem dropCreateItem = new ToolStripMenuItem("DROP And CREATE To");
+            dropCreateItem.Tag = Action.DropAndCreate;
+            dropCreateItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+
+            ToolStripMenuItem selectItem = new ToolStripMenuItem("SELECT To");
+            selectItem.Tag = Action.Select;
+            selectItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+
+            ToolStripMenuItem insertItem = new ToolStripMenuItem("INSERT To");
+            insertItem.Tag = Action.Insert;
+            insertItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+
+            ToolStripMenuItem updateItem = new ToolStripMenuItem("UPDATE To");
+            updateItem.Tag = Action.Update;
+            updateItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+            
+            ToolStripMenuItem deleteItem = new ToolStripMenuItem("DELETE To");
+            deleteItem.Tag = Action.Delete;
+            deleteItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+            
+            ToolStripMenuItem dataItem = new ToolStripMenuItem("Data (INSERTs) To");
+            dataItem.Tag = Action.Data;
+            dataItem.DropDownItems.AddRange(
+                new ToolStripItem[] { ScriptItem(), new ToolStripSeparator(), FileItem(), ClipboardItem(), new ToolStripSeparator(), AboutItem() });
+
+            item.DropDownItems.Add(createItem);
+            item.DropDownItems.Add(dropItem);
+            item.DropDownItems.Add(dropCreateItem);
+            item.DropDownItems.Add(new ToolStripSeparator());
+            item.DropDownItems.Add(selectItem);
+            item.DropDownItems.Add(insertItem);
+            item.DropDownItems.Add(updateItem);
+            item.DropDownItems.Add(deleteItem);
+            item.DropDownItems.Add(new ToolStripSeparator());
+            item.DropDownItems.Add(dataItem);
 
             return new ToolStripItem[] { item };
 
@@ -62,7 +147,11 @@ namespace SqlCeScripter
         void item_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
-            bool scriptData = (bool)item.Tag;
+
+            string fileName = string.Empty;
+
+            Action action = (Action)item.OwnerItem.Tag;
+            Output output = (Output)item.Tag;
             try
             {
                 string connectionString = this.Parent.Connection.ConnectionString;
@@ -71,23 +160,80 @@ namespace SqlCeScripter
                 using (IRepository repository = new DBRepository(connectionString))
                 {
                     var generator = new Generator(repository, string.Empty);
-                    // create new document
-                    ServiceCache.ScriptFactory.CreateNewBlankScript(Microsoft.SqlServer.Management.UI.VSIntegration.Editors.ScriptType.SqlCe);                    
 
-                    // Generate script
-                    if (scriptData)
+                    switch (output)
                     {
-                        generator.GenerateTableData(this.Parent.Name);
+                        case Output.Editor:
+                            // create new document
+                            ServiceCache.ScriptFactory.CreateNewBlankScript(Microsoft.SqlServer.Management.UI.VSIntegration.Editors.ScriptType.SqlCe);
+                            break;
+                        case Output.File:
+                            SaveFileDialog fd = new SaveFileDialog();
+                            fd.AutoUpgradeEnabled = true;
+                            fd.Title = "Save generated database script as";
+                            fd.Filter = "SQL Server Compact Script (*.sqlce)|*.sqlce|SQL Server Script (*.sql)|*.sql|All Files(*.*)|";
+                            fd.OverwritePrompt = true;
+                            fd.ValidateNames = true;
+                            if (fd.ShowDialog() == DialogResult.OK)
+                            {
+                                fileName = fd.FileName;
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                    else
+
+                    switch (action)
                     {
-                        generator.GenerateTableScript(this.Parent.Name);
+                        case Action.Create:
+                            generator.GenerateTableScript(this.Parent.Name);
+                            break;
+                        case Action.Drop:
+                            generator.GenerateTableDrop(this.Parent.Name);
+                            break;
+                        case Action.DropAndCreate:
+                            generator.GenerateTableDrop(this.Parent.Name);
+                            generator.GenerateTableScript(this.Parent.Name);
+                            break;
+                        case Action.Select:
+                            generator.GenerateTableSelect(this.Parent.Name);
+                            break;
+                        case Action.Insert:
+                            generator.GenerateTableInsert(this.Parent.Name);
+                            break;
+                        case Action.Update:
+                            //TODO implement
+                            break;
+                        case Action.Delete:
+                            generator.GenerateTableDelete(this.Parent.Name);
+                            break;
+                        case Action.Data:
+                            generator.GenerateTableData(this.Parent.Name);
+                            break;
+                        default:
+                            break;
                     }
-
-                    // insert SQL script to document
-                    EnvDTE.TextDocument doc = (EnvDTE.TextDocument)ServiceCache.ExtensibilityModel.Application.ActiveDocument.Object(null);
-
-                    doc.EndPoint.CreateEditPoint().Insert(generator.GeneratedScript);
+                    switch (output)
+                    {
+                        case Output.Editor:
+                            // insert SQL script to document
+                            EnvDTE.TextDocument doc = (EnvDTE.TextDocument)ServiceCache.ExtensibilityModel.Application.ActiveDocument.Object(null);
+                            doc.EndPoint.CreateEditPoint().Insert(generator.GeneratedScript);
+                            doc.DTE.ActiveDocument.Saved = true;
+                            break;
+                        case Output.File:
+                            if (!string.IsNullOrEmpty(fileName))
+                            {
+                                System.IO.File.WriteAllText(fileName, generator.GeneratedScript);
+                            }
+                            break;
+                        case Output.Clipboard:
+                            Clipboard.Clear();
+                            Clipboard.SetText(generator.GeneratedScript, TextDataFormat.UnicodeText);
+                            break;
+                        default:
+                            break;
+                    }
                 }
 
             }
