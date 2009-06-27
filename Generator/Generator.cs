@@ -132,71 +132,73 @@ namespace ExportSqlCE
 
                 columns.ForEach(delegate(Column col)
                 {
+                    string line = string.Empty;
                     switch (col.DataType)
                     {
                         case "nvarchar":
-                            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4} {5}, "
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
                                 , col.ColumnName
                                 , col.DataType
                                 , col.CharacterMaxLength
                                 , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                                 , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                , Environment.NewLine);
+                                );
                             break;
                         case "nchar":
-                            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4} {5}, "
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
                                 , col.ColumnName
                                 , "nchar"
                                 , col.CharacterMaxLength
                                 , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                                 , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                , Environment.NewLine);
+                                );
                             break;
                         case "numeric":
-                            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2},{3}) {4} {5} {6}, "
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2},{3}) {4} {5}"
                                 , col.ColumnName
                                 , col.DataType
                                 , col.NumericPrecision
                                 , col.NumericScale
                                 , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                                 , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                , Environment.NewLine);
+                                );
                             break;
                         case "binary":
-                            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4} {5}, "
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
                                 , col.ColumnName
                                 , col.DataType
                                 , col.CharacterMaxLength
                                 , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                                 , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                , Environment.NewLine);
+                                );
                             break;
                         case "varbinary":
-                            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4} {5}, "
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
                                 , col.ColumnName
                                 , col.DataType
                                 , col.CharacterMaxLength
                                 , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                                 , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                , Environment.NewLine);
+                                );
                             break;
                         default:
-                            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1} {2} {3} {4}{5} {6}, "
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1} {2} {3} {4}{5}"
                                 , col.ColumnName
                                 , col.DataType
                                 , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                                 , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
                                 , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
                                 , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
-                                , Environment.NewLine);
+                                );
                             break;
                     }
+                    _sbScript.AppendFormat("{0}{1}, ",line.Trim(), Environment.NewLine);
                 });
 
                 // Remove the last comma
@@ -443,33 +445,6 @@ namespace ExportSqlCE
             }
         }
 
-
-//INSERT INTO [Northwind].[dbo].[Customers]
-//           ([CustomerID]
-//           ,[CompanyName]
-//           ,[ContactName]
-//           ,[ContactTitle]
-//           ,[Address]
-//           ,[City]
-//           ,[Region]
-//           ,[PostalCode]
-//           ,[Country]
-//           ,[Phone]
-//           ,[Fax])
-//     VALUES
-//           (<CustomerID, nchar(5),>
-//           ,<CompanyName, nvarchar(40),>
-//           ,<ContactName, nvarchar(30),>
-//           ,<ContactTitle, nvarchar(30),>
-//           ,<Address, nvarchar(60),>
-//           ,<City, nvarchar(15),>
-//           ,<Region, nvarchar(15),>
-//           ,<PostalCode, nvarchar(10),>
-//           ,<Country, nvarchar(15),>
-//           ,<Phone, nvarchar(24),>
-//           ,<Fax, nvarchar(24),>)
-//GO
-
         internal void GenerateTableInsert(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -490,7 +465,16 @@ namespace ExportSqlCE
                 // Remove the last comma
                 _sbScript.Remove(_sbScript.Length - 13, 13);
                 _sbScript.AppendFormat("){0}     VALUES{1}           (", Environment.NewLine, Environment.NewLine);
-                //TODO Script values...
+                columns.ForEach(delegate(Column col)
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                        "<{0}, {1}>,{2}           ,"
+                        , col.ColumnName
+                        , col.ShortType
+                        , Environment.NewLine);
+                });
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 15, 15);
                 _sbScript.AppendFormat(");{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
@@ -513,30 +497,26 @@ namespace ExportSqlCE
 
         internal void GenerateTableUpdate(string tableName)
         {
-            return;
-
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
             {
-                _sbScript.AppendFormat("CREATE TABLE [{0}] (", tableName);
+                _sbScript.AppendFormat("UPDATE [{0}] (", tableName);
+                _sbScript.AppendFormat(Environment.NewLine);
+                _sbScript.Append("   SET ");
 
                 columns.ForEach(delegate(Column col)
                 {
                     _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                        "[{0}] {1} {2} {3} {4}{5} {6}, "
+                        "[{0}] = <{1}, {2}>{3}      ,"
                         , col.ColumnName
-                        , col.DataType
-                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                        , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                        , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                        , col.ColumnName
+                        , col.ShortType
                         , Environment.NewLine);
                 });
 
                 // Remove the last comma
-                _sbScript.Remove(_sbScript.Length - 11, 11);
-
-                _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                _sbScript.Remove(_sbScript.Length - 7, 7);
+                _sbScript.AppendFormat("WHERE <Search Conditions,,>;{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
         }
@@ -544,13 +524,13 @@ namespace ExportSqlCE
         internal void GenerateTableDelete(string tableName)
         {
             _sbScript.AppendFormat("DELETE FROM [{0}]{1}", tableName, Environment.NewLine);
-            _sbScript.AppendFormat("WHERE <Search Conditions,,>{0}", Environment.NewLine); 
+            _sbScript.AppendFormat("WHERE <Search Conditions,,>;{0}", Environment.NewLine); 
             _sbScript.Append(_sep);
         }
 
         internal void GenerateTableDrop(string tableName)
         {
-            _sbScript.AppendFormat("DROP TABLE [{0}]{1}", tableName, Environment.NewLine);
+            _sbScript.AppendFormat("DROP TABLE [{0}];{1}", tableName, Environment.NewLine);
             _sbScript.Append(_sep);
         }
 

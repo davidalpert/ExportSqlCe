@@ -2,7 +2,7 @@
 
 namespace ExportSqlCE
 {
-    struct Column
+    class Column
     {
         public string ColumnName { get; set; }
         public YesNoOption IsNullable { get; set; }
@@ -16,5 +16,24 @@ namespace ExportSqlCE
         public string ColumnDefault { get; set; }
         public bool RowGuidCol { get; set; }
         public string TableName { get; set; }
+        public string ShortType
+        {
+            get
+
+            {
+                if (this.DataType == "nchar" || this.DataType == "nvarchar" || this.DataType == "binary" || this.DataType == "varbinary")
+                {
+                    return string.Format("{0}({1}),", this.DataType, this.CharacterMaxLength);
+                }
+                else if (this.DataType == "numeric")
+                {
+                    return string.Format("{0}({1},{2}),", this.DataType, this.NumericScale, this.NumericPrecision);
+                }
+                else
+                {
+                    return string.Format("{0},", this.DataType);
+                }
+            }
+        }
     }
 }

@@ -202,7 +202,7 @@ namespace SqlCeScripter
                             generator.GenerateTableInsert(this.Parent.Name);
                             break;
                         case Action.Update:
-                            //TODO implement
+                            generator.GenerateTableUpdate(this.Parent.Name);
                             break;
                         case Action.Delete:
                             generator.GenerateTableDelete(this.Parent.Name);
