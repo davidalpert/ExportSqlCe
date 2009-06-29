@@ -27,7 +27,7 @@ namespace ExportSqlCE
                 }
                 else if (this.DataType == "numeric")
                 {
-                    return string.Format("{0}({1},{2}),", this.DataType, this.NumericScale, this.NumericPrecision);
+                    return string.Format("{0}({1},{2}),", this.DataType, this.NumericPrecision, this.NumericScale);
                 }
                 else
                 {

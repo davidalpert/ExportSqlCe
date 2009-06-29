@@ -463,12 +463,12 @@ namespace ExportSqlCE
                 });
 
                 // Remove the last comma
-                _sbScript.Remove(_sbScript.Length - 13, 13);
+                _sbScript.Remove(_sbScript.Length - 14, 14);
                 _sbScript.AppendFormat("){0}     VALUES{1}           (", Environment.NewLine, Environment.NewLine);
                 columns.ForEach(delegate(Column col)
                 {
                     _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                        "<{0}, {1}>,{2}           ,"
+                        "<{0}, {1}>{2}           ,"
                         , col.ColumnName
                         , col.ShortType
                         , Environment.NewLine);
@@ -516,7 +516,7 @@ namespace ExportSqlCE
 
                 // Remove the last comma
                 _sbScript.Remove(_sbScript.Length - 7, 7);
-                _sbScript.AppendFormat("WHERE <Search Conditions,,>;{0}", Environment.NewLine);
+                _sbScript.AppendFormat(" WHERE <Search Conditions,,>;{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
         }
