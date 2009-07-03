@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+// http://www.simple-talk.com/dotnet/visual-studio/updates-to-setup-projects/
 [assembly: AssemblyTitle("ExportSQLCE")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
