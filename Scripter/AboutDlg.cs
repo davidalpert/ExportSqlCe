@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace SqlCeScripter
 {
@@ -14,6 +15,7 @@ namespace SqlCeScripter
         internal AboutDlg()
         {
             InitializeComponent();
+            this.lblVersion.Text = Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
 
         private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
