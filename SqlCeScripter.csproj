@@ -50,6 +50,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Extensibility, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Kent.Boogaart.HelperTrinity, Version=1.2.0.0, Culture=neutral, PublicKeyToken=cc96fa93a217f7a1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Kent.Boogaart.HelperTrinity.dll</HintPath>
+    </Reference>
+    <Reference Include="Kent.Boogaart.KBCsv, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Kent.Boogaart.KBCsv.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.SqlServer.ConnectionInfo, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SqlServer.RegSvrEnum, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SqlServer.SqlTools.VSIntegration, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=x86">
@@ -89,13 +97,20 @@
     <Compile Include="Scripter\Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scripter\ImportOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Scripter\ImportOptions.Designer.cs">
+      <DependentUpon>ImportOptions.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Scripter\ImportTableMenuItem.cs" />
     <Compile Include="Scripter\MenuItem.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Scripter\TableMenuItem.cs" />
+    <Compile Include="Scripter\ScriptTableMenuItem.cs" />
     <Compile Include="Scripter\ToolStripSeparatorMenuItem.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -149,6 +164,9 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Scripter\ImportOptions.resx">
+      <DependentUpon>ImportOptions.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

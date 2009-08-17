@@ -480,6 +480,82 @@ namespace ExportSqlCE
             }
         }
 
+        internal void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values)
+        {
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            if (columns.Count > 0)
+            {
+                _sbScript.AppendFormat("INSERT INTO [{0}] (", tableName);
+
+                foreach (string field in fields)
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}],", field);                
+                }
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 1, 1);
+                _sbScript.Append(") VALUES (");
+                int i = 0;
+                foreach (string value in values)
+                {
+                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == fields[i]).Single();
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        _sbScript.Append("null");
+                    }
+                    else if (column.DataType == "nchar" || column.DataType == "nvarchar" || column.DataType == "ntext")
+                    {
+                        _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''"));
+                    }
+                    else if (column.DataType == "datetime")
+                    {
+                        DateTime date = DateTime.Parse(value);
+                        //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                        _sbScript.Append("{ts '");
+                        _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+                        _sbScript.Append("'}");
+                    }
+                    else if (column.DataType == "bit")
+                    {
+                        bool boolVal = Boolean.Parse(value);
+                        if (boolVal)
+                        { _sbScript.Append("1"); }
+                        else
+                        { _sbScript.Append("0"); }
+                    }
+                    else
+                    {
+                        //Decimal point globalization
+                        string val = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+                        _sbScript.AppendFormat("'{0}'", val.Replace("'", "''"));
+                    }
+                    _sbScript.Append(",");
+                    i++;
+                }
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 1, 1);
+                _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+        }
+
+        internal bool ValidColumns(string tableName, IList<string> columns)
+        {
+            List<Column> cols = (from a in _allColumns
+                                where a.TableName == tableName
+                                && columns.Contains(a.ColumnName)
+                                select a).ToList();
+            if (cols.Count == columns.Count)
+            {
+                return true;
+            }
+            else
+            {
+                _sbScript.Append("-- Cannot create script, one or more field names on first line are invalid");
+                return false;
+            }
+        }
+
         internal void GenerateTableUpdate(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
