@@ -674,12 +674,10 @@ namespace ExportSqlCE
         /// <returns></returns>
         internal void GenerateIndex()
         {
-
             foreach (string tableName in _tableNames)
             {
                 GenerateIndex(tableName);
             }
-
         }
 
         private void GenerateIndex(string tableName)
@@ -783,6 +781,13 @@ namespace ExportSqlCE
             sbScriptTemplate.Append(columnNames.ToString());
             sbScriptTemplate.Append(") Values (");
             return sbScriptTemplate.ToString();
+        }
+
+        internal List<string> GenerateTableColumns(string tableName)
+        {
+            return  (from a in _allColumns
+                    where a.TableName == tableName
+                    select a.ColumnName).ToList();
         }
     }
 }
