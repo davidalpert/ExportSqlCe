@@ -25,8 +25,6 @@ namespace SqlCeScripter
             }
         }
 
-        public string TableName { get; set; }
-
         private List<string> sampleHeader;
 
         public List<string> SampleHeader 

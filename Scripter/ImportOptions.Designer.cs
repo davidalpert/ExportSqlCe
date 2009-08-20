@@ -132,8 +132,10 @@
             // 
             // ImportOptions
             // 
+            this.AcceptButton = this.bntOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(409, 191);
             this.Controls.Add(this.lblSample);
             this.Controls.Add(this.label3);

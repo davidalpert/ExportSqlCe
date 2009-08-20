@@ -128,7 +128,7 @@ namespace ExportSqlCE
             {
                 // /****** Object:  Table [dbo].[EventLog]    Script Date: 05/31/2009 10:04:32 ******/
 
-                _sbScript.AppendFormat("CREATE TABLE [{0}] (", tableName);
+                _sbScript.AppendFormat("CREATE TABLE [{0}] ({1}  ", tableName, Environment.NewLine);
 
                 columns.ForEach(delegate(Column col)
                 {

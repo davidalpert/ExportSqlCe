@@ -130,6 +130,15 @@ namespace ExportSqlCE
             return val;
         }
 
+        private void ExecuteNonQuery(string commandText)
+        {
+            using (var cmd = new SqlCeCommand(commandText, cn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
         private List<KeyValuePair<string, string>> GetSqlCeInfo()
         {
             List<KeyValuePair<string, string>> valueList = new List<KeyValuePair<string, string>>();
@@ -258,6 +267,13 @@ namespace ExportSqlCE
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
 
+        public void RenameTable(string oldName, string newName)
+        {
+            ExecuteNonQuery(string.Format("sp_rename '{0}', '{1}';", oldName, newName));            
+        }
+
+
         #endregion
+
     }
 }

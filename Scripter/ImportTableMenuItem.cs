@@ -21,7 +21,7 @@ namespace SqlCeScripter
         
         public override object Clone()
         {
-            return new ScriptTableMenuItem();
+            return new ImportTableMenuItem();
         }
 
         private enum Action
@@ -103,8 +103,7 @@ namespace SqlCeScripter
             try
             {
                 string connectionString = this.Parent.Connection.ConnectionString;
-                //TODO This could break, but how to fix it??
-                connectionString = connectionString.Replace(";Timeout = \"30\"", string.Empty);
+                connectionString = connectionString.Replace(string.Format(";Timeout = \"{0}\"", this.Parent.Connection.ConnectionTimeout), string.Empty);
 
                 using (IRepository repository = new DBRepository(connectionString))
                 {
