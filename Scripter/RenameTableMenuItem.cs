@@ -72,7 +72,7 @@ namespace SqlCeScripter
             INodeInformation[] nodes;
             int nodeCount;
 
-            IObjectExplorerService objectExplorer = ServiceCache.GetObjectExplorer();
+            IObjectExplorerService objectExplorer = (IObjectExplorerService)ServiceCache.ServiceProvider.GetService(typeof(IObjectExplorerService));
             objectExplorer.GetSelectedNodes(out nodeCount, out nodes);
             INodeInformation node = (nodeCount > 0 ? nodes[0] : null);
             if (node != null)

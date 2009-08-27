@@ -766,7 +766,7 @@ namespace ExportSqlCE
         {
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
-            sbScriptTemplate.AppendFormat("Insert Into [{0}] (", tableName);
+            sbScriptTemplate.AppendFormat("INSERT INTO [{0}] (", tableName);
 
             StringBuilder columnNames = new StringBuilder();
             // Generate the field names first
@@ -779,7 +779,7 @@ namespace ExportSqlCE
             }
             columnNames.Remove(columnNames.Length - 1, 1);
             sbScriptTemplate.Append(columnNames.ToString());
-            sbScriptTemplate.Append(") Values (");
+            sbScriptTemplate.Append(") VALUES (");
             return sbScriptTemplate.ToString();
         }
 
