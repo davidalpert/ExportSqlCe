@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using ExportSqlCE;
 using Microsoft.SqlServer.Management.UI.VSIntegration;
 using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
+using Microsoft.SqlServer.Management.SqlStudio.Explorer;
 
 namespace SqlCeScripter
 {
@@ -71,8 +72,11 @@ namespace SqlCeScripter
         {
             INodeInformation[] nodes;
             int nodeCount;
-
+#if R2
+            ObjectExplorerService objectExplorer = (ObjectExplorerService)ServiceCache.ServiceProvider.GetService(typeof(IObjectExplorerService));
+#else
             IObjectExplorerService objectExplorer = (IObjectExplorerService)ServiceCache.ServiceProvider.GetService(typeof(IObjectExplorerService));
+#endif
             objectExplorer.GetSelectedNodes(out nodeCount, out nodes);
             INodeInformation node = (nodeCount > 0 ? nodes[0] : null);
             if (node != null)

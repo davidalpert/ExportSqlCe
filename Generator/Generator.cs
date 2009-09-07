@@ -561,7 +561,7 @@ namespace ExportSqlCE
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
             {
-                _sbScript.AppendFormat("UPDATE [{0}] (", tableName);
+                _sbScript.AppendFormat("UPDATE [{0}] ", tableName);
                 _sbScript.AppendFormat(Environment.NewLine);
                 _sbScript.Append("   SET ");
 
