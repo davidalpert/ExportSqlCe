@@ -31,7 +31,7 @@ namespace ExportSqlCE
             GeneratePrimaryKeys();
             GenerateForeignKeys();
             GenerateIndex();
-            Helper.WriteIntoFile(GeneratedScript, _outFile, -1);
+            Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
         }
 
         internal string GenerateTableScript(string tableName)
