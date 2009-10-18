@@ -141,6 +141,7 @@
     <Compile Include="Scripter\Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scripter\EditTableMenuItem.cs" />
     <Compile Include="Scripter\RenameOptions.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -160,6 +161,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Scripter\ResultsetGrid.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Scripter\ResultsetGrid.Designer.cs">
+      <DependentUpon>ResultsetGrid.cs</DependentUpon>
     </Compile>
     <Compile Include="Scripter\ScriptTableMenuItem.cs" />
     <Compile Include="Scripter\ToolStripSeparatorMenuItem.cs">
@@ -221,6 +228,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Scripter\ImportOptions.resx">
       <DependentUpon>ImportOptions.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Scripter\ResultsetGrid.resx">
+      <DependentUpon>ResultsetGrid.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

@@ -27,5 +27,10 @@ namespace ExportSqlCE
                 }
             }
         }
+
+        internal static string FixConnectionString(string connectionString, int timeout)
+        {
+            return connectionString.Replace(string.Format(";Timeout = \"{0}\"", timeout), string.Empty);
+        }
     }
 }

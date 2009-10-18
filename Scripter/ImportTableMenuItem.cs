@@ -102,9 +102,8 @@ namespace SqlCeScripter
             Output output = (Output)item.Tag;
             try
             {
-                string connectionString = this.Parent.Connection.ConnectionString;
-                connectionString = connectionString.Replace(string.Format(";Timeout = \"{0}\"", this.Parent.Connection.ConnectionTimeout), string.Empty);
-
+                string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
+                
                 using (IRepository repository = new DBRepository(connectionString))
                 {
                     var generator = new Generator(repository, string.Empty);

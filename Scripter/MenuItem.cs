@@ -59,13 +59,13 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
-            string connectionString = this.Parent.Connection.ConnectionString;
+            
+            string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
             string fileName;
             
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             bool scriptData = (bool)item.Tag;
 
-            connectionString = connectionString.Replace(";Timeout = \"30\"", string.Empty);
             SaveFileDialog fd = new SaveFileDialog();
             fd.AutoUpgradeEnabled = true;
             fd.Title = "Save generated database script as";
