@@ -30,7 +30,7 @@ namespace SqlCeScripter
 
         public System.Windows.Forms.ToolStripItem[] GetMenuItems()
         {
-            ToolStripMenuItem item = new ToolStripMenuItem("Edit Data");
+            ToolStripMenuItem item = new ToolStripMenuItem("Show Table Data");
             item.Click += new EventHandler(item_Click);
             return new ToolStripItem[] { item };
         }
@@ -60,10 +60,13 @@ namespace SqlCeScripter
                     object controlObject = null;
                     System.Reflection.Assembly asm = System.Reflection.Assembly.GetExecutingAssembly();
 
+                    string dbName = System.IO.Path.GetFileNameWithoutExtension(this.Parent.Connection.ServerName);
+
                     EnvDTE.Window toolWindow = windows2.CreateToolWindow2(Connect.CurrentAddin,
                                                                    asm.Location,
                                                                    "SqlCeScripter.Scripter.ResultsetGrid",
-                                                                   "Edit " + this.Parent.Name, "{452480E3-98F9-4e2d-9411-F0F6BDB67B6E}",
+                                                                   string.Format("{0} - {1}", dbName, this.Parent.Name), 
+                                                                   "{" + Guid.NewGuid().ToString() + "}",
                                                                    ref controlObject);
 
                     if (toolWindow != null)
