@@ -552,6 +552,8 @@ namespace ExportSqlCE
             else
             {
                 _sbScript.Append("-- Cannot create script, one or more field names on first line are invalid");
+                _sbScript.Append(Environment.NewLine);
+                _sbScript.Append("-- Also check that correct separator is chosen");
                 return false;
             }
         }

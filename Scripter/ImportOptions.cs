@@ -107,7 +107,7 @@ namespace SqlCeScripter
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.Filter = "CSV (Comma delimited) (*.csv)|*.csv|All Files(*.*)|";
+                ofd.Filter = "CSV (Comma delimited) (*.csv)|*.csv|All Files(*.*)|*.*";
                 ofd.CheckFileExists = true;
                 ofd.Multiselect = false;
                 ofd.ValidateNames = true;

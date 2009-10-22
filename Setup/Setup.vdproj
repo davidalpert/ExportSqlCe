@@ -340,13 +340,13 @@
         "Entry"
         {
         "MsmKey" = "8:_302068968D957DE379E287EC8D1F3D9C"
-        "OwnerKey" = "8:_337FBFAFA20C8EBE486F84DEC658DAB3"
+        "OwnerKey" = "8:_D9BE09CFF60D4218BE321C3664FBD76E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_302068968D957DE379E287EC8D1F3D9C"
-        "OwnerKey" = "8:_D9BE09CFF60D4218BE321C3664FBD76E"
+        "OwnerKey" = "8:_337FBFAFA20C8EBE486F84DEC658DAB3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2116,6 +2116,12 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_302068968D957DE379E287EC8D1F3D9C"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_09EAB6F1CC28D09EC91A1E2A382C34B4"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -2249,12 +2255,6 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_337FBFAFA20C8EBE486F84DEC658DAB3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_302068968D957DE379E287EC8D1F3D9C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -5147,14 +5147,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ExportSqlCe"
-        "ProductCode" = "8:{7E84D7C9-0DF1-4618-ACB1-45E694740B81}"
-        "PackageCode" = "8:{9FDE8A49-6B91-41F0-A8A1-E97B47F54DB2}"
+        "ProductCode" = "8:{4FFA65BD-C2AF-45C8-8225-3D99BDAED5D1}"
+        "PackageCode" = "8:{CB47B663-C7E8-45CD-B6CF-22015604B208}"
         "UpgradeCode" = "8:{12E391ED-E6CE-4233-A3DE-584CD3F8288A}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.1"
+        "ProductVersion" = "8:2.2"
         "Manufacturer" = "8:ErikEJ"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.codeplex.com/ExportSqlCE"
