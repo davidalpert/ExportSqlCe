@@ -39,6 +39,8 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
+            Connect.monitor.TrackFeature("Table.Rename");
+
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             try
             {
@@ -59,10 +61,12 @@ namespace SqlCeScripter
 
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
+                Connect.monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
+                Connect.monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

@@ -153,8 +153,11 @@ namespace SqlCeScripter
 
             Action action = (Action)item.OwnerItem.Tag;
             Output output = (Output)item.Tag;
+
             try
             {
+                Connect.monitor.TrackFeature("Table." + action.ToString());
+
                 string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
                 using (IRepository repository = new DBRepository(connectionString))
                 {
@@ -238,10 +241,12 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
+                Connect.monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
+                Connect.monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

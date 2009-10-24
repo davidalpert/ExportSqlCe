@@ -40,8 +40,6 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
-             //public void CreateSessionExplorerWindow(DTE2 application, AddIn addinInstance)
-
             if (Connect.CurrentAddin == null)
                 return;
 
@@ -53,6 +51,8 @@ namespace SqlCeScripter
 
             try
             {
+                Connect.monitor.TrackFeature("Table.Edit");
+
                 Windows2 windows2 = Connect.CurrentApplication.Windows as Windows2;
 
                 if (windows2 != null)
@@ -77,13 +77,15 @@ namespace SqlCeScripter
                     }
                 }
             }
-
+            
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
+                Connect.monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
+                Connect.monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

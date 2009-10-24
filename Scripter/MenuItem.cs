@@ -59,7 +59,8 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
-            
+            Connect.monitor.TrackFeature("Database.Script");
+
             string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
             string fileName;
             
