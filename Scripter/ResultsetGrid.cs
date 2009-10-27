@@ -34,7 +34,8 @@ namespace SqlCeScripter.Scripter
                 SqlCeResultSet resultSet = cmd.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
                 this.bindingSource1.DataSource = resultSet;
                 this.dataGridView1.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
-                this.dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+                this.dataGridView1.AllowUserToOrderColumns = true;
+                this.dataGridView1.AutoResizeColumns();
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
