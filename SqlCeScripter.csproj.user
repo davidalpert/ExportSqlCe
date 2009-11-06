@@ -10,12 +10,4 @@
     <StartProgram>C:\Program Files\Microsoft SQL Server\100\Tools\Binn\VSShell\Common7\IDE\Ssms.exe</StartProgram>
     <StartAction>Program</StartAction>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugR2|AnyCPU' ">
-    <StartProgram>C:\Program Files\Microsoft SQL Server\100\Tools\Binn\VSShell\Common7\IDE\Ssms.exe</StartProgram>
-    <StartAction>Program</StartAction>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugR2|x86' ">
-    <StartProgram>C:\Program Files\Microsoft SQL Server\100\Tools\Binn\VSShell\Common7\IDE\Ssms.exe</StartProgram>
-    <StartAction>Program</StartAction>
-  </PropertyGroup>
 </Project>

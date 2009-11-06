@@ -51,7 +51,7 @@ namespace SqlCeScripter
 
             try
             {
-                Connect.monitor.TrackFeature("Table.Edit");
+                Connect.Monitor.TrackFeature("Table.Edit");
 
                 Windows2 windows2 = Connect.CurrentApplication.Windows as Windows2;
 
@@ -80,12 +80,12 @@ namespace SqlCeScripter
             
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.monitor.TrackException((Exception)sqlCe);
+                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.monitor.TrackException(ex);
+                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

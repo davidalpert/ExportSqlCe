@@ -103,7 +103,7 @@ namespace SqlCeScripter
             Output output = (Output)item.Tag;
             try
             {
-                Connect.monitor.TrackFeature("Table.Import");
+                Connect.Monitor.TrackFeature("Table.Import");
 
                 string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
                 
@@ -188,12 +188,12 @@ namespace SqlCeScripter
 
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.monitor.TrackException((Exception)sqlCe);
+                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.monitor.TrackException(ex);
+                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

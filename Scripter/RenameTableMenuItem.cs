@@ -39,7 +39,7 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
-            Connect.monitor.TrackFeature("Table.Rename");
+            Connect.Monitor.TrackFeature("Table.Rename");
 
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             try
@@ -61,31 +61,23 @@ namespace SqlCeScripter
 
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.monitor.TrackException((Exception)sqlCe);
+                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.monitor.TrackException(ex);
+                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }
 
         private void RefreshTree()
         {
-            INodeInformation[] nodes;
-            int nodeCount;
-#if R2
-            ObjectExplorerService objectExplorer = (ObjectExplorerService)ServiceCache.ServiceProvider.GetService(typeof(IObjectExplorerService));
-#else
-            IObjectExplorerService objectExplorer = (IObjectExplorerService)ServiceCache.ServiceProvider.GetService(typeof(IObjectExplorerService));
-#endif
-            objectExplorer.GetSelectedNodes(out nodeCount, out nodes);
-            INodeInformation node = (nodeCount > 0 ? nodes[0] : null);
+            INodeInformation node = Connect.ObjectExplorerSelectedNode;
             if (node != null)
             {
                 // Set focus on "Tables" tree node
-                objectExplorer.SynchronizeTree(node.Parent);
+                Connect.ObjectExplorer.SynchronizeTree(node.Parent);
                 // Refresh = F5
                 SendKeys.Send("{F5}");
             }
