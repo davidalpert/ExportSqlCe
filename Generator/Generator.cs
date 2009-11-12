@@ -482,11 +482,22 @@ namespace ExportSqlCE
 
         internal void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values)
         {
+            if (fields.Count != values.Count)
+            {
+                StringBuilder valueString = new StringBuilder();
+                valueString.Append("Values:");
+                valueString.Append(Environment.NewLine);
+                foreach (string val in values)
+                {
+                    valueString.Append(val);
+                    valueString.Append(Environment.NewLine);
+                }
+                throw new ArgumentException(string.Format("The number of values ({0}) and fields ({1}) do not match - {2}", values.Count, fields.Count, valueString.ToString()));
+            }
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
             {
                 _sbScript.AppendFormat("INSERT INTO [{0}] (", tableName);
-
                 foreach (string field in fields)
                 {
                     _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
