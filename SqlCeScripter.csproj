@@ -48,6 +48,38 @@
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugR2|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugR2\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;V35</DefineConstants>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugR2|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\DebugR2\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;V35;R2</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseR2|AnyCPU' ">
+    <OutputPath>bin\ReleaseR2\</OutputPath>
+    <DefineConstants>TRACE;V35</DefineConstants>
+    <Optimize>true</Optimize>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseR2|x86' ">
+    <OutputPath>bin\x86\ReleaseR2\</OutputPath>
+    <DefineConstants>TRACE;V35</DefineConstants>
+    <Optimize>true</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EQATEC.Analytics.Monitor, Version=1.0.527.0, Culture=neutral, PublicKeyToken=213c7c68adb58a17, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -113,7 +145,14 @@
     <Compile Include="Scripter\Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scripter\DataGridViewSearch.cs" />
     <Compile Include="Scripter\EditTableMenuItem.cs" />
+    <Compile Include="Scripter\PanelQuickSearch.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Scripter\PanelQuickSearch.Designer.cs">
+      <DependentUpon>PanelQuickSearch.cs</DependentUpon>
+    </Compile>
     <Compile Include="Scripter\RenameOptions.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -195,6 +234,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Scripter\PanelQuickSearch.resx">
+      <DependentUpon>PanelQuickSearch.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Scripter\RenameOptions.resx">
       <DependentUpon>RenameOptions.cs</DependentUpon>
     </EmbeddedResource>
@@ -210,6 +252,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\data_out1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\Critical.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
