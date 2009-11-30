@@ -10,11 +10,11 @@ using System.Data.SqlServerCe;
 
 namespace SqlCeScripter
 {
-    public partial class ResultsetGrid : UserControl
+    public partial class ResultsetGrid : UserControl, IDisposable 
     {
-        private SqlCeConnection _conn;
-
-        private DataGridViewSearch dgs;
+        private SqlCeConnection _conn = null;
+        private SqlCeResultSet resultSet = null;
+        private DataGridViewSearch dgs = null;
 
         public ResultsetGrid()
         {
@@ -52,16 +52,19 @@ namespace SqlCeScripter
                 {
                     cmd.CommandType = CommandType.TableDirect;
                     cmd.CommandText = Connect.CurrentTable;
-                    SqlCeResultSet resultSet = cmd.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
+                    resultSet = cmd.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
                     this.bindingSource1.DataSource = resultSet;
                 }
                 this.dataGridView1.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
                 this.dataGridView1.AllowUserToOrderColumns = true;
                 this.dataGridView1.AutoResizeColumns();
-
-                // Search
+                this.dataGridView1.TopLeftHeaderCell.Value = "About";
+                // Search - how to make it work with SqlCeResultSet
                 this.dataGridView1.KeyDown += new KeyEventHandler(dataGridView1_KeyDown);
                 dgs = new DataGridViewSearch(this.dataGridView1);
+
+                // About
+                dataGridView1.MouseClick += new MouseEventHandler(dataGridView1_MouseClick);
 
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
@@ -85,11 +88,38 @@ namespace SqlCeScripter
             }
         }
 
+        void dataGridView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            DataGridView.HitTestInfo info = this.dataGridView1.HitTest(e.X, e.Y);
+            if (info.ColumnIndex == -1 && info.RowIndex == -1)
+            {
+                using (AboutDlg about = new AboutDlg())
+                {
+                    about.ShowDialog();
+                }
+            }
+        }
+
         void dataGridView1_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             MessageBox.Show(string.Format("DataGridView error: {0}, row: {1}, column: {2}", e.Exception.Message, e.RowIndex + 1, e.ColumnIndex + 1)); 
         }
 
+        #region IDisposable Members
+
+        void IDisposable.Dispose()
+        {
+            if (resultSet != null)
+            {
+                resultSet.Dispose();
+            }
+            if (_conn != null)
+            {
+                _conn.Dispose();
+            }
+        }
+
+        #endregion
        
     }
 }

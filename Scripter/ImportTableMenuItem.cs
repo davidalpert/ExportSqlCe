@@ -89,7 +89,10 @@ namespace SqlCeScripter
 
         void AboutItem_Click(object sender, EventArgs e)
         {
-            new AboutDlg().ShowDialog();
+            using (AboutDlg about = new AboutDlg())
+            {
+                about.ShowDialog();
+            }
         }
 
         void item_Click(object sender, EventArgs e)

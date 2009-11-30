@@ -19,7 +19,8 @@ namespace SqlCeScripter
 
         internal void ShowSearch()
         {
-            if (dgv.SortedColumn != null)
+
+            if (dgv.SortedColumn != null)            
             {
                 if (m_pnlQuickSearch == null)
                 {
@@ -55,7 +56,7 @@ namespace SqlCeScripter
                 min     = 0,
                 current,
                 compare;
-            
+
             int sortedColumn = dgv.SortedColumn.Index;
 
             while (max >= min)
@@ -85,7 +86,7 @@ namespace SqlCeScripter
                 current,
                 compare;
 
-            int sortedColumn = dgv.SortedColumn.Index;
+            int sortedColumn = dgv.SelectedColumns[0].Index;
 
             while (max >= min)
             {
