@@ -1,4 +1,4 @@
-﻿namespace SqlCeScripter.Scripter
+﻿namespace SqlCeScripter
 {
     partial class ResultsetGrid
     {

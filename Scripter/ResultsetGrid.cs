@@ -8,11 +8,13 @@ using System.Text;
 using System.Windows.Forms;
 using System.Data.SqlServerCe;
 
-namespace SqlCeScripter.Scripter
+namespace SqlCeScripter
 {
     public partial class ResultsetGrid : UserControl
     {
         private SqlCeConnection _conn;
+
+        private DataGridViewSearch dgs;
 
         public ResultsetGrid()
         {
@@ -56,6 +58,11 @@ namespace SqlCeScripter.Scripter
                 this.dataGridView1.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
                 this.dataGridView1.AllowUserToOrderColumns = true;
                 this.dataGridView1.AutoResizeColumns();
+
+                // Search
+                this.dataGridView1.KeyDown += new KeyEventHandler(dataGridView1_KeyDown);
+                dgs = new DataGridViewSearch(this.dataGridView1);
+
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
@@ -68,6 +75,14 @@ namespace SqlCeScripter.Scripter
                 MessageBox.Show(ex.ToString());
             }
 
+        }
+
+        void dataGridView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F3)
+            {
+                this.dgs.ShowSearch();
+            }
         }
 
         void dataGridView1_DataError(object sender, DataGridViewDataErrorEventArgs e)
