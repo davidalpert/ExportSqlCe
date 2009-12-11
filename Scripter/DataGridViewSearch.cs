@@ -12,6 +12,8 @@ namespace SqlCeScripter
 
         DataGridView dgv;
 
+        int sortedColumn;
+
         internal DataGridViewSearch(DataGridView dgv)
         {
             this.dgv = dgv;
@@ -19,35 +21,91 @@ namespace SqlCeScripter
 
         internal void ShowSearch()
         {
-
             if (dgv.SortedColumn != null)            
             {
-                if (m_pnlQuickSearch == null)
-                {
-                    m_pnlQuickSearch = new PanelQuickSearch();
-                    dgv.Controls.Add(m_pnlQuickSearch);
-                    m_pnlQuickSearch.SearchChanged += m_pnlQuickSearch_SearchChanged;
-                }
+                sortedColumn = dgv.SortedColumn.Index;
+                AddControl();
 
                 if (dgv.SelectedRows.Count > 0)
                     m_pnlQuickSearch.Search = dgv.SelectedRows[0].Cells[dgv.SortedColumn.Index].Value.ToString();
                 m_pnlQuickSearch.Column = dgv.SortedColumn.HeaderText;
-                m_pnlQuickSearch.Show();
-                m_pnlQuickSearch.Focus();
+
+                ShowControl();
+            }
+            else if (dgv.SelectedCells.Count > 0)
+            {
+                sortedColumn = dgv.SelectedCells[0].ColumnIndex;
+                AddControl();
+                m_pnlQuickSearch.Search = dgv.SelectedCells[0].Value.ToString();
+                m_pnlQuickSearch.Column = dgv.Columns[sortedColumn].HeaderText;
+                ShowControl();            
+            }
+
+        }
+
+        private void ShowControl()
+        {
+            m_pnlQuickSearch.Show();
+            m_pnlQuickSearch.Focus();
+        }
+
+        private void AddControl()
+        {
+            if (m_pnlQuickSearch == null)
+            {
+                m_pnlQuickSearch = new PanelQuickSearch();
+                dgv.Controls.Add(m_pnlQuickSearch);
+                m_pnlQuickSearch.SearchChanged += m_pnlQuickSearch_SearchChanged;
             }
         }
 
         void m_pnlQuickSearch_SearchChanged(string search)
         {
-            foreach (DataGridViewRow row in dgv.SelectedRows)
-                row.Selected = false;
+            try
+            {
+                foreach (DataGridViewRow row in dgv.SelectedRows)
+                    row.Selected = false;
 
-            if (dgv.SortOrder == SortOrder.Ascending)
-                dgv.Rows[BinarySearchAsc(search)].Selected = true;
-            else
-                dgv.Rows[BinarySearchDesc(search)].Selected = true;
+                if (dgv.SortedColumn != null)
+                {
+                    if (dgv.SortOrder == SortOrder.Ascending)
+                        dgv.Rows[BinarySearchAsc(search)].Selected = true;
+                    else
+                        dgv.Rows[BinarySearchDesc(search)].Selected = true;
+                }
+                else
+                {
+                    dgv.Rows[SequentialSearch(search)].Selected = true;
+                }
+                dgv.FirstDisplayedScrollingRowIndex = dgv.SelectedRows[0].Index;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+        }
 
-            dgv.FirstDisplayedScrollingRowIndex = dgv.SelectedRows[0].Index;
+        private int SequentialSearch(string search)
+        {
+
+            int pos = 0;
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    if (cell.ColumnIndex == sortedColumn)
+                    {
+                        if (cell.Value != null)
+                        {
+                            if (cell.Value.ToString().StartsWith(search, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return cell.RowIndex;
+                            }
+                        }
+                    }
+                }
+            }
+            return pos;
         }
 
         int BinarySearchAsc(string value)
@@ -56,8 +114,6 @@ namespace SqlCeScripter
                 min     = 0,
                 current,
                 compare;
-
-            int sortedColumn = dgv.SortedColumn.Index;
 
             while (max >= min)
             {
@@ -85,8 +141,6 @@ namespace SqlCeScripter
                 min     = 0,
                 current,
                 compare;
-
-            int sortedColumn = dgv.SelectedColumns[0].Index;
 
             while (max >= min)
             {

@@ -8,6 +8,8 @@ using System.Windows.Forms;
 
 namespace SqlCeScripter
 {
+    // Thanks to http://www.codeproject.com/KB/grid/ExtendedDataGridView.aspx
+
     partial class PanelQuickSearch : UserControl
     {
         public PanelQuickSearch()
@@ -41,7 +43,7 @@ namespace SqlCeScripter
 
         public void OnSearchChanged(string search)
         {
-            if (SearchChanged != null)
+            if (SearchChanged != null && !string.IsNullOrEmpty(search))
                 SearchChanged(search);
         }
         
