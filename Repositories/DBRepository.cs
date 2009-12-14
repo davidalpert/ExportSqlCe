@@ -44,6 +44,7 @@ namespace ExportSqlCE
 #if V35
                 , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5], System.Globalization.CultureInfo.InvariantCulture))
                 , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
+                , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
 #endif
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
                 , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
@@ -198,7 +199,7 @@ namespace ExportSqlCE
         public List<Column> GetColumnsFromTable()
         {
             return ExecuteReader(
-                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name  " +
+                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name, autoinc_next  " +
                 "FROM         information_schema.columns " +
                 "WHERE      SUBSTRING(COLUMN_NAME, 1,5) <> '__sys'  " +
                 "ORDER BY ordinal_position ASC "

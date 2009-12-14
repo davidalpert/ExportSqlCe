@@ -23,7 +23,7 @@ namespace ExportSqlCE
 
         internal void GenerateAllAndSave(bool includeData)
         {
-            GenerateTable();
+            GenerateTable(includeData);
             if (includeData)
             {
                 GenerateTableContent();
@@ -36,7 +36,7 @@ namespace ExportSqlCE
 
         internal string GenerateTableScript(string tableName)
         {
-            GenerateTableCreate(tableName);
+            GenerateTableCreate(tableName, false);
             GeneratePrimaryKeys(tableName);
             GenerateForeignKeys(tableName);
             GenerateIndex(tableName);
@@ -114,14 +114,14 @@ namespace ExportSqlCE
         }
 
 
-        internal void GenerateTable()
+        internal void GenerateTable(bool includeData)
         {
             foreach (string tableName in _tableNames)
-                GenerateTableCreate(tableName);
+                GenerateTableCreate(tableName, includeData);
 
         }
 
-        internal void GenerateTableCreate(string tableName)
+        internal void GenerateTableCreate(string tableName, bool includeData)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
@@ -187,15 +187,31 @@ namespace ExportSqlCE
                                 );
                             break;
                         default:
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1} {2} {3} {4}{5}"
-                                , col.ColumnName
-                                , col.DataType
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
-                                );
+                            if (includeData)
+                            {
+                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                    "[{0}] {1} {2} {3} {4}{5}"
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
+                                    );
+                            }
+                            else
+                            {
+                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                    "[{0}] {1} {2} {3} {4}{5}"
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                                    );
+                            }
+
                             break;
                     }
                     _sbScript.AppendFormat("{0}{1}, ",line.Trim(), Environment.NewLine);

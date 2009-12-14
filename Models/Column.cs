@@ -12,6 +12,7 @@ namespace ExportSqlCE
         public int NumericScale { get; set; }
         public Int64 AutoIncrementBy { get; set; }
         public Int64 AutoIncrementSeed { get; set; }
+        public Int64 AutoIncrementNext { get; set; }
         public bool ColumnHasDefault { get; set; }
         public string ColumnDefault { get; set; }
         public bool RowGuidCol { get; set; }

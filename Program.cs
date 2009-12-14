@@ -23,7 +23,11 @@ namespace ExportSqlCE
                         var generator = new Generator(repository, outputFileLocation);
                         // The execution below has to be in this sequence
                         Console.WriteLine("Generating the tables....");
-                        generator.GenerateTable();
+#if V35
+                        generator.GenerateTable(true);
+#else
+                        generator.GenerateTable(false);
+#endif
                         Console.WriteLine("Generating the data....");
                         generator.GenerateTableContent();
                         Console.WriteLine("Generating the primary keys....");
