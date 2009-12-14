@@ -225,7 +225,7 @@ namespace ExportSqlCE
 #if V35
             if (hasIdentity)
             {
-                _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON", tableName));
+                _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
                 _sbScript.Append(Environment.NewLine);
                 _sbScript.Append(_sep);
             }
@@ -304,7 +304,7 @@ namespace ExportSqlCE
 #if V35
             if (hasIdentity)
             {
-                _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF", tableName));
+                _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
                 _sbScript.Append(Environment.NewLine);
                 _sbScript.Append(_sep);
             }
@@ -329,7 +329,7 @@ namespace ExportSqlCE
 #if V35
                     if (hasIdentity)
                     {
-                        _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON", tableName));
+                        _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
                         _sbScript.Append(Environment.NewLine);
                         _sbScript.Append(_sep);
                     }
@@ -408,7 +408,7 @@ namespace ExportSqlCE
 #if V35
                 if (hasIdentity)
                 {
-                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF", tableName));
+                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
                     _sbScript.Append(Environment.NewLine);
                     _sbScript.Append(_sep);
                 }
