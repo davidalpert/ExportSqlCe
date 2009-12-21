@@ -16,6 +16,7 @@ namespace ExportSqlCE
         List<Index> GetIndexesFromTable(string tableName);
         List<KeyValuePair<string, string>> GetDatabaseInfo();
         Boolean HasIdentityColumn(string tableName);
+        Boolean IsServer();
         Int32 GetRowVersionOrdinal(string tableName);
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
