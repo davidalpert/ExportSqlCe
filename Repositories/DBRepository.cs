@@ -273,6 +273,10 @@ namespace ExportSqlCE
             ExecuteNonQuery(string.Format("sp_rename '{0}', '{1}';", oldName, newName));            
         }
 
+        public bool IsServer()
+        {
+            return false;
+        }
 
         #endregion
 
