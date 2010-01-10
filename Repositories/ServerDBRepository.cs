@@ -79,7 +79,7 @@ namespace ExportSqlCE
                 , Clustered = dr.GetBoolean(4)
                 , OrdinalPosition = dr.GetInt32(5)
                 , ColumnName = dr.GetString(6)                
-                , SortOrder = (dr.GetInt16(7) == 1 ? SortOrderEnum.ASC : SortOrderEnum.DESC) 
+                , SortOrder = (dr.GetBoolean(7) ? SortOrderEnum.DESC : SortOrderEnum.ASC) 
             });
 
         }
@@ -142,7 +142,7 @@ namespace ExportSqlCE
 
         public Int32 GetRowVersionOrdinal(string tableName)
         {
-            object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'rowversion'");
+            object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'timestamp'");
             if (value != null)
             {
                 return (int)value - 1;
@@ -174,56 +174,18 @@ namespace ExportSqlCE
 
         public List<Column> GetColumnsFromTable()
         {
-//            SELECT DISTINCT 
-//ORDINAL_POSITION,
-//Column_name, 
-//col.is_nullable, 
-//data_type, 
-//character_maximum_length, 
-//numeric_precision, 
-//autoinc_increment =
-//      CASE cols.is_identity 
-//         WHEN 0 THEN 0
-//         WHEN 1 THEN IDENT_INCR(col.TABLE_NAME)
-//      END,      
-//autoinc_seed =
-//      CASE cols.is_identity 
-//         WHEN 0 THEN 0
-//         WHEN 1 THEN IDENT_SEED(col.TABLE_NAME)
-//      END,      
-//column_hasdefault =
-//      CASE 
-//         WHEN col.COLUMN_DEFAULT IS NULL THEN 0
-//         ELSE 1
-//      END,      
-//column_default, 
-//column_flags =
-//CASE cols.is_rowguidcol   
-//     WHEN 0 THEN 0 
-//     ELSE 378
-//END,   
-//numeric_scale, 
-//table_name,
-//autoinc_next =
-//      CASE cols.is_identity 
-//         WHEN 0 THEN 0
-//         WHEN 1 THEN IDENT_CURRENT(col.TABLE_NAME)
-//      END      
-
-//         FROM         information_schema.columns col
-//         JOIN sys.columns cols on col.COLUMN_NAME = cols.name 
-//         AND cols.object_id = OBJECT_ID(col.table_name)
-//         WHERE      SUBSTRING(COLUMN_NAME, 1,5) <> '__sys'
-//         ORDER BY ordinal_position ASC
-         
-
-
-
             return ExecuteReader(
-                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name, autoinc_next  " +
-                "FROM         information_schema.columns " +
-                "WHERE      SUBSTRING(COLUMN_NAME, 1,5) <> '__sys'  " +
-                "ORDER BY ordinal_position ASC "
+                "SELECT COLUMN_NAME, col.IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, " +
+                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR(col.TABLE_NAME)  END, " +
+                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED(col.TABLE_NAME)  END, " +
+                "COLUMN_HASDEFAULT =  CASE WHEN col.COLUMN_DEFAULT IS NULL THEN CAST(0 AS bit) ELSE CAST (1 AS bit) END, COLUMN_DEFAULT, " +
+                "COLUMN_FLAGS = CASE cols.is_rowguidcol WHEN 0 THEN 0 ELSE 378 END, " +
+                "NUMERIC_SCALE, TABLE_NAME, " +
+                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT(col.TABLE_NAME) END " +
+                "FROM information_schema.columns col  JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
+                "AND cols.object_id = OBJECT_ID(col.table_name) " +
+                "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
+                "ORDER BY table_name, ordinal_position ASC "
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
 
@@ -249,81 +211,43 @@ namespace ExportSqlCE
         
         public List<Constraint> GetAllForeignKeys()
         {
-
-//            SELECT f.name AS ForeignKey,
-//OBJECT_NAME(f.parent_object_id) AS TableName,
-//COL_NAME(fc.parent_object_id,
-//fc.parent_column_id) AS ColumnName,
-//OBJECT_NAME (f.referenced_object_id) AS ReferenceTableName,
-//COL_NAME(fc.referenced_object_id,
-//fc.referenced_column_id) AS ReferenceColumnName
-//FROM sys.foreign_keys AS f
-//INNER JOIN sys.foreign_key_columns AS fc
-//ON f.OBJECT_ID = fc.constraint_object_id
-
-            
             return ExecuteReader(
-                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
-                "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
-                "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
+                "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " + 
+                "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
+                "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
+                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
+                "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
+                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
         }
 
         public List<Constraint> GetAllForeignKeys(string tableName)
         {
             return ExecuteReader(
-                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
-                "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
-                "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
-                "WHERE KCU1.TABLE_NAME = '" + tableName + "' " + 
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
+                "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
+                "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
+                "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
+                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
+                "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
+                "WHERE OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" + 
+                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
         }
 
 
         /// <summary>
-        /// Get the query based on http://msdn.microsoft.com/en-us/library/ms174156.aspx
+        /// Get the indexes for the table
         /// </summary>
         /// <returns></returns>
-        
         public List<Index> GetIndexesFromTable(string tableName)
         {
-//            select top 4096	
-//    index_name = i.name,
-//    i.is_unique_constraint,
-//    0,
-//    ic.key_ordinal,
-//    column_name = c.name,
-//    ic.is_descending_key 
-//from 
-//    sys.indexes i
-//left outer join
-//    sys.index_columns ic on i.object_id = ic.object_id and i.index_id = ic.index_id
-//left outer join
-//    sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id
-//where 
-//    i.object_id = object_id('FilesToIndexTbl')
-//    AND i.name IS NOT NULL
-//order by
-//    i.name,
-//    case key_ordinal 
-//            when 0 then 256 
-//                else ic.key_ordinal 
-//    end
-
-
             return ExecuteReader(
-                "SELECT     TABLE_NAME, INDEX_NAME, PRIMARY_KEY, [UNIQUE], [CLUSTERED], ORDINAL_POSITION, COLUMN_NAME, COLLATION AS SORT_ORDER " + // Weird column name COLLATION FOR SORT_ORDER
-                "FROM         Information_Schema.Indexes "+
-                "WHERE     (PRIMARY_KEY = 0) " +
-                "   AND (TABLE_NAME = '" + tableName + "')  " +
-                "   AND (SUBSTRING(COLUMN_NAME, 1,5) <> '__sys')   " +
-                "ORDER BY TABLE_NAME, INDEX_NAME, ORDINAL_POSITION"
+                "select top 4096	OBJECT_NAME(i.object_id) AS TABLE_NAME, i.name AS INDEX_NAME, 0 AS PRIMARY_KEY, " +
+                "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER " +
+                "from sys.indexes i left outer join     sys.index_columns ic on i.object_id = ic.object_id and i.index_id = ic.index_id " +
+                "left outer join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id " +
+                "where i.object_id = object_id('" + tableName + "') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
+                "order by i.name, case key_ordinal when 0 then 256 else ic.key_ordinal end"
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
 

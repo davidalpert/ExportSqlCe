@@ -32,5 +32,11 @@ namespace ExportSqlCE
         {
             return connectionString.Replace(string.Format(";Timeout = \"{0}\"", timeout), string.Empty);
         }
+
+        internal static string CheckDataType(string dataType)
+        {
+            return dataType;
+        }
+
     }
 }

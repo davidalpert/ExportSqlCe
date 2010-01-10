@@ -25,8 +25,6 @@ namespace ExportSqlCE
                         Console.WriteLine("Generating the tables....");
 #if V35
                         generator.GenerateTable(true);
-#else
-                        generator.GenerateTable(false);
 #endif
                         Console.WriteLine("Generating the data....");
                         generator.GenerateTableContent();
