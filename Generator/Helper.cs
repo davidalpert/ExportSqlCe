@@ -33,7 +33,7 @@ namespace ExportSqlCE
             return connectionString.Replace(string.Format(";Timeout = \"{0}\"", timeout), string.Empty);
         }
 
-        internal static string CheckDataType(string dataType, int maxLength, string tableName, string columnName)
+        internal static string CheckDataType(string dataType, Column col)
         {
             switch (dataType)
             {
@@ -51,21 +51,37 @@ namespace ExportSqlCE
                 case "numeric":
                 case "real":
                 case "rowversion":
-                case "smallint":
-                case "tinyint":
                 case "uniqueidentifier":
                     return dataType;
 
                 // Conditional conversion
+                case "smallint":
+                    // Only int or bigint allowed as IDENTITY
+                    if (col.AutoIncrementBy > 0)
+                    {
+                        return "int";
+                    }
+                    return dataType;
+
+                case "tinyint":
+                    // Only int or bigint allowed as IDENTITY
+                    if (col.AutoIncrementBy > 0)
+                    {
+                        return "int";
+                    }
+                    return dataType;
+
                 case "nvarchar":
-                    if (maxLength == -1)
+                    // Support for nvarchar(MAX)
+                    if (col.CharacterMaxLength == -1)
                     {
                         return "ntext";
                     };
                     return dataType;
 
                 case "varbinary":
-                    if (maxLength == -1)
+                    // Support for varbinary(MAX)
+                    if (col.CharacterMaxLength == -1)
                     {
                         return "image";
                     };
@@ -75,7 +91,8 @@ namespace ExportSqlCE
                 case "char":
                     return "nchar";
                 case "varchar":
-                    if (maxLength == -1)
+                    // Support for varchar(MAX)
+                    if (col.CharacterMaxLength == -1)
                     {
                         return "ntext";
                     };
@@ -93,7 +110,7 @@ namespace ExportSqlCE
 
                 default:
                     // Not supported: date, datetime2, datetimeoffset, geography, geometry, hierarchyid, sql_variant, time, xml
-                    throw new System.Exception(string.Format("Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, tableName, columnName));
+                    throw new System.Exception(string.Format("Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
             }
 
 

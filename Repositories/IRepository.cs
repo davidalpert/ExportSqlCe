@@ -8,7 +8,7 @@ namespace ExportSqlCE
     {
         List<string> GetAllTableNames();
         List<Column> GetColumnsFromTable();
-        DataTable GetDataFromTable(string tableName);
+        DataTable GetDataFromTable(string tableName, List<Column> columns);
         IDataReader GetDataFromReader(string tableName);
         List<string> GetPrimaryKeysFromTable(string tableName);
         List<Constraint> GetAllForeignKeys();

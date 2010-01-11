@@ -80,7 +80,7 @@ namespace ExportSqlCE
             {
                 foreach (Column col in _allColumns)
                 {
-                    col.DataType = Helper.CheckDataType(col.DataType, col.CharacterMaxLength, col.TableName, col.ColumnName);
+                    col.DataType = Helper.CheckDataType(col.DataType, col);
                 }
             }
 
@@ -245,7 +245,8 @@ namespace ExportSqlCE
         {
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
-            DataTable dt = _repository.GetDataFromTable(tableName);
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            DataTable dt = _repository.GetDataFromTable(tableName, columns);
             bool hasIdentity = _repository.HasIdentityColumn(tableName);
 #if V35
             if (hasIdentity)

@@ -211,9 +211,16 @@ namespace ExportSqlCE
             return ExecuteDataReader(tableName);
         }
 
-        public DataTable GetDataFromTable(string tableName)
+        public DataTable GetDataFromTable(string tableName, List<Column> columns)
         {
-            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select * From [{0}]", tableName));
+            // Include the schema name, may not always be dbo!
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(200);
+            foreach (Column col in columns)
+            {
+                sb.Append(string.Format("[{0}], ", col.ColumnName));
+            }
+            sb.Remove(sb.Length - 2, 2);
+            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
         }
         
         public List<string> GetPrimaryKeysFromTable(string tableName)

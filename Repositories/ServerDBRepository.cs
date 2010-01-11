@@ -176,16 +176,20 @@ namespace ExportSqlCE
         {
             return ExecuteReader(
                 "SELECT COLUMN_NAME, col.IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, " +
-                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR(col.TABLE_NAME)  END, " +
-                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED(col.TABLE_NAME)  END, " +
+                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR(col.TABLE_SCHEMA + '.' + col.table_name)  END, " +
+                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED(col.TABLE_SCHEMA + '.' + col.table_name)  END, " +
                 "COLUMN_HASDEFAULT =  CASE WHEN col.COLUMN_DEFAULT IS NULL THEN CAST(0 AS bit) ELSE CAST (1 AS bit) END, COLUMN_DEFAULT, " +
                 "COLUMN_FLAGS = CASE cols.is_rowguidcol WHEN 0 THEN 0 ELSE 378 END, " +
-                "NUMERIC_SCALE, TABLE_NAME, " +
-                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT(col.TABLE_NAME) END " +
-                "FROM information_schema.columns col  JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
-                "AND cols.object_id = OBJECT_ID(col.table_name) " +
+                "NUMERIC_SCALE, col.TABLE_NAME, " +
+                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT(col.TABLE_SCHEMA + '.' + col.table_name) END " +
+                "FROM information_schema.columns col  " +
+                "JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
+                "AND cols.object_id = OBJECT_ID(col.TABLE_SCHEMA + '.' + col.table_name)  " +
+                "JOIN INFORMATION_SCHEMA.TABLES tab ON col.TABLE_NAME = tab.TABLE_NAME " +
                 "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
-                "ORDER BY table_name, ordinal_position ASC "
+                "AND tab.TABLE_TYPE = 'BASE TABLE' " +
+                "AND cols.is_computed = 0 " +
+                "ORDER BY table_name, ordinal_position ASC"
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
 
@@ -194,9 +198,17 @@ namespace ExportSqlCE
             return ExecuteDataReader(string.Format("SELECT * FROM [{0}]",tableName));
         }
 
-        public DataTable GetDataFromTable(string tableName)
+        public DataTable GetDataFromTable(string tableName, List<Column> columns)
         {
-            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select * From [{0}]", tableName));
+            // Include the schema name, may not always be dbo!
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(200); 
+            foreach (Column col in columns)
+            { 
+                sb.Append(string.Format("[{0}], ", col.ColumnName)); 
+            }
+            sb.Remove(sb.Length - 2, 2);
+            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM information_schema.tables WHERE TABLE_NAME = '{0}'", tableName));
+            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
         }
         
         public List<string> GetPrimaryKeysFromTable(string tableName)
