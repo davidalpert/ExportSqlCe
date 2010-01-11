@@ -80,7 +80,7 @@ namespace ExportSqlCE
             {
                 foreach (Column col in _allColumns)
                 {
-                    col.DataType = Helper.CheckDataType(col.DataType);
+                    col.DataType = Helper.CheckDataType(col.DataType, col.CharacterMaxLength, col.TableName, col.ColumnName);
                 }
             }
 

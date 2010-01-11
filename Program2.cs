@@ -7,7 +7,7 @@ namespace ExportSqlCE
     {
         static void Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args.Length < 2 || args.Length > 3)
                 PrintUsageGuide();
             else
             {
@@ -15,6 +15,15 @@ namespace ExportSqlCE
                 {
                     string connectionString = args[0];
                     string outputFileLocation = args[1];
+
+                    bool includeData = true;
+                    if (args.Length > 2)
+                    {
+                        if (args[2].Contains("schemaonly"))
+                        {
+                            includeData = false;
+                        }
+                    }
 
                     using (IRepository repository = new ServerDBRepository(connectionString))
                     {
@@ -24,10 +33,13 @@ namespace ExportSqlCE
                         // The execution below has to be in this sequence
                         Console.WriteLine("Generating the tables....");
 #if V35
-                        generator.GenerateTable(true);
+                        generator.GenerateTable(includeData);
 #endif
-                        Console.WriteLine("Generating the data....");
-                        generator.GenerateTableContent();
+                        if (includeData)
+                        {
+                            Console.WriteLine("Generating the data....");
+                            generator.GenerateTableContent();
+                        }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
                         Console.WriteLine("Generating the foreign keys....");
@@ -77,9 +89,10 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location]");
-            Console.WriteLine("Example : ");
+            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [schemaonly]");
+            Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
+            Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
         }
     }
 }
