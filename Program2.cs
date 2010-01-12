@@ -90,9 +90,13 @@ namespace ExportSqlCE
         {
             Console.WriteLine("Usage : ");
             Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [schemaonly]");
+            Console.WriteLine("");
             Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
+            Console.WriteLine("");
+            Console.WriteLine("Server data types NOT supported: ");
+            Console.WriteLine("date, datetime2, datetimeoffset, geography, geometry, hierarchyid, sql_variant, time, xml");
         }
     }
 }

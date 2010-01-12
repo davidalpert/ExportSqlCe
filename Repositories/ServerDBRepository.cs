@@ -253,12 +253,13 @@ namespace ExportSqlCE
         /// <returns></returns>
         public List<Index> GetIndexesFromTable(string tableName)
         {
+            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM information_schema.tables WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteReader(
                 "select top 4096	OBJECT_NAME(i.object_id) AS TABLE_NAME, i.name AS INDEX_NAME, 0 AS PRIMARY_KEY, " +
                 "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER " +
                 "from sys.indexes i left outer join     sys.index_columns ic on i.object_id = ic.object_id and i.index_id = ic.index_id " +
                 "left outer join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id " +
-                "where i.object_id = object_id('" + tableName + "') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
+                "where i.object_id = object_id('" + schemaName + "." + tableName + "') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
                 "order by i.name, case key_ordinal when 0 then 256 else ic.key_ordinal end"
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
