@@ -96,7 +96,7 @@ namespace ExportSqlCE
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
             Console.WriteLine("");
             Console.WriteLine("Server data types NOT supported: ");
-            Console.WriteLine("date, datetime2, datetimeoffset, geography, geometry, hierarchyid, sql_variant, time, xml");
+            Console.WriteLine("datetimeoffset, geography, geometry, hierarchyid, sql_variant, time");
         }
     }
 }

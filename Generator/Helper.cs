@@ -107,9 +107,15 @@ namespace ExportSqlCE
                     return "datetime";
                 case "smallmoney":
                     return "money";
+                case "xml":
+                    return "ntext";
+                case "date":
+                    return "datetime";
+                case "datetime2":
+                    return "datetime";
 
                 default:
-                    // Not supported: date, datetime2, datetimeoffset, geography, geometry, hierarchyid, sql_variant, time, xml
+                    // Not supported: datetimeoffset, geography, geometry, hierarchyid, sql_variant, time
                     throw new System.Exception(string.Format("Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
             }
 
