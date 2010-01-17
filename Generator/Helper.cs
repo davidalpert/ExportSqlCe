@@ -88,6 +88,7 @@ namespace ExportSqlCE
                     return dataType;
 
                 //These datatypes are converted
+                // See also http://msdn.microsoft.com/en-us/library/ms143241.aspx
                 case "char":
                     return "nchar";
                 case "varchar":
@@ -109,13 +110,13 @@ namespace ExportSqlCE
                     return "money";
                 case "xml":
                     return "ntext";
-                case "date":
-                    return "datetime";
-                case "datetime2":
-                    return "datetime";
+                case "geography":
+                    return "image";
+                case "geometry":
+                    return "image";
 
                 default:
-                    // Not supported: datetimeoffset, geography, geometry, hierarchyid, sql_variant, time
+                    // Curently not supported: date, datetime2, datetimeoffset, sql_variant, time
                     throw new System.Exception(string.Format("Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
             }
 
