@@ -114,6 +114,8 @@ namespace ExportSqlCE
                     return "image";
                 case "geometry":
                     return "image";
+                case "hierarchyid":
+                    return "image";
 
                 default:
                     // Curently not supported: date, datetime2, datetimeoffset, sql_variant, time
