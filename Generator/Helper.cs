@@ -38,6 +38,7 @@ namespace ExportSqlCE
             switch (dataType)
             {
                 // These datatypes are supported by SQL Compact 3.5
+                //Fallthrough
                 case "bigint":
                 case "binary":
                 case "bit":
@@ -117,13 +118,56 @@ namespace ExportSqlCE
                 case "hierarchyid":
                     return "image";
 
+                //Fallthrough
+                case "time":
+                case "datetime2":
+                case "datetimeoffset":
+                case "date":
+                    return "nvarchar";
+
                 default:
-                    // Curently not supported: date, datetime2, datetimeoffset, sql_variant, time
+                    // Currently not supported: sql_variant
                     throw new System.Exception(string.Format("Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
             }
 
 
         }
+
+        internal static int CheckDateColumnLength(string dataType, Column col)
+        {
+            // See also http://msdn.microsoft.com/en-us/library/ms143241.aspx
+            switch (dataType)
+            {
+                case "time":
+                    return 16;
+                case "datetime2":
+                    return 27;
+                case "datetimeoffset":
+                    return 34;
+                case "date":
+                    return 10;
+                default:
+                    return col.CharacterMaxLength;
+            }
+        }
+
+        internal static DateFormat CheckDateFormat(string dataType)
+        {
+            // See also http://msdn.microsoft.com/en-us/library/ms143241.aspx
+            switch (dataType)
+            {
+                case "datetime2":
+                    return DateFormat.DateTime2;
+                case "date":
+                    return DateFormat.Date;
+                case "datetime":
+                    return DateFormat.DateTime;
+                default:
+                    return DateFormat.None;
+            }
+        }
+
+
 
     }
 }

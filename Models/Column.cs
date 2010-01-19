@@ -2,6 +2,14 @@
 
 namespace ExportSqlCE
 {
+    internal enum DateFormat
+    { 
+        None,
+        DateTime,
+        Date,
+        DateTime2
+    }
+
     class Column
     {
         public string ColumnName { get; set; }
@@ -17,6 +25,7 @@ namespace ExportSqlCE
         public string ColumnDefault { get; set; }
         public bool RowGuidCol { get; set; }
         public string TableName { get; set; }
+        public DateFormat DateFormat { get; set; }
         public string ShortType
         {
             get
