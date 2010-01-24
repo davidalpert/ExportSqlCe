@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("http://erikej.blogspot.com")]
-[assembly: AssemblyProduct("ExportSQLCE")]
+[assembly: AssemblyProduct("ExportSqlCE")]
 [assembly: AssemblyCopyright("Copyright © Bembeng Arifin/Erik Ejlskov Jensen 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
