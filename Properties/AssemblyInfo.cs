@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("http://erikej.blogspot.com")]
 [assembly: AssemblyProduct("ExportSQLCE")]
-[assembly: AssemblyCopyright("Copyright © Bembeng Arifin/Erik Ejlskov Jensen 2009")]
+[assembly: AssemblyCopyright("Copyright © Bembeng Arifin/Erik Ejlskov Jensen 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("2.2.0.3")]
-[assembly: AssemblyFileVersion("2.2.0.3")]
+[assembly: AssemblyVersion("2.5.0.1")]
+[assembly: AssemblyFileVersion("2.5.0.1")]
