@@ -289,25 +289,29 @@ namespace ExportSqlCE
                     {
                         // see http://msdn.microsoft.com/en-us/library/ms180878.aspx#BackwardCompatibilityforDownlevelClients
                         Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == dt.Columns[iColumn].ColumnName).Single();
+                        DateTime date = (DateTime)dt.Rows[iRow][iColumn];
                         switch (column.DateFormat)
                         {
-                            case DateFormat.DateTime:
-                                DateTime date1 = (DateTime)dt.Rows[iRow][iColumn];
+                            case DateFormat.None:
                                 //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
                                 _sbScript.Append("{ts '");
-                                _sbScript.Append(date1.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+                                _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+                                _sbScript.Append("'}");
+                                break;
+                            case DateFormat.DateTime:
+                                //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                                _sbScript.Append("{ts '");
+                                _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
                                 _sbScript.Append("'}");
                                 break;
                             case DateFormat.Date:
-                                DateTime date2 = (DateTime)dt.Rows[iRow][iColumn];
                                 _sbScript.Append("N'");
-                                _sbScript.Append(date2.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                                _sbScript.Append(date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
                                 _sbScript.Append("'");
                                 break;
                             case DateFormat.DateTime2:
-                                DateTime date3 = (DateTime)dt.Rows[iRow][iColumn];
                                 _sbScript.Append("N'");
-                                _sbScript.Append(date3.ToString("yyyy-MM-dd HH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture));
+                                _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture));
                                 _sbScript.Append("'");
                                 break;
                         }
