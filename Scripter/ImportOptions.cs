@@ -15,6 +15,7 @@ namespace SqlCeScripter
         {
             InitializeComponent();
             this.Text = "Import Options for table " + tableName;
+            bntOK.Enabled = false;
         }
 
         public string FileName 
@@ -128,6 +129,18 @@ namespace SqlCeScripter
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             MakeSample();
+        }
+
+        private void txtFilename_TextChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtFilename.Text))
+            {
+                bntOK.Enabled = false;
+            }
+            else
+            {
+                bntOK.Enabled = true;
+            }
         }
 
     }

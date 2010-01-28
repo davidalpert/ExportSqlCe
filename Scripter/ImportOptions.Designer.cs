@@ -80,6 +80,7 @@
             this.txtFilename.ReadOnly = true;
             this.txtFilename.Size = new System.Drawing.Size(265, 22);
             this.txtFilename.TabIndex = 1;
+            this.txtFilename.TextChanged += new System.EventHandler(this.txtFilename_TextChanged);
             // 
             // btnBrowse
             // 
