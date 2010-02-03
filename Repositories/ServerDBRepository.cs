@@ -142,7 +142,7 @@ namespace ExportSqlCE
 
         public Int32 GetRowVersionOrdinal(string tableName)
         {
-            object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'timestamp'");
+            object value = ExecuteScalar("SELECT ordinal_position FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'timestamp'");
             if (value != null)
             {
                 return (int)value - 1;
@@ -163,7 +163,7 @@ namespace ExportSqlCE
         public List<string> GetAllTableNames()
         {
             return ExecuteReader(
-                "SELECT table_name FROM information_schema.tables WHERE TABLE_TYPE = N'BASE TABLE' ORDER BY table_name"
+                "SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = N'BASE TABLE' ORDER BY table_name"
                 , new AddToListDelegate<string>(AddToListString));
         }
 
@@ -176,20 +176,20 @@ namespace ExportSqlCE
         {
             return ExecuteReader(
                 "SELECT COLUMN_NAME, col.IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, " +
-                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR(col.TABLE_SCHEMA + '.' + col.table_name)  END, " +
-                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED(col.TABLE_SCHEMA + '.' + col.table_name)  END, " +
+                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR(col.TABLE_SCHEMA + '.' + col.TABLE_NAME)  END, " +
+                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED(col.TABLE_SCHEMA + '.' + col.TABLE_NAME)  END, " +
                 "COLUMN_HASDEFAULT =  CASE WHEN col.COLUMN_DEFAULT IS NULL THEN CAST(0 AS bit) ELSE CAST (1 AS bit) END, COLUMN_DEFAULT, " +
                 "COLUMN_FLAGS = CASE cols.is_rowguidcol WHEN 0 THEN 0 ELSE 378 END, " +
                 "NUMERIC_SCALE, col.TABLE_NAME, " +
-                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT(col.TABLE_SCHEMA + '.' + col.table_name) END " +
-                "FROM information_schema.columns col  " +
+                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT(col.TABLE_SCHEMA + '.' + col.TABLE_NAME) END " +
+                "FROM INFORMATION_SCHEMA.COLUMNS col  " +
                 "JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
-                "AND cols.object_id = OBJECT_ID(col.TABLE_SCHEMA + '.' + col.table_name)  " +
+                "AND cols.object_id = OBJECT_ID(col.TABLE_SCHEMA + '.' + col.TABLE_NAME)  " +
                 "JOIN INFORMATION_SCHEMA.TABLES tab ON col.TABLE_NAME = tab.TABLE_NAME " +
                 "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
                 "AND tab.TABLE_TYPE = 'BASE TABLE' " +
                 "AND cols.is_computed = 0 " +
-                "ORDER BY table_name, ordinal_position ASC"
+                "ORDER BY col.TABLE_NAME, col.ORDINAL_POSITION ASC"
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
 
@@ -207,7 +207,7 @@ namespace ExportSqlCE
                 sb.Append(string.Format("[{0}], ", col.ColumnName)); 
             }
             sb.Remove(sb.Length - 2, 2);
-            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM information_schema.tables WHERE TABLE_NAME = '{0}'", tableName));
+            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
         }
         
@@ -253,7 +253,7 @@ namespace ExportSqlCE
         /// <returns></returns>
         public List<Index> GetIndexesFromTable(string tableName)
         {
-            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM information_schema.tables WHERE TABLE_NAME = '{0}'", tableName));
+            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteReader(
                 "select top 4096	OBJECT_NAME(i.object_id) AS TABLE_NAME, i.name AS INDEX_NAME, 0 AS PRIMARY_KEY, " +
                 "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER " +
