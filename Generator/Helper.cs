@@ -5,10 +5,28 @@ namespace ExportSqlCE
 {
     internal static class Helper
     {
+        internal static string FinalFiles 
+        {
+            get
+            {
+                return finalFiles;
+            }
+            set
+            {
+                finalFiles = value;
+            }
+        }
+
+        private static string finalFiles;
+
         internal static void WriteIntoFile(string script, string fileLocation, int increment)
         {
             if (increment > -1)
             {
+                if (!finalFiles.Contains(","))
+                {
+                    finalFiles = string.Empty;
+                }
                 string ext = Path.GetExtension(System.IO.Path.GetFileName(fileLocation));
                 string path = Path.GetDirectoryName(fileLocation);
                 string name = Path.GetFileNameWithoutExtension(fileLocation);
@@ -16,6 +34,7 @@ namespace ExportSqlCE
                 if (!string.IsNullOrEmpty(ext))
                 {
                     fileLocation = fileLocation + ext;
+                    finalFiles = fileLocation + ", ";
                 }
             }
             using (FileStream fs = new FileStream(fileLocation, FileMode.Create, FileAccess.Write, FileShare.Read))

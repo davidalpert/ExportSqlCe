@@ -27,6 +27,7 @@ namespace ExportSqlCE
 
                     using (IRepository repository = new ServerDBRepository(connectionString))
                     {
+                        Helper.FinalFiles = outputFileLocation;
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
                         var generator = new Generator(repository, outputFileLocation);
@@ -45,11 +46,10 @@ namespace ExportSqlCE
                         Console.WriteLine("Generating the foreign keys....");
                         generator.GenerateForeignKeys();
                         Console.WriteLine("Generating the indexes....");
-                        // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
                         generator.GenerateIndex();
                         
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
-                        Console.WriteLine("Sent the script into the output file : {0} in {1} second(s)", outputFileLocation, (sw.ElapsedMilliseconds / 1000).ToString());
+                        Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                     }
                 }
                 catch (System.Data.SqlClient.SqlException e)
