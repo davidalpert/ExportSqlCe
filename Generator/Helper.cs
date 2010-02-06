@@ -34,7 +34,7 @@ namespace ExportSqlCE
                 if (!string.IsNullOrEmpty(ext))
                 {
                     fileLocation = fileLocation + ext;
-                    finalFiles = fileLocation + ", ";
+                    finalFiles = finalFiles + fileLocation + ", ";
                 }
             }
             using (FileStream fs = new FileStream(fileLocation, FileMode.Create, FileAccess.Write, FileShare.Read))
