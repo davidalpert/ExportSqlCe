@@ -80,9 +80,14 @@ namespace SqlCeScripter
                 {
                     using (IRepository repository = new DBRepository(connectionString))
                     {
+                        Helper.FinalFiles = fileName;
+                        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                        sw.Start();
                         var generator = new Generator(repository, fileName);
                         generator.GenerateAllAndSave(scriptData);
-                        MessageBox.Show(string.Format("{0} successfully generated", fileName), "ExportSqlCe");
+                        sw.Stop();
+                        MessageBox.Show(string.Format("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString()));
+                        //MessageBox.Show(string.Format("{0} successfully generated", fileName), "ExportSqlCe");
                     }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException sqlCe)
