@@ -9,6 +9,13 @@ namespace ExportSqlCE
         {
             get
             {
+                if (!string.IsNullOrEmpty(finalFiles))
+                {
+                    if (finalFiles.EndsWith(", "))
+                    {
+                        finalFiles = finalFiles.Remove(finalFiles.Length - 2);
+                    }
+                }
                 return finalFiles;
             }
             set

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 using ExportSqlCE;
-using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 using Microsoft.Data.ConnectionUI;
+using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 
 namespace SqlCeScripter
 {
@@ -28,14 +28,16 @@ namespace SqlCeScripter
         public System.Windows.Forms.ToolStripItem[] GetMenuItems()
         {
             ToolStripMenuItem item = new ToolStripMenuItem("Script Server Database");
-            item.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
+            
 
             ToolStripMenuItem insertItem = new ToolStripMenuItem("Schema and Data...");
             insertItem.Tag = true;
+            insertItem.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
             insertItem.Click += new EventHandler(item_Click);
 
             ToolStripMenuItem insertItem2 = new ToolStripMenuItem("Schema...");
             insertItem2.Tag = false;
+            insertItem2.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
             insertItem2.Click += new EventHandler(item_Click);
 
             item.DropDownItems.Add(insertItem);
