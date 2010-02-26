@@ -69,7 +69,7 @@ namespace ExportSqlCE
         {
             _outFile = outFile;
             _repository = repository;
-            _sbScript = new StringBuilder(100000);
+            _sbScript = new StringBuilder(10485760);
             _tableNames = _repository.GetAllTableNames();
             _allColumns = _repository.GetColumnsFromTable();
 
@@ -370,6 +370,13 @@ namespace ExportSqlCE
                     _sbScript.Append(");");
                     _sbScript.Append(Environment.NewLine);
                     _sbScript.Append(_sep);
+                    // Split large output!
+                    if (_sbScript.Length > 9485760 && !string.IsNullOrEmpty(_outFile))
+                    {
+                        _fileCounter++;
+                        Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
+                        _sbScript.Remove(0, _sbScript.Length);
+                    }
                 }
 #if V35
                 if (hasIdentity && dt.Rows.Count > 0)
@@ -379,12 +386,6 @@ namespace ExportSqlCE
                     _sbScript.Append(_sep);
                 }
 #endif
-                if (_sbScript.Length > 10485760 && !string.IsNullOrEmpty(_outFile))
-                {
-                    _fileCounter++;
-                    Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
-                    _sbScript.Remove(0, _sbScript.Length);
-                }
             }
         }
 

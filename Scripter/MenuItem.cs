@@ -87,7 +87,6 @@ namespace SqlCeScripter
                         generator.GenerateAllAndSave(scriptData);
                         sw.Stop();
                         MessageBox.Show(string.Format("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString()));
-                        //MessageBox.Show(string.Format("{0} successfully generated", fileName), "ExportSqlCe");
                     }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException sqlCe)
