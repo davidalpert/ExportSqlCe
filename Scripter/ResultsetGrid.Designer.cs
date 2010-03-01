@@ -60,6 +60,7 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.Size = new System.Drawing.Size(290, 257);
             this.dataGridView1.TabIndex = 0;
+            this.dataGridView1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseUp);
             // 
             // bindingNavigator1
             // 

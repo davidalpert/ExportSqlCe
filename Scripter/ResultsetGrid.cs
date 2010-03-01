@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Data.SqlServerCe;
+using System.IO;
 
 namespace SqlCeScripter
 {
@@ -15,6 +16,8 @@ namespace SqlCeScripter
         private SqlCeConnection _conn = null;
         private SqlCeResultSet resultSet = null;
         private DataGridViewSearch dgs = null;
+        private ContextMenuStrip imageContext = new ContextMenuStrip();
+        private DataGridViewCell selectedCell = null;
 
         public ResultsetGrid()
         {
@@ -54,6 +57,9 @@ namespace SqlCeScripter
                     cmd.CommandText = Connect.CurrentTable;
                     resultSet = cmd.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
                     this.bindingSource1.DataSource = resultSet;
+                    imageContext.Items.Add("Import Image", null, new EventHandler(ImportImage));
+                    imageContext.Items.Add("Export Image", null, new EventHandler(ExportImage));
+                    imageContext.Items.Add("Delete Image", null, new EventHandler(DeleteImage));
                 }
                 this.dataGridView1.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
                 this.dataGridView1.AllowUserToOrderColumns = true;
@@ -105,6 +111,58 @@ namespace SqlCeScripter
             MessageBox.Show(string.Format("DataGridView error: {0}, row: {1}, column: {2}", e.Exception.Message, e.RowIndex + 1, e.ColumnIndex + 1)); 
         }
 
+        private void dataGridView1_MouseUp(object sender, MouseEventArgs e)
+        {
+            // Load context menu on right mouse click
+            DataGridView.HitTestInfo hitTestInfo;
+            if (e.Button == MouseButtons.Right)
+            {
+                hitTestInfo = dataGridView1.HitTest(e.X, e.Y);
+                // If column is first column
+                if (hitTestInfo.Type == DataGridViewHitTestType.Cell)
+                {
+                    selectedCell = null;
+                    DataGridViewCell cell = dataGridView1[hitTestInfo.ColumnIndex, hitTestInfo.RowIndex];
+                    if (cell.FormattedValueType == typeof(System.Drawing.Image))
+                    {
+                        selectedCell = cell;
+                        imageContext.Show(dataGridView1, new Point(e.X, e.Y));
+                    }
+                }
+            }
+        }
+
+        void ImportImage(object sender, EventArgs e)
+        {
+            using (OpenFileDialog fd = new OpenFileDialog())
+            {
+                fd.Multiselect = false;
+                if (fd.ShowDialog() == DialogResult.OK)
+                {
+                    selectedCell.Value = File.ReadAllBytes(fd.FileName);
+                }
+            }
+        }
+
+        void ExportImage(object sender, EventArgs e)
+        {
+            if (selectedCell.Value != null)
+            {
+                using (SaveFileDialog fd = new SaveFileDialog())
+                {
+                    if (fd.ShowDialog() == DialogResult.OK)
+                    {
+                        File.WriteAllBytes(fd.FileName, (byte[])selectedCell.Value);
+                    }
+                }
+            }
+        }
+
+        void DeleteImage(object sender, EventArgs e)
+        {
+            selectedCell.Value = null;
+        }
+
         #region IDisposable Members
 
         void IDisposable.Dispose()
@@ -120,6 +178,7 @@ namespace SqlCeScripter
         }
 
         #endregion
+
        
     }
 }
