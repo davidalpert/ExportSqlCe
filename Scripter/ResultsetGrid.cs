@@ -113,15 +113,14 @@ namespace SqlCeScripter
 
         private void dataGridView1_MouseUp(object sender, MouseEventArgs e)
         {
+            selectedCell = null;
             // Load context menu on right mouse click
-            DataGridView.HitTestInfo hitTestInfo;
             if (e.Button == MouseButtons.Right)
             {
+                DataGridView.HitTestInfo hitTestInfo;
                 hitTestInfo = dataGridView1.HitTest(e.X, e.Y);
-                // If column is first column
                 if (hitTestInfo.Type == DataGridViewHitTestType.Cell)
                 {
-                    selectedCell = null;
                     DataGridViewCell cell = dataGridView1[hitTestInfo.ColumnIndex, hitTestInfo.RowIndex];
                     if (cell.FormattedValueType == typeof(System.Drawing.Image))
                     {
@@ -134,19 +133,22 @@ namespace SqlCeScripter
 
         void ImportImage(object sender, EventArgs e)
         {
-            using (OpenFileDialog fd = new OpenFileDialog())
+            if (selectedCell != null)
             {
-                fd.Multiselect = false;
-                if (fd.ShowDialog() == DialogResult.OK)
+                using (OpenFileDialog fd = new OpenFileDialog())
                 {
-                    selectedCell.Value = File.ReadAllBytes(fd.FileName);
+                    fd.Multiselect = false;
+                    if (fd.ShowDialog() == DialogResult.OK)
+                    {
+                        selectedCell.Value = File.ReadAllBytes(fd.FileName);
+                    }
                 }
             }
         }
 
         void ExportImage(object sender, EventArgs e)
         {
-            if (selectedCell.Value != null)
+            if (selectedCell != null && selectedCell.Value != null)
             {
                 using (SaveFileDialog fd = new SaveFileDialog())
                 {
@@ -160,7 +162,10 @@ namespace SqlCeScripter
 
         void DeleteImage(object sender, EventArgs e)
         {
-            selectedCell.Value = null;
+            if (selectedCell != null)
+            {
+                selectedCell.Value = null;
+            }
         }
 
         #region IDisposable Members
