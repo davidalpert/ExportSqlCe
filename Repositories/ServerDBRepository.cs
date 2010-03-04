@@ -176,15 +176,15 @@ namespace ExportSqlCE
         {
             return ExecuteReader(
                 "SELECT COLUMN_NAME, col.IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, " +
-                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR(col.TABLE_SCHEMA + '.' + col.TABLE_NAME)  END, " +
-                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED(col.TABLE_SCHEMA + '.' + col.TABLE_NAME)  END, " +
+                "AUTOINC_INCREMENT =  CASE cols.is_identity  WHEN 0 THEN 0 WHEN 1 THEN IDENT_INCR('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']')  END, " +
+                "AUTOINC_SEED =     CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_SEED('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']')  END, " +
                 "COLUMN_HASDEFAULT =  CASE WHEN col.COLUMN_DEFAULT IS NULL THEN CAST(0 AS bit) ELSE CAST (1 AS bit) END, COLUMN_DEFAULT, " +
                 "COLUMN_FLAGS = CASE cols.is_rowguidcol WHEN 0 THEN 0 ELSE 378 END, " +
                 "NUMERIC_SCALE, col.TABLE_NAME, " +
-                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT(col.TABLE_SCHEMA + '.' + col.TABLE_NAME) END " +
+                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']') + IDENT_INCR('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']') END " +
                 "FROM INFORMATION_SCHEMA.COLUMNS col  " +
                 "JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
-                "AND cols.object_id = OBJECT_ID(col.TABLE_SCHEMA + '.' + col.TABLE_NAME)  " +
+                "AND cols.object_id = OBJECT_ID('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']')  " +
                 "JOIN INFORMATION_SCHEMA.TABLES tab ON col.TABLE_NAME = tab.TABLE_NAME " +
                 "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
                 "AND tab.TABLE_TYPE = 'BASE TABLE' " +
@@ -220,16 +220,16 @@ namespace ExportSqlCE
                 "where u.TABLE_NAME = '" + tableName + "' AND c.TABLE_NAME = '" + tableName + "' and c.CONSTRAINT_TYPE = 'PRIMARY KEY'"
                 , new AddToListDelegate<string>(AddToListString));
         }
-        
+
         public List<Constraint> GetAllForeignKeys()
         {
             return ExecuteReader(
-                "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " + 
+                "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
                 "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
                 "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
+                "WHERE is_disabled = 0 ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
         }
 
@@ -241,11 +241,10 @@ namespace ExportSqlCE
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
                 "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                "WHERE OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" + 
+                "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
         }
-
 
         /// <summary>
         /// Get the indexes for the table
