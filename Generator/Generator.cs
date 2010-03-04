@@ -765,45 +765,92 @@ namespace ExportSqlCE
             }
         }
 
+        internal void GenerateIndexScript(string tableName, string indexName)
+        {
+            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
+            GenerateSingleIndex(tableName, indexName);
+        }
+
+        internal void GenerateIndexDrop(string tableName, string indexName)
+        {
+            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
+            IOrderedEnumerable<Index> indexesByName = from i in tableIndexes
+                                                      where i.IndexName == indexName
+                                                      orderby i.OrdinalPosition
+                                                      select i;
+            if (indexesByName.Count() > 0)
+            {
+                _sbScript.AppendFormat("DROP INDEX [{0}].[{1}];{2}", tableName, indexName, Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+            else
+            {
+                _sbScript.AppendFormat("ALTER TABLE [{0}] DROP CONSTRAINT [{1}];{2}", tableName, indexName, Environment.NewLine);
+                _sbScript.Append(_sep);                
+            }
+        }
+
+        internal void GenerateIndexStatistics(string tableName, string indexName)
+        {
+            _sbScript.AppendFormat("sp_show_statistics '{0}', '{1}';{2}", tableName, indexName, Environment.NewLine);
+            _sbScript.Append(_sep);
+            _sbScript.AppendFormat("sp_show_statistics_columns '{0}', '{1}';{2}", tableName, indexName, Environment.NewLine);
+            _sbScript.Append(_sep);
+            _sbScript.AppendFormat("sp_show_statistics_steps '{0}', '{1}';{2}", tableName, indexName, Environment.NewLine);
+            _sbScript.Append(_sep);
+        }
+        
         private void GenerateIndex(string tableName)
         {
             List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
-
             if (tableIndexes.Count > 0)
             {
                 IEnumerable<string> uniqueIndexNameList = tableIndexes.Select(i => i.IndexName).Distinct();
 
                 foreach (string uniqueIndexName in uniqueIndexNameList)
                 {
-                    string name = uniqueIndexName;
-                    IOrderedEnumerable<Index> indexesByName = from i in tableIndexes
-                                                              where i.IndexName == name
-                                                              orderby i.OrdinalPosition
-                                                              select i;
-
-                    _sbScript.Append("CREATE ");
-
-                    // Just get the first one to decide whether it's unique and/or clustered index
-                    var idx = indexesByName.First();
-                    if (idx.Unique)
-                        _sbScript.Append("UNIQUE ");
-                    if (idx.Clustered)
-                        _sbScript.Append("CLUSTERED ");
-
-                    _sbScript.AppendFormat("INDEX [{0}] ON [{1}] (", idx.IndexName, idx.TableName);
-
-                    foreach (Index col in indexesByName)
-                    {
-                        _sbScript.AppendFormat("[{0}] {1},", col.ColumnName, col.SortOrder.ToString());
-                    }
-
-                    // Remove the last comma
-                    _sbScript.Remove(_sbScript.Length - 1, 1);
-                    _sbScript.AppendLine(");");
-                    _sbScript.Append(_sep);
+                    GenerateSingleIndex(tableName, uniqueIndexName);
                 }
             }
+        }
 
+
+        private void GenerateSingleIndex(string tableName, string uniqueIndexName)
+        {
+
+            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
+            
+            IOrderedEnumerable<Index> indexesByName = from i in tableIndexes
+                                                      where i.IndexName == uniqueIndexName
+                                                      orderby i.OrdinalPosition
+                                                      select i;
+            if (indexesByName.Count() > 0)
+            {
+                _sbScript.Append("CREATE ");
+                ////
+                // Just get the first one to decide whether it's unique and/or clustered index
+                var idx = indexesByName.First();
+                if (idx.Unique)
+                    _sbScript.Append("UNIQUE ");
+                if (idx.Clustered)
+                    _sbScript.Append("CLUSTERED ");
+
+                _sbScript.AppendFormat("INDEX [{0}] ON [{1}] (", idx.IndexName, idx.TableName);
+
+                foreach (Index col in indexesByName)
+                {
+                    _sbScript.AppendFormat("[{0}] {1},", col.ColumnName, col.SortOrder.ToString());
+                }
+
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 1, 1);
+                _sbScript.AppendLine(");");
+                _sbScript.Append(_sep);
+            }
+            else
+            {
+                GeneratePrimaryKeys(tableName);
+            }
         }
 
 

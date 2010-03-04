@@ -154,6 +154,7 @@
     <Compile Include="Scripter\Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Scripter\ScriptIndexMenuItem.cs" />
     <Compile Include="Scripter\ServerMenuItem.cs" />
     <Compile Include="Scripter\DataGridViewSearch.cs" />
     <Compile Include="Scripter\EditTableMenuItem.cs" />
