@@ -7,7 +7,7 @@ namespace ExportSqlCE
     {
         static void Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args.Length < 2 || args.Length > 4)
                 PrintUsageGuide();
             else
             {
@@ -15,6 +15,17 @@ namespace ExportSqlCE
                 {
                     string connectionString = args[0];
                     string outputFileLocation = args[1];
+
+                    bool includeData = true;
+                    bool saveImageFiles = false;
+
+                    for (int i = 2; i < args.Length; i++)
+                    {
+                        if (args[i].Contains("schemaonly"))
+                            includeData = false;
+                        if (args[i].Contains("saveimages"))
+                            saveImageFiles = true;
+                    }
 
                     using (IRepository repository = new DBRepository(connectionString))
                     {
@@ -29,8 +40,11 @@ namespace ExportSqlCE
 #else
                         generator.GenerateTable(false);
 #endif
-                        Console.WriteLine("Generating the data....");
-                        generator.GenerateTableContent();
+                        if (includeData)
+                        {
+                            Console.WriteLine("Generating the data....");
+                            generator.GenerateTableContent(saveImageFiles);
+                        }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
                         Console.WriteLine("Generating the foreign keys....");
@@ -93,7 +107,9 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location]");
+            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [schemaonly] [saveimages]");
+            Console.WriteLine(" (schemaonly and saveimages are optional parameters)");
+            Console.WriteLine("");
             Console.WriteLine("Example : ");
             Console.WriteLine(" ExportSQLCE.exe \"Data Source=D:\\Northwind.sdf;\" Northwind.sql");
         }

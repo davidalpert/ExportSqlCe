@@ -7,7 +7,7 @@ namespace ExportSqlCE
     {
         static void Main(string[] args)
         {
-            if (args.Length < 2 || args.Length > 3)
+            if (args.Length < 2 || args.Length > 4)
                 PrintUsageGuide();
             else
             {
@@ -17,12 +17,14 @@ namespace ExportSqlCE
                     string outputFileLocation = args[1];
 
                     bool includeData = true;
-                    if (args.Length > 2)
+                    bool saveImageFiles = false;
+
+                    for (int i = 2; i < args.Length; i++)
                     {
-                        if (args[2].Contains("schemaonly"))
-                        {
+                        if (args[i].Contains("schemaonly"))
                             includeData = false;
-                        }
+                        if (args[i].Contains("saveimages"))
+                            saveImageFiles = true;
                     }
 
                     using (IRepository repository = new ServerDBRepository(connectionString))
@@ -39,7 +41,7 @@ namespace ExportSqlCE
                         if (includeData)
                         {
                             Console.WriteLine("Generating the data....");
-                            generator.GenerateTableContent();
+                            generator.GenerateTableContent(saveImageFiles);
                         }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
@@ -89,14 +91,15 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [schemaonly]");
+            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[schemaonly]] [[saveimages]]");
+            Console.WriteLine(" (schemaonly and saveimages are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
             Console.WriteLine("");
             Console.WriteLine("Server data types currently NOT supported: ");
-            Console.WriteLine("sql_variant");
+            Console.WriteLine(" sql_variant");
         }
     }
 }
