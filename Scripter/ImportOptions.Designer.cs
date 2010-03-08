@@ -37,7 +37,6 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.lblSample = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -132,17 +131,6 @@
             this.lblSample.TabIndex = 8;
             this.lblSample.Text = "Sample\r\nSample";
             // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.ForeColor = System.Drawing.Color.Red;
-            this.label4.Location = new System.Drawing.Point(15, 159);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(182, 14);
-            this.label4.TabIndex = 9;
-            this.label4.Text = "(Beta feature, feedback please)";
-            // 
             // ImportOptions
             // 
             this.AcceptButton = this.bntOK;
@@ -150,7 +138,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(409, 191);
-            this.Controls.Add(this.label4);
             this.Controls.Add(this.lblSample);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.btnCancel);
@@ -186,6 +173,5 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label lblSample;
-        private System.Windows.Forms.Label label4;
     }
 }

@@ -5,9 +5,9 @@ using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 
 namespace SqlCeScripter
 {
-    internal class MenuItem : ToolsMenuItemBase, IWinformsMenuHandler
+    internal class DatabaseMenuItem : ToolsMenuItemBase, IWinformsMenuHandler
     {
-        internal MenuItem()
+        internal DatabaseMenuItem()
         {
             this.Text = "Script database...";
         }
@@ -19,25 +19,31 @@ namespace SqlCeScripter
         
         public override object Clone()
         {
-            return new MenuItem();
+            return new DatabaseMenuItem();
         }
 
         #region IWinformsMenuHandler Members
 
         public System.Windows.Forms.ToolStripItem[] GetMenuItems()
         {
+            
             ToolStripMenuItem item = new ToolStripMenuItem("Script Database");
 
-            ToolStripMenuItem insertItem = new ToolStripMenuItem("Schema and Data...");
-            insertItem.Tag = true;
-            insertItem.Click += new EventHandler(item_Click);
+            ToolStripMenuItem dbItem = new ToolStripMenuItem("Schema and Data...");
+            dbItem.Tag = Scope.SchemaData;
+            dbItem.Click += new EventHandler(item_Click);
 
-            ToolStripMenuItem insertItem2 = new ToolStripMenuItem("Schema...");
-            insertItem2.Tag = false;
-            insertItem2.Click += new EventHandler(item_Click);
+            ToolStripMenuItem dbItem1 = new ToolStripMenuItem("Schema and Data with BLOB files...");
+            dbItem1.Tag = Scope.SchemaDataBlobs;
+            dbItem1.Click += new EventHandler(item_Click);
 
-            item.DropDownItems.Add(insertItem);
-            item.DropDownItems.Add(insertItem2);
+            ToolStripMenuItem dbItem2 = new ToolStripMenuItem("Schema...");
+            dbItem2.Tag = Scope.Schema;
+            dbItem2.Click += new EventHandler(item_Click);
+
+            item.DropDownItems.Add(dbItem);
+            item.DropDownItems.Add(dbItem1);
+            item.DropDownItems.Add(dbItem2);
 
             item.DropDownItems.Add(new ToolStripSeparator());
 
@@ -65,7 +71,7 @@ namespace SqlCeScripter
             string fileName;
             
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
-            bool scriptData = (bool)item.Tag;
+            Scope scope = (Scope)item.Tag;
 
             SaveFileDialog fd = new SaveFileDialog();
             fd.AutoUpgradeEnabled = true;
@@ -80,13 +86,7 @@ namespace SqlCeScripter
                 {
                     using (IRepository repository = new DBRepository(connectionString))
                     {
-                        Helper.FinalFiles = fileName;
-                        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                        sw.Start();
-                        var generator = new Generator(repository, fileName);
-                        generator.GenerateAllAndSave(scriptData);
-                        sw.Stop();
-                        MessageBox.Show(string.Format("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString()));
+                        System.Windows.Forms.MessageBox.Show(Helper.ScriptDatabaseToFile(fileName, scope, repository));
                     }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException sqlCe)
@@ -102,5 +102,6 @@ namespace SqlCeScripter
             }
 
         }
+
     }
 }

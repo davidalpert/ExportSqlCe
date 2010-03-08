@@ -5,4 +5,12 @@
         YES
         , NO
     }
+
+    internal enum Scope
+    {
+        Schema,
+        SchemaData,
+        SchemaDataBlobs
+    }
+
 }

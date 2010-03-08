@@ -5,6 +5,7 @@ namespace ExportSqlCE
 {
     internal static class Helper
     {
+
         internal static string FinalFiles 
         {
             get
@@ -57,6 +58,31 @@ namespace ExportSqlCE
         internal static string FixConnectionString(string connectionString, int timeout)
         {
             return connectionString.Replace(string.Format(";Timeout = \"{0}\"", timeout), string.Empty);
+        }
+        
+
+        internal static string ScriptDatabaseToFile(string fileName, Scope scope, IRepository repository)
+        {
+            Helper.FinalFiles = fileName;
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            var generator = new Generator(repository, fileName);
+            switch (scope)
+            {
+                case Scope.Schema:
+                    generator.GenerateAllAndSave(false, false);
+                    break;
+                case Scope.SchemaData:
+                    generator.GenerateAllAndSave(true, false);
+                    break;
+                case Scope.SchemaDataBlobs:
+                    generator.GenerateAllAndSave(true, true);
+                    break;
+                default:
+                    break;
+            }
+            sw.Stop();
+            return string.Format("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
         }
 
         internal static string CheckDataType(string dataType, Column col)

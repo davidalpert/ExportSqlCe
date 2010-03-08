@@ -20,27 +20,31 @@ namespace SqlCeScripter
         
         public override object Clone()
         {
-            return new MenuItem();
+            return new DatabaseMenuItem();
         }
+
 
         #region IWinformsMenuHandler Members
 
         public System.Windows.Forms.ToolStripItem[] GetMenuItems()
         {
             ToolStripMenuItem item = new ToolStripMenuItem("Script Server Database");
+            item.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
             
-
             ToolStripMenuItem insertItem = new ToolStripMenuItem("Schema and Data...");
-            insertItem.Tag = true;
-            insertItem.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
+            insertItem.Tag = Scope.SchemaData;
             insertItem.Click += new EventHandler(item_Click);
 
+            ToolStripMenuItem insertItem1 = new ToolStripMenuItem("Schema and Data with BLOB files...");
+            insertItem1.Tag = Scope.SchemaDataBlobs;
+            insertItem1.Click += new EventHandler(item_Click);
+
             ToolStripMenuItem insertItem2 = new ToolStripMenuItem("Schema...");
-            insertItem2.Tag = false;
-            insertItem2.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
+            insertItem2.Tag = Scope.Schema;
             insertItem2.Click += new EventHandler(item_Click);
 
             item.DropDownItems.Add(insertItem);
+            item.DropDownItems.Add(insertItem1);
             item.DropDownItems.Add(insertItem2);
 
             item.DropDownItems.Add(new ToolStripSeparator());
@@ -79,7 +83,7 @@ namespace SqlCeScripter
                     string fileName;
 
                     ToolStripMenuItem item = (ToolStripMenuItem)sender;
-                    bool scriptData = (bool)item.Tag;
+                    Scope scope = (Scope)item.Tag;
 
                     SaveFileDialog fd = new SaveFileDialog();
                     fd.AutoUpgradeEnabled = true;
@@ -92,13 +96,7 @@ namespace SqlCeScripter
                         fileName = fd.FileName;
                         using (IRepository repository = new ServerDBRepository(connectionString))
                         {
-                            Helper.FinalFiles = fileName;
-                            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                            sw.Start();
-                            var generator = new Generator(repository, fileName);
-                            generator.GenerateAllAndSave(scriptData);
-                            sw.Stop();
-                            MessageBox.Show(string.Format("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString()));
+                            System.Windows.Forms.MessageBox.Show(Helper.ScriptDatabaseToFile(fileName, scope, repository));
                         }
                    }
                 }

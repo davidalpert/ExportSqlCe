@@ -22,12 +22,12 @@ namespace ExportSqlCE
             Init(repository, outFile);
         }
 
-        internal void GenerateAllAndSave(bool includeData)
+        internal void GenerateAllAndSave(bool includeData, bool saveImages)
         {
             GenerateTable(includeData);
             if (includeData)
             {
-                GenerateTableContent(false);
+                GenerateTableContent(saveImages);
             }
             GeneratePrimaryKeys();
             GenerateForeignKeys();

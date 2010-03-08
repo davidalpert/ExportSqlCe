@@ -178,7 +178,7 @@
       <DependentUpon>ImportOptions.cs</DependentUpon>
     </Compile>
     <Compile Include="Scripter\ImportTableMenuItem.cs" />
-    <Compile Include="Scripter\MenuItem.cs" />
+    <Compile Include="Scripter\DatabaseMenuItem.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

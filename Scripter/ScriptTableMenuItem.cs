@@ -210,7 +210,7 @@ namespace SqlCeScripter
                             generator.GenerateTableDelete(this.Parent.Name);
                             break;
                         case Action.Data:
-                            generator.GenerateTableData(this.Parent.Name);
+                            generator.GenerateTableData(this.Parent.Name, false);
                             break;
                         default:
                             break;
