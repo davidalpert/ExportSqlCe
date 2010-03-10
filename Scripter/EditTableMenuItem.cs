@@ -51,7 +51,12 @@ namespace SqlCeScripter
 
             try
             {
-                Connect.Monitor.TrackFeature("Table.Edit");
+
+                if (!Connect.EditTracked)
+                {
+                    Connect.Monitor.TrackFeature("Table.Edit");
+                    Connect.EditTracked = true;
+                }
 
                 Windows2 windows2 = Connect.CurrentApplication.Windows as Windows2;
 

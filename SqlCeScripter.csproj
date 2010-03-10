@@ -266,6 +266,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Critical.bmp" />
+    <None Include="Resources\saveHS.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
