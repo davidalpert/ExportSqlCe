@@ -39,7 +39,7 @@ namespace SqlCeScripter
                             cmd.Connection = _conn;
                             _conn.Open();
                             cmd.CommandType = CommandType.Text;
-                            cmd.CommandText = string.Format("SELECT * FROM {0}", Connect.CurrentTable);
+                            cmd.CommandText = string.Format("SELECT * FROM [{0}]", Connect.CurrentTable);
                             // Must use dataset to disable EnforceConstraints
                             DataSet dataSet = new DataSet();
                             dataSet.EnforceConstraints = false;
@@ -57,7 +57,7 @@ namespace SqlCeScripter
                 }                    
                 else
                 {
-                    dAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM {0}", Connect.CurrentTable), Connect.ConnectionString);
+                    dAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM [{0}]", Connect.CurrentTable), Connect.ConnectionString);
                     SqlCeCommandBuilder cBuilder = new SqlCeCommandBuilder(dAdapter);
                     dTable = new DataTable();
                     dAdapter.Fill(dTable);
