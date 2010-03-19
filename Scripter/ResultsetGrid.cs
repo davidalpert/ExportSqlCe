@@ -32,44 +32,18 @@ namespace SqlCeScripter
                 this.dataGridView1.DataError += new DataGridViewDataErrorEventHandler(dataGridView1_DataError);
                 if (Connect.ViewsSelected)
                 {
-                    using (SqlCeCommand cmd = new SqlCeCommand())
-                    {
-                        using (SqlCeConnection _conn = new SqlCeConnection(Connect.ConnectionString))
-                        {
-                            cmd.Connection = _conn;
-                            _conn.Open();
-                            cmd.CommandType = CommandType.Text;
-                            cmd.CommandText = string.Format("SELECT * FROM [{0}]", Connect.CurrentTable);
-                            // Must use dataset to disable EnforceConstraints
-                            DataSet dataSet = new DataSet();
-                            dataSet.EnforceConstraints = false;
-                            string[] tables = new string[1];
-                            tables[0] = "table1";
-                            SqlCeDataReader rdr = cmd.ExecuteReader();
-                            dataSet.Load(rdr, LoadOption.OverwriteChanges, tables);
-                            dataSet.Tables[0].DefaultView.AllowDelete = false;
-                            dataSet.Tables[0].DefaultView.AllowEdit = false;
-                            dataSet.Tables[0].DefaultView.AllowNew = false;
-                            this.bindingSource1.DataSource = dataSet.Tables[0];
-                            this.dataGridView1.ReadOnly = true;
-                        }
-                    }
-                }                    
+                    this.toolStripButton1.Enabled = false;
+                }
                 else
                 {
-                    dAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM [{0}]", Connect.CurrentTable), Connect.ConnectionString);
-                    SqlCeCommandBuilder cBuilder = new SqlCeCommandBuilder(dAdapter);
-                    dTable = new DataTable();
-                    dAdapter.Fill(dTable);
-                    this.bindingSource1.DataSource = dTable;
-
                     imageContext.Items.Add("Import Image", null, new EventHandler(ImportImage));
                     imageContext.Items.Add("Export Image", null, new EventHandler(ExportImage));
-                    imageContext.Items.Add("Delete Image", null, new EventHandler(DeleteImage));
+                    imageContext.Items.Add("Delete Image", null, new EventHandler(DeleteImage));                
                 }
+                LoadData();
+
                 this.dataGridView1.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
                 this.dataGridView1.AllowUserToOrderColumns = true;
-                this.dataGridView1.AutoResizeColumns();
                 
                 this.dataGridView1.KeyDown += new KeyEventHandler(dataGridView1_KeyDown);
                 dgs = new DataGridViewSearch(this.dataGridView1);
@@ -90,6 +64,45 @@ namespace SqlCeScripter
                 MessageBox.Show(ex.ToString());
             }
 
+        }
+
+        private void LoadData()
+        {
+            if (Connect.ViewsSelected)
+            {
+                using (SqlCeCommand cmd = new SqlCeCommand())
+                {
+                    using (SqlCeConnection _conn = new SqlCeConnection(Connect.ConnectionString))
+                    {
+                        cmd.Connection = _conn;
+                        _conn.Open();
+                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandText = string.Format("SELECT * FROM {0}", Connect.CurrentTable);
+                        // Must use dataset to disable EnforceConstraints
+                        DataSet dataSet = new DataSet();
+                        dataSet.EnforceConstraints = false;
+                        string[] tables = new string[1];
+                        tables[0] = "table1";
+                        SqlCeDataReader rdr = cmd.ExecuteReader();
+                        dataSet.Load(rdr, LoadOption.OverwriteChanges, tables);
+                        dataSet.Tables[0].DefaultView.AllowDelete = false;
+                        dataSet.Tables[0].DefaultView.AllowEdit = false;
+                        dataSet.Tables[0].DefaultView.AllowNew = false;
+                        this.bindingSource1.DataSource = dataSet.Tables[0];
+                        this.dataGridView1.ReadOnly = true;
+                    }
+                }
+            }
+            else
+            {
+                dAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM [{0}]", Connect.CurrentTable), Connect.ConnectionString);
+                SqlCeCommandBuilder cBuilder = new SqlCeCommandBuilder(dAdapter);
+                dTable = new DataTable();
+                dAdapter.Fill(dTable);
+                this.bindingSource1.DataSource = dTable;
+
+            }
+            this.dataGridView1.AutoResizeColumns();
         }
 
         void dataGridView1_KeyDown(object sender, KeyEventArgs e)
@@ -254,6 +267,24 @@ namespace SqlCeScripter
                 MessageBox.Show(ex.ToString());
             }
 
+        }
+
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                LoadData();
+            }
+            catch (System.Data.SqlServerCe.SqlCeException sqlCe)
+            {
+                Connect.Monitor.TrackException((Exception)sqlCe);
+                Connect.ShowErrors(sqlCe);
+            }
+            catch (Exception ex)
+            {
+                Connect.Monitor.TrackException(ex);
+                MessageBox.Show(ex.ToString());
+            }
         }
        
     }
