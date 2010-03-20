@@ -38,6 +38,7 @@
             this.linkLabel3 = new System.Windows.Forms.LinkLabel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.lblVersion = new System.Windows.Forms.Label();
+            this.linkLabelNewVersion = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -67,7 +68,7 @@
             // 
             this.button1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.button1.Location = new System.Drawing.Point(150, 238);
+            this.button1.Location = new System.Drawing.Point(150, 273);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(87, 25);
             this.button1.TabIndex = 3;
@@ -146,13 +147,28 @@
             this.lblVersion.TabIndex = 9;
             this.lblVersion.Text = "Version x.x";
             // 
+            // linkLabelNewVersion
+            // 
+            this.linkLabelNewVersion.AutoSize = true;
+            this.linkLabelNewVersion.LinkColor = System.Drawing.Color.Red;
+            this.linkLabelNewVersion.Location = new System.Drawing.Point(61, 230);
+            this.linkLabelNewVersion.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.linkLabelNewVersion.Name = "linkLabelNewVersion";
+            this.linkLabelNewVersion.Size = new System.Drawing.Size(130, 14);
+            this.linkLabelNewVersion.TabIndex = 10;
+            this.linkLabelNewVersion.TabStop = true;
+            this.linkLabelNewVersion.Text = "New version available: ";
+            this.linkLabelNewVersion.Visible = false;
+            this.linkLabelNewVersion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelNewVersion_LinkClicked);
+            // 
             // AboutDlg
             // 
             this.AcceptButton = this.button1;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.Gainsboro;
-            this.ClientSize = new System.Drawing.Size(387, 288);
+            this.BackColor = System.Drawing.SystemColors.Control;
+            this.ClientSize = new System.Drawing.Size(387, 323);
+            this.Controls.Add(this.linkLabelNewVersion);
             this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.linkLabel3);
@@ -190,5 +206,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.LinkLabel linkLabel3;
         private System.Windows.Forms.Label lblVersion;
+        private System.Windows.Forms.LinkLabel linkLabelNewVersion;
     }
 }

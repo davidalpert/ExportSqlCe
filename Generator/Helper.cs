@@ -12,7 +12,7 @@ namespace ExportSqlCE
             {
                 if (!string.IsNullOrEmpty(finalFiles))
                 {
-                    if (finalFiles.EndsWith(", "))
+                    if (finalFiles.EndsWith(", ", System.StringComparison.OrdinalIgnoreCase))
                     {
                         finalFiles = finalFiles.Remove(finalFiles.Length - 2);
                     }
@@ -57,7 +57,7 @@ namespace ExportSqlCE
 
         internal static string FixConnectionString(string connectionString, int timeout)
         {
-            return connectionString.Replace(string.Format(";Timeout = \"{0}\"", timeout), string.Empty);
+            return connectionString.Replace(string.Format(System.Globalization.CultureInfo.InvariantCulture, ";Timeout = \"{0}\"", timeout), string.Empty);
         }
         
 
@@ -82,7 +82,7 @@ namespace ExportSqlCE
                     break;
             }
             sw.Stop();
-            return string.Format("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString(System.Globalization.CultureInfo.CurrentCulture));
         }
 
         internal static string CheckDataType(string dataType, Column col)
@@ -179,9 +179,8 @@ namespace ExportSqlCE
 
                 default:
                     // Currently not supported: sql_variant
-                    throw new System.Exception(string.Format("Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
+                    throw new System.NotSupportedException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
             }
-
 
         }
 

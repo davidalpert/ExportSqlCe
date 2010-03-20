@@ -41,7 +41,6 @@ namespace SqlCeScripter
         {
             Connect.Monitor.TrackFeature("Table.Rename");
 
-            ToolStripMenuItem item = (ToolStripMenuItem)sender;
             try
             {
                 string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);

@@ -33,15 +33,15 @@ namespace ExportSqlCE
             {
                 if (this.DataType == "nchar" || this.DataType == "nvarchar" || this.DataType == "binary" || this.DataType == "varbinary")
                 {
-                    return string.Format("{0}({1}),", this.DataType, this.CharacterMaxLength);
+                    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}({1}),", this.DataType, this.CharacterMaxLength);
                 }
                 else if (this.DataType == "numeric")
                 {
-                    return string.Format("{0}({1},{2}),", this.DataType, this.NumericPrecision, this.NumericScale);
+                    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}({1},{2}),", this.DataType, this.NumericPrecision, this.NumericScale);
                 }
                 else
                 {
-                    return string.Format("{0},", this.DataType);
+                    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0},", this.DataType);
                 }
             }
         }

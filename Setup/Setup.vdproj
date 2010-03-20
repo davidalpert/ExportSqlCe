@@ -5405,7 +5405,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ExportSqlCe"
         "ProductCode" = "8:{EB2F2D7C-0F7F-43C6-ABBA-ECF5D2C1CB63}"
-        "PackageCode" = "8:{C459B470-FA96-419F-B97D-582BBC1A37A9}"
+        "PackageCode" = "8:{68D14D83-8A48-45D6-8D92-E560B083DE3D}"
         "UpgradeCode" = "8:{12E391ED-E6CE-4233-A3DE-584CD3F8288A}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"

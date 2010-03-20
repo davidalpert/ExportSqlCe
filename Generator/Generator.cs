@@ -429,8 +429,8 @@ namespace ExportSqlCE
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
             {
-                _sbScript.AppendFormat("INSERT INTO [{0}]", tableName);
-                _sbScript.AppendFormat(Environment.NewLine);
+                _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "INSERT INTO [{0}]", tableName);
+                _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, Environment.NewLine);
                 _sbScript.Append("           (");
 
                 columns.ForEach(delegate(Column col)
@@ -471,7 +471,7 @@ namespace ExportSqlCE
                     valueString.Append(val);
                     valueString.Append(Environment.NewLine);
                 }
-                throw new ArgumentException(string.Format("The number of values ({0}) and fields ({1}) do not match - {2}", values.Count, fields.Count, valueString.ToString()));
+                throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "The number of values ({0}) and fields ({1}) do not match - {2}", values.Count, fields.Count, valueString.ToString()));
             }
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
@@ -553,8 +553,8 @@ namespace ExportSqlCE
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
             {
-                _sbScript.AppendFormat("UPDATE [{0}] ", tableName);
-                _sbScript.AppendFormat(Environment.NewLine);
+                _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "UPDATE [{0}] ", tableName);
+                _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, Environment.NewLine);
                 _sbScript.Append("   SET ");
 
                 columns.ForEach(delegate(Column col)
@@ -638,9 +638,9 @@ namespace ExportSqlCE
         
         }
 
-        public void GenerateForeignKeys(string tabelName)
+        public void GenerateForeignKeys(string tableName)
         {
-            List<Constraint> foreignKeys = _repository.GetAllForeignKeys(tabelName);
+            List<Constraint> foreignKeys = _repository.GetAllForeignKeys(tableName);
             //List<Constraint> foreignKeys = _repository.GetAllGroupedForeignKeys();
             List<Constraint> foreingKeysGrouped = GetGroupForeingKeys(foreignKeys);
 
@@ -674,7 +674,6 @@ namespace ExportSqlCE
 
         internal void GenerateIndexScript(string tableName, string indexName)
         {
-            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
             GenerateSingleIndex(tableName, indexName);
         }
 

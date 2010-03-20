@@ -14,7 +14,7 @@ namespace SqlCeScripter
         public RenameOptions(string tableName)
         {
             InitializeComponent();
-            this.Text = string.Format(this.Text, tableName);
+            this.Text = string.Format(System.Globalization.CultureInfo.InvariantCulture, this.Text, tableName);
         }
 
         public string NewName 

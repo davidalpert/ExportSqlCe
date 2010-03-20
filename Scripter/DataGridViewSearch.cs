@@ -6,7 +6,7 @@ using System.Windows.Forms;
 namespace SqlCeScripter
 {
     // Thanks to http://www.codeproject.com/KB/grid/ExtendedDataGridView.aspx
-    internal class DataGridViewSearch
+    internal class DataGridViewSearch : IDisposable 
     {
         PanelQuickSearch m_pnlQuickSearch;
 
@@ -161,5 +161,17 @@ namespace SqlCeScripter
 
             return max;
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            if (this.m_pnlQuickSearch != null)
+            {
+                m_pnlQuickSearch.Dispose();
+            }
+        }
+
+        #endregion
     }
 }

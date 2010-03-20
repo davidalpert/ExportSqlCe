@@ -70,7 +70,7 @@ namespace SqlCeScripter
                     EnvDTE.Window toolWindow = windows2.CreateToolWindow2(Connect.CurrentAddin,
                                                                    asm.Location,
                                                                    "SqlCeScripter.ResultsetGrid",
-                                                                   string.Format("{0} - {1}", dbName, this.Parent.Name), 
+                                                                   string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0} - {1}", dbName, this.Parent.Name), 
                                                                    "{" + Guid.NewGuid().ToString() + "}",
                                                                    ref controlObject);
 

@@ -195,7 +195,7 @@ namespace ExportSqlCE
 
         public IDataReader GetDataFromReader(string tableName)
         {
-            return ExecuteDataReader(string.Format("SELECT * FROM [{0}]",tableName));
+            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}]",tableName));
         }
 
         public DataTable GetDataFromTable(string tableName, List<Column> columns)
@@ -204,10 +204,10 @@ namespace ExportSqlCE
             System.Text.StringBuilder sb = new System.Text.StringBuilder(200); 
             foreach (Column col in columns)
             { 
-                sb.Append(string.Format("[{0}], ", col.ColumnName)); 
+                sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName)); 
             }
             sb.Remove(sb.Length - 2, 2);
-            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
+            string schemaName = (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
         }
         
@@ -252,7 +252,7 @@ namespace ExportSqlCE
         /// <returns></returns>
         public List<Index> GetIndexesFromTable(string tableName)
         {
-            string schemaName = (string)ExecuteScalar(string.Format("SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
+            string schemaName = (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteReader(
                 "select top 4096	OBJECT_NAME(i.object_id) AS TABLE_NAME, i.name AS INDEX_NAME, 0 AS PRIMARY_KEY, " +
                 "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER " +
@@ -265,7 +265,7 @@ namespace ExportSqlCE
 
         public void RenameTable(string oldName, string newName)
         {
-            ExecuteNonQuery(string.Format("sp_rename '{0}', '{1}';", oldName, newName));            
+            ExecuteNonQuery(string.Format(System.Globalization.CultureInfo.InvariantCulture, "sp_rename '{0}', '{1}';", oldName, newName));            
         }
 
         public bool IsServer()

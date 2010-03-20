@@ -217,7 +217,7 @@ namespace ExportSqlCE
             System.Text.StringBuilder sb = new System.Text.StringBuilder(200);
             foreach (Column col in columns)
             {
-                sb.Append(string.Format("[{0}], ", col.ColumnName));
+                sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName));
             }
             sb.Remove(sb.Length - 2, 2);
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
@@ -277,7 +277,7 @@ namespace ExportSqlCE
 
         public void RenameTable(string oldName, string newName)
         {
-            ExecuteNonQuery(string.Format("sp_rename '{0}', '{1}';", oldName, newName));            
+            ExecuteNonQuery(string.Format(System.Globalization.CultureInfo.InvariantCulture, "sp_rename '{0}', '{1}';", oldName, newName));            
         }
 
         public bool IsServer()

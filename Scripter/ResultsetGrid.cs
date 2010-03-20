@@ -13,11 +13,12 @@ namespace SqlCeScripter
 {
     public partial class ResultsetGrid : UserControl, IDisposable 
     {
-        private DataGridViewSearch dgs = null;
+        private DataGridViewSearch dgs;
         private ContextMenuStrip imageContext = new ContextMenuStrip();
-        private DataGridViewCell selectedCell = null;
+        private DataGridViewCell selectedCell;
         private SqlCeDataAdapter dAdapter;
         private DataTable dTable;
+        private string downloadUri = "http://exportsqlce.codeplex.com";
 
         public ResultsetGrid()
         {
@@ -26,6 +27,21 @@ namespace SqlCeScripter
 
         private void ResultsetGrid_Load(object sender, EventArgs e)
         {
+            this.btnNewVersion.ForeColor = SystemColors.ControlText;
+            this.btnNewVersion.Text = "Check for updates";
+
+            // Only show once per session
+            if (!Connect.NewVersionShown)
+            {
+                Connect.Monitor.VersionAvailable += (s, ea) =>
+                {
+                    this.downloadUri = ea.DownloadUri;
+                    this.btnNewVersion.ForeColor = Color.Red;
+                    this.btnNewVersion.Text = "New version available: " + ea.OfficialVersion;
+                };
+                Connect.NewVersionShown = true;
+            }
+
             try
             {
                 this.dataGridView1.AutoGenerateColumns = true;
@@ -48,10 +64,6 @@ namespace SqlCeScripter
                 this.dataGridView1.KeyDown += new KeyEventHandler(dataGridView1_KeyDown);
                 dgs = new DataGridViewSearch(this.dataGridView1);
                 
-                // About
-                this.dataGridView1.TopLeftHeaderCell.Value = "About";
-                dataGridView1.MouseClick += new MouseEventHandler(dataGridView1_MouseClick);
-
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
@@ -77,7 +89,7 @@ namespace SqlCeScripter
                         cmd.Connection = _conn;
                         _conn.Open();
                         cmd.CommandType = CommandType.Text;
-                        cmd.CommandText = string.Format("SELECT * FROM {0}", Connect.CurrentTable);
+                        cmd.CommandText = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM {0}", Connect.CurrentTable);
                         // Must use dataset to disable EnforceConstraints
                         DataSet dataSet = new DataSet();
                         dataSet.EnforceConstraints = false;
@@ -95,8 +107,7 @@ namespace SqlCeScripter
             }
             else
             {
-                dAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM [{0}]", Connect.CurrentTable), Connect.ConnectionString);
-                SqlCeCommandBuilder cBuilder = new SqlCeCommandBuilder(dAdapter);
+                dAdapter = new SqlCeDataAdapter(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}]", Connect.CurrentTable), Connect.ConnectionString);
                 dTable = new DataTable();
                 dAdapter.Fill(dTable);
                 this.bindingSource1.DataSource = dTable;
@@ -110,18 +121,6 @@ namespace SqlCeScripter
             if (e.KeyCode == Keys.F3)
             {
                 this.dgs.ShowSearch();
-            }
-        }
-
-        void dataGridView1_MouseClick(object sender, MouseEventArgs e)
-        {
-            DataGridView.HitTestInfo info = this.dataGridView1.HitTest(e.X, e.Y);
-            if (info.ColumnIndex == -1 && info.RowIndex == -1)
-            {
-                using (AboutDlg about = new AboutDlg())
-                {
-                    about.ShowDialog();
-                }
             }
         }
 
@@ -147,7 +146,7 @@ namespace SqlCeScripter
 
         void dataGridView1_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            MessageBox.Show(string.Format("DataGridView error: {0}, row: {1}, column: {2}", e.Exception.Message, e.RowIndex + 1, e.ColumnIndex + 1)); 
+            MessageBox.Show(string.Format(System.Globalization.CultureInfo.InvariantCulture, "DataGridView error: {0}, row: {1}, column: {2}", e.Exception.Message, e.RowIndex + 1, e.ColumnIndex + 1)); 
         }
 
 
@@ -191,7 +190,7 @@ namespace SqlCeScripter
         // From http://www.codeproject.com/KB/database/DataGridView2Db.aspx
 
         //tracks for PositionChanged event last row
-        private DataRow LastDataRow = null;
+        private DataRow LastDataRow;
 
         /// <SUMMARY>
         /// Checks if there is a row with changes and
@@ -239,7 +238,7 @@ namespace SqlCeScripter
                 // database when it is still processed. Otherwise
                 // we get a problem with the event handling of 
                 //the DataTable.
-                throw new ApplicationException("It seems the" +
+                throw new InvalidOperationException("It seems the" +
                   " PositionChanged event was fired twice for" +
                   " the same row");
             }
@@ -284,6 +283,22 @@ namespace SqlCeScripter
             {
                 Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            using (AboutDlg about = new AboutDlg())
+            {
+                about.ShowDialog();
+            }
+        }
+
+        private void btnNewVersion_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(this.downloadUri))
+            {
+                System.Diagnostics.Process.Start(this.downloadUri);
             }
         }
        
