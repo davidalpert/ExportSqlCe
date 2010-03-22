@@ -17,8 +17,11 @@ namespace SqlCeScripter
         private ContextMenuStrip imageContext = new ContextMenuStrip();
         private DataGridViewCell selectedCell;
         private SqlCeDataAdapter dAdapter;
+        private SqlCeCommandBuilder cb;
         private DataTable dTable;
         private string downloadUri = "http://exportsqlce.codeplex.com";
+        private string tableName;
+        private bool isView;
 
         public ResultsetGrid()
         {
@@ -27,6 +30,8 @@ namespace SqlCeScripter
 
         private void ResultsetGrid_Load(object sender, EventArgs e)
         {
+            this.isView = Connect.ViewsSelected;
+            this.tableName = Connect.CurrentTable;
             this.btnNewVersion.ForeColor = SystemColors.ControlText;
             this.btnNewVersion.Text = "Check for updates";
 
@@ -46,7 +51,7 @@ namespace SqlCeScripter
             {
                 this.dataGridView1.AutoGenerateColumns = true;
                 this.dataGridView1.DataError += new DataGridViewDataErrorEventHandler(dataGridView1_DataError);
-                if (Connect.ViewsSelected)
+                if (this.isView)
                 {
                     this.toolStripButton1.Enabled = false;
                 }
@@ -80,7 +85,7 @@ namespace SqlCeScripter
 
         private void LoadData()
         {
-            if (Connect.ViewsSelected)
+            if (this.isView)
             {
                 using (SqlCeCommand cmd = new SqlCeCommand())
                 {
@@ -89,7 +94,7 @@ namespace SqlCeScripter
                         cmd.Connection = _conn;
                         _conn.Open();
                         cmd.CommandType = CommandType.Text;
-                        cmd.CommandText = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM {0}", Connect.CurrentTable);
+                        cmd.CommandText = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM {0}", this.tableName);
                         // Must use dataset to disable EnforceConstraints
                         DataSet dataSet = new DataSet();
                         dataSet.EnforceConstraints = false;
@@ -107,7 +112,9 @@ namespace SqlCeScripter
             }
             else
             {
-                dAdapter = new SqlCeDataAdapter(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}]", Connect.CurrentTable), Connect.ConnectionString);
+                dAdapter = new SqlCeDataAdapter(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}]", this.tableName), Connect.ConnectionString);
+                cb = new SqlCeCommandBuilder();
+                cb.DataAdapter = dAdapter;
                 dTable = new DataTable();
                 dAdapter.Fill(dTable);
                 this.bindingSource1.DataSource = dTable;
