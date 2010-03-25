@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
+using System.Text;
 
 namespace ExportSqlCE
 {
@@ -60,12 +62,14 @@ namespace ExportSqlCE
             {
                 ConstraintTableName = dr.GetString(0)
                 , ConstraintName = dr.GetString(1)
-                , ColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(2))
+                , ColumnName = dr.GetString(2)
                 , UniqueConstraintTableName = dr.GetString(3)
                 , UniqueConstraintName = dr.GetString(4)
-                , UniqueColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(5))
+                , UniqueColumnName = dr.GetString(5)
                 , UpdateRule = dr.GetString(6)
                 , DeleteRule  = dr.GetString(7)
+                , Columns = new ColumnList()
+                , UniqueColumns = new ColumnList()
             });
         }
 
@@ -235,7 +239,7 @@ namespace ExportSqlCE
         
         public List<Constraint> GetAllForeignKeys()
         {
-            return ExecuteReader(
+            var list = ExecuteReader(
                 "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
                 "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
                 "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
@@ -243,26 +247,27 @@ namespace ExportSqlCE
                 "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
-        }
-        public List<Constraint> GetAllForeignKeys(string tableName)
-        {
-            return ExecuteReader(
-                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
-                "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
-                "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
-                "WHERE KCU1.TABLE_NAME = '" + tableName + "' " + 
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
-                , new AddToListDelegate<Constraint>(AddToListConstraints));
+            return Helper.GetGroupForeingKeys(list);
         }
 
+        public List<Constraint> GetAllForeignKeys(string tableName)
+        {
+            var list = ExecuteReader(
+                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
+                "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
+                "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
+                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
+                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
+                "WHERE KCU1.TABLE_NAME = '" + tableName + "' " +
+                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
+                , new AddToListDelegate<Constraint>(AddToListConstraints));
+            return Helper.GetGroupForeingKeys(list);
+        }
 
         /// <summary>
         /// Get the query based on http://msdn.microsoft.com/en-us/library/ms174156.aspx
         /// </summary>
         /// <returns></returns>
-        
         public List<Index> GetIndexesFromTable(string tableName)
         {
             return ExecuteReader(
@@ -285,7 +290,34 @@ namespace ExportSqlCE
             return false;
         }
 
-        #endregion
+        public DataSet GetSchemaDataSet(List<string> tableNames)
+        {
+            DataSet ds = new DataSet(cn.Database);
+            int count = 0;
 
+            //build the select statement and fix the selectAdapter's TableMapping
+            foreach (string tableName in tableNames)
+            {
+                SqlCeDataAdapter selectAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM [{0}]", tableName), cn);
+                selectAdapter.FillSchema(ds, SchemaType.Source, tableName);
+                count++;
+            }
+            List<Constraint> foreignKeys = GetAllForeignKeys();
+            foreach (Constraint fk in foreignKeys)
+            {
+                DataColumn[] parentColumns = new DataColumn[fk.UniqueColumns.Count];
+                DataColumn[] childColumns = new DataColumn[fk.Columns.Count];
+                for (int i = 0; i < fk.Columns.Count ; i++)
+                {
+                    parentColumns[i] = ds.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]];
+                    childColumns[i] = ds.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]];
+                }
+                System.Diagnostics.Debug.WriteLine(fk.ConstraintName + " " + fk.ConstraintTableName);
+                DataRelation dr = ds.Relations.Add(fk.ConstraintName, parentColumns, childColumns);
+            }
+            return ds;
+        }
+
+        #endregion
     }
 }

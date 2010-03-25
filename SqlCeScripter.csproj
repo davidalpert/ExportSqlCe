@@ -140,6 +140,7 @@
     <Compile Include="Generator\Generator.cs" />
     <Compile Include="Generator\Helper.cs" />
     <Compile Include="Models\Column.cs" />
+    <Compile Include="Models\ColumnList.cs" />
     <Compile Include="Models\Constraint.cs" />
     <Compile Include="Models\Index.cs" />
     <Compile Include="Models\YesNoOptionEnum.cs" />

@@ -52,7 +52,7 @@ namespace ExportSqlCE
                         Console.WriteLine("Generating the indexes....");
                         // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
                         generator.GenerateIndex();
-                        
+
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                     }

@@ -5,6 +5,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
+//ref to: QuickGraph.dll and QuickGraph.Data.dll
+
+//using QuickGraph.Data;
+//using QuickGraph.Serialization;
+//using QuickGraph.Serialization.DirectedGraphML;
+//using QuickGraph.Algorithms;
+
 namespace ExportSqlCE
 {
     public class Generator
@@ -587,6 +594,27 @@ namespace ExportSqlCE
             _sbScript.Append(_sep);
         }
 
+        //internal void GenerateSchemaGraph()
+        //{
+        //    var formatNode = new Action<DataTable, DirectedGraphNode>(Generator.FormatNode);
+        //    var formatLink = new Action<DataRelationEdge, DirectedGraphLink>(Generator.FormatLink);
+
+        //    DataSet ds = _repository.GetSchemaDataSet(_tableNames);
+
+        //    var g = ds.ToGraph();
+        //    g.ToDirectedGraphML(AlgorithmExtensions.GetVertexIdentity(g), AlgorithmExtensions.GetEdgeIdentity(g), formatNode, formatLink).WriteXml("test.dgml");
+        //}
+
+        //static void FormatNode(DataTable dataTable, DirectedGraphNode dgNode)
+        //{
+        //    dgNode.Label = dataTable.TableName;
+        //}
+
+        //static void FormatLink(DataRelationEdge edge, DirectedGraphLink dgLink)
+        //{
+        //    dgLink.Label = edge.Relation.RelationName;
+        //}
+
         internal void GeneratePrimaryKeys()
         {
             foreach(string tableName in _tableNames)
@@ -618,18 +646,16 @@ namespace ExportSqlCE
 
         internal void GenerateForeignKeys()
         {
-            List<Constraint> foreignKeys = _repository.GetAllForeignKeys();
-            //List<Constraint> foreignKeys = _repository.GetAllGroupedForeignKeys();
-            List<Constraint> foreingKeysGrouped = GetGroupForeingKeys(foreignKeys);
+            List<Constraint> foreingKeys = _repository.GetAllForeignKeys();
 
-            foreingKeysGrouped.ForEach(delegate(Constraint constraint)
+            foreingKeys.ForEach(delegate(Constraint constraint)
             {
                 _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
                     , constraint.ConstraintTableName
                     , constraint.ConstraintName
-                    , constraint.ColumnName
+                    , constraint.Columns.ToString()
                     , constraint.UniqueConstraintTableName
-                    , constraint.UniqueColumnName
+                    , constraint.UniqueColumns.ToString()
                     , constraint.DeleteRule
                     , constraint.UpdateRule
                     , Environment.NewLine);
@@ -640,18 +666,16 @@ namespace ExportSqlCE
 
         public void GenerateForeignKeys(string tableName)
         {
-            List<Constraint> foreignKeys = _repository.GetAllForeignKeys(tableName);
-            //List<Constraint> foreignKeys = _repository.GetAllGroupedForeignKeys();
-            List<Constraint> foreingKeysGrouped = GetGroupForeingKeys(foreignKeys);
+            List<Constraint> foreingKeys = _repository.GetAllForeignKeys(tableName);
 
-            foreingKeysGrouped.ForEach(delegate(Constraint constraint)
+            foreingKeys.ForEach(delegate(Constraint constraint)
             {
                 _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
                     , constraint.ConstraintTableName
                     , constraint.ConstraintName
-                    , constraint.ColumnName
+                    , constraint.Columns.ToString()
                     , constraint.UniqueConstraintTableName
-                    , constraint.UniqueColumnName
+                    , constraint.UniqueColumns.ToString()
                     , constraint.DeleteRule
                     , constraint.UpdateRule
                     , Environment.NewLine);
@@ -759,46 +783,6 @@ namespace ExportSqlCE
             }
         }
 
-
-        // Contrib from hugo on CodePlex - thanks!
-        private static List<Constraint> GetGroupForeingKeys(List<Constraint> foreignKeys)
-        {
-            var groupedForeingKeys = new List<Constraint>();
-
-            var uniqueConstaints = (from c in foreignKeys
-                                    select c.ConstraintName).Distinct();
-
-            foreach (string item in uniqueConstaints)
-            {
-                string value = item;
-                var constraints = foreignKeys.Where(c => c.ConstraintName.Equals(value, StringComparison.Ordinal)).ToList();
-
-                if (constraints.Count == 1)
-                {
-                    groupedForeingKeys.Add(constraints[0]);
-                }
-                else
-                {
-                    var newConstraint = new Constraint { ConstraintTableName = constraints[0].ConstraintTableName, ConstraintName = constraints[0].ConstraintName, UniqueConstraintTableName = constraints[0].UniqueConstraintTableName, UniqueConstraintName = constraints[0].UniqueConstraintName, DeleteRule = constraints[0].DeleteRule, UpdateRule = constraints[0].UpdateRule };
-                    var columnNames = new StringBuilder();
-                    var uniqueColumnsNames = new StringBuilder();
-                    foreach (Constraint c in constraints)
-                    {
-                        columnNames.Append(c.ColumnName).Append(", ");
-                        uniqueColumnsNames.Append(c.UniqueColumnName).Append(", ");
-                    }
-
-                    columnNames.Remove(columnNames.Length - 2, 2);
-                    uniqueColumnsNames.Remove(uniqueColumnsNames.Length - 2, 2);
-
-                    newConstraint.ColumnName = columnNames.ToString();
-                    newConstraint.UniqueColumnName = uniqueColumnsNames.ToString();
-
-                    groupedForeingKeys.Add(newConstraint);
-                }
-            }
-            return groupedForeingKeys;
-        }
 
         private string GetInsertScriptPrefix(string tableName, List<string> fieldNames)
         {

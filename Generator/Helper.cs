@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ExportSqlCE
 {
@@ -218,6 +220,39 @@ namespace ExportSqlCE
             }
         }
 
+        // Contrib from hugo on CodePlex - thanks!
+        internal static List<Constraint> GetGroupForeingKeys(List<Constraint> foreignKeys)
+        {
+            var groupedForeingKeys = new List<Constraint>();
+
+            var uniqueConstaints = (from c in foreignKeys
+                                    select c.ConstraintName).Distinct();
+
+            foreach (string item in uniqueConstaints)
+            {
+                string value = item;
+                var constraints = foreignKeys.Where(c => c.ConstraintName.Equals(value, System.StringComparison.Ordinal)).ToList();
+
+                if (constraints.Count == 1)
+                {
+                    Constraint constraint = constraints[0];
+                    constraint.Columns.Add(constraint.ColumnName);
+                    constraint.UniqueColumns.Add(constraint.UniqueColumnName);
+                    groupedForeingKeys.Add(constraint);
+                }
+                else
+                {
+                    var newConstraint = new Constraint { ConstraintTableName = constraints[0].ConstraintTableName, ConstraintName = constraints[0].ConstraintName, UniqueConstraintTableName = constraints[0].UniqueConstraintTableName, UniqueConstraintName = constraints[0].UniqueConstraintName, DeleteRule = constraints[0].DeleteRule, UpdateRule = constraints[0].UpdateRule, Columns = new ColumnList(), UniqueColumns = new ColumnList() };
+                    foreach (Constraint c in constraints)
+                    {
+                        newConstraint.Columns.Add(c.ColumnName);
+                        newConstraint.UniqueColumns.Add(c.UniqueColumnName);
+                    }
+                    groupedForeingKeys.Add(newConstraint);
+                }
+            }
+            return groupedForeingKeys;
+        }
 
 
     }

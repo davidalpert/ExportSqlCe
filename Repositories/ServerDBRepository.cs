@@ -223,7 +223,7 @@ namespace ExportSqlCE
 
         public List<Constraint> GetAllForeignKeys()
         {
-            return ExecuteReader(
+            var list = ExecuteReader(
                 "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
                 "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
@@ -231,11 +231,12 @@ namespace ExportSqlCE
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
                 "WHERE is_disabled = 0 ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
+            return Helper.GetGroupForeingKeys(list);
         }
 
         public List<Constraint> GetAllForeignKeys(string tableName)
         {
-            return ExecuteReader(
+            var list = ExecuteReader(
                 "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
                 "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
@@ -244,6 +245,7 @@ namespace ExportSqlCE
                 "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
+            return Helper.GetGroupForeingKeys(list);
         }
 
         /// <summary>
@@ -271,6 +273,11 @@ namespace ExportSqlCE
         public bool IsServer()
         {
             return true;
+        }
+
+        public DataSet GetSchemaDataSet(List<string> tableNames)
+        {
+            return new DataSet();
         }
 
         #endregion

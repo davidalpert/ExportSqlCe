@@ -20,6 +20,7 @@ namespace ExportSqlCE
         Int32 GetRowVersionOrdinal(string tableName);
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
+        DataSet GetSchemaDataSet(List<string> tableNames);
     }
 
 
