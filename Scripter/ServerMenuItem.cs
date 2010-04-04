@@ -29,19 +29,21 @@ namespace SqlCeScripter
         public System.Windows.Forms.ToolStripItem[] GetMenuItems()
         {
             ToolStripMenuItem item = new ToolStripMenuItem("Script Server Database");
-            item.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
             
             ToolStripMenuItem insertItem = new ToolStripMenuItem("Schema and Data...");
             insertItem.Tag = Scope.SchemaData;
             insertItem.Click += new EventHandler(item_Click);
+            insertItem.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
 
             ToolStripMenuItem insertItem1 = new ToolStripMenuItem("Schema and Data with BLOB files...");
             insertItem1.Tag = Scope.SchemaDataBlobs;
             insertItem1.Click += new EventHandler(item_Click);
+            insertItem1.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
 
             ToolStripMenuItem insertItem2 = new ToolStripMenuItem("Schema...");
             insertItem2.Tag = Scope.Schema;
             insertItem2.Click += new EventHandler(item_Click);
+            insertItem2.ToolTipText = "Generate a SQL Compact compatible database script from SQL Server 2005/2008";
 
             item.DropDownItems.Add(insertItem);
             item.DropDownItems.Add(insertItem1);
