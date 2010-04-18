@@ -625,15 +625,15 @@ namespace ExportSqlCE
 
         public void GeneratePrimaryKeys(string tableName)
         {
-            List<string> primaryKeys = _repository.GetPrimaryKeysFromTable(tableName);
+            List<PrimaryKey> primaryKeys = _repository.GetPrimaryKeysFromTable(tableName);
 
             if (primaryKeys.Count > 0)
             {
-                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD PRIMARY KEY (", tableName);
+                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY (", tableName, primaryKeys[0].KeyName);
 
-                primaryKeys.ForEach(delegate(string columnName)
+                primaryKeys.ForEach(delegate(PrimaryKey column)
                 {
-                    _sbScript.AppendFormat("[{0}]", columnName);
+                    _sbScript.AppendFormat("[{0}]", column.ColumnName);
                     _sbScript.Append(",");
                 });
 

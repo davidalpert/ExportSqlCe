@@ -66,6 +66,8 @@ namespace ExportSqlCE
                 , UniqueColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(5))
                 , UpdateRule = dr.GetString(6)
                 , DeleteRule  = dr.GetString(7)
+                , Columns = new ColumnList()
+                , UniqueColumns = new ColumnList()
             });
         }
 
@@ -82,6 +84,16 @@ namespace ExportSqlCE
                 , SortOrder = (dr.GetBoolean(7) ? SortOrderEnum.DESC : SortOrderEnum.ASC) 
             });
 
+        }
+
+        private void AddToListPrimaryKeys(ref List<PrimaryKey> list, SqlDataReader dr)
+        {
+            list.Add(new PrimaryKey
+            {
+                ColumnName = dr.GetString(0)
+                ,
+                KeyName = dr.GetString(1)
+            });
         }
 
         private List<T> ExecuteReader<T>(string commandText, AddToListDelegate<T> AddToListMethod)
@@ -211,14 +223,14 @@ namespace ExportSqlCE
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
         }
         
-        public List<string> GetPrimaryKeysFromTable(string tableName)
+        public List<PrimaryKey> GetPrimaryKeysFromTable(string tableName)
         {
             return ExecuteReader(
-                "SELECT u.COLUMN_NAME " +
+                "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
                     "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME " +
                 "where u.TABLE_NAME = '" + tableName + "' AND c.TABLE_NAME = '" + tableName + "' and c.CONSTRAINT_TYPE = 'PRIMARY KEY'"
-                , new AddToListDelegate<string>(AddToListString));
+                , new AddToListDelegate<PrimaryKey>(AddToListPrimaryKeys));
         }
 
         public List<Constraint> GetAllForeignKeys()
@@ -229,7 +241,7 @@ namespace ExportSqlCE
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
                 "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                "WHERE is_disabled = 0 ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
+                "WHERE is_disabled = 0 ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
             return Helper.GetGroupForeingKeys(list);
         }
@@ -243,7 +255,7 @@ namespace ExportSqlCE
                 "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
                 "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME"
+                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
             return Helper.GetGroupForeingKeys(list);
         }

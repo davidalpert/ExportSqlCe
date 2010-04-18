@@ -49,6 +49,7 @@
     <Compile Include="Models\ColumnList.cs" />
     <Compile Include="Models\Constraint.cs" />
     <Compile Include="Models\Index.cs" />
+    <Compile Include="Models\PrimaryKey.cs" />
     <Compile Include="Models\YesNoOptionEnum.cs" />
     <Compile Include="Repositories\DBRepository.cs" />
     <Compile Include="Repositories\IRepository.cs" />

@@ -88,6 +88,15 @@ namespace ExportSqlCE
 
         }
 
+        private void AddToListPrimaryKeys(ref List<PrimaryKey> list, SqlCeDataReader dr)
+        {
+            list.Add(new PrimaryKey 
+            {
+                ColumnName = dr.GetString(0)
+                , KeyName = dr.GetString(1)
+            });
+        }
+
         private List<T> ExecuteReader<T>(string commandText, AddToListDelegate<T> AddToListMethod)
         {
             List<T> list = new List<T>();
@@ -227,14 +236,14 @@ namespace ExportSqlCE
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
         }
         
-        public List<string> GetPrimaryKeysFromTable(string tableName)
+        public List<PrimaryKey> GetPrimaryKeysFromTable(string tableName)
         {
             return ExecuteReader(
-                "SELECT u.COLUMN_NAME " +
+                "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
                     "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME " +
                 "where u.TABLE_NAME = '" + tableName + "' AND c.TABLE_NAME = '" + tableName + "' and c.CONSTRAINT_TYPE = 'PRIMARY KEY'"
-                , new AddToListDelegate<string>(AddToListString));
+                , new AddToListDelegate<PrimaryKey>(AddToListPrimaryKeys));
         }
         
         public List<Constraint> GetAllForeignKeys()

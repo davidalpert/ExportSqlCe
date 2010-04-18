@@ -11,10 +11,18 @@ namespace ExportSqlCE
         {
             StringBuilder formatter = new StringBuilder();
             foreach (string value in this)
-            { 
-                formatter.Append("[");
-                formatter.Append(value);
-                formatter.Append("], ");
+            {
+                if (!value.StartsWith("["))
+                {
+                    formatter.Append("[");
+                    formatter.Append(value);
+                    formatter.Append("], ");
+                }
+                else
+                {
+                    formatter.Append(value);
+                    formatter.Append(", ");
+                }
             }
             if (formatter.Length > 3)
             {
@@ -22,5 +30,6 @@ namespace ExportSqlCE
             }
             return formatter.ToString();
         }
+
     }
 }

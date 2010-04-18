@@ -5459,14 +5459,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ExportSqlCe"
-        "ProductCode" = "8:{80ECD6E1-1355-43F8-9C38-57074D5601C7}"
-        "PackageCode" = "8:{65BD86ED-7E4E-4E8C-BAC8-1464BC4D912E}"
+        "ProductCode" = "8:{7710FD57-26C1-483D-B073-1415FEBF7669}"
+        "PackageCode" = "8:{FEB45664-4238-4D68-A2EE-5A273D0484AE}"
         "UpgradeCode" = "8:{12E391ED-E6CE-4233-A3DE-584CD3F8288A}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:3.0"
+        "ProductVersion" = "8:3.1"
         "Manufacturer" = "8:ErikEJ"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.codeplex.com/ExportSqlCE"
@@ -6164,7 +6164,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D9BE09CFF60D4218BE321C3664FBD76E"
             {
-            "SourcePath" = "8:..\\obj\\Release\\SqlCeScripter.dll"
+            "SourcePath" = "8:..\\obj\\Debug\\SqlCeScripter.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_728CBA6BCE324F7D83DD659E51A5BEC8"
