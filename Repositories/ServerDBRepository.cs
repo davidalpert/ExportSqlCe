@@ -287,11 +287,6 @@ namespace ExportSqlCE
             return true;
         }
 
-        public DataSet GetSchemaDataSet(List<string> tableNames)
-        {
-            return new DataSet();
-        }
-
         #endregion
 
     }

@@ -1228,12 +1228,6 @@
         "Entry"
         {
         "MsmKey" = "8:_A6A5E75931532763F3D7F3E0E1FC8CE0"
-        "OwnerKey" = "8:_D9BE09CFF60D4218BE321C3664FBD76E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A6A5E75931532763F3D7F3E0E1FC8CE0"
         "OwnerKey" = "8:_DA4D15F6AC97F826E44E44801B5ED624"
         "MsmSig" = "8:_UNDEFINED"
         }

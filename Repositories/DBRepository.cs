@@ -298,35 +298,6 @@ namespace ExportSqlCE
         {
             return false;
         }
-
-        public DataSet GetSchemaDataSet(List<string> tableNames)
-        {
-            DataSet ds = new DataSet(cn.Database);
-            int count = 0;
-
-            //build the select statement and fix the selectAdapter's TableMapping
-            foreach (string tableName in tableNames)
-            {
-                SqlCeDataAdapter selectAdapter = new SqlCeDataAdapter(string.Format("SELECT * FROM [{0}]", tableName), cn);
-                selectAdapter.FillSchema(ds, SchemaType.Source, tableName);
-                count++;
-            }
-            List<Constraint> foreignKeys = GetAllForeignKeys();
-            foreach (Constraint fk in foreignKeys)
-            {
-                DataColumn[] parentColumns = new DataColumn[fk.UniqueColumns.Count];
-                DataColumn[] childColumns = new DataColumn[fk.Columns.Count];
-                for (int i = 0; i < fk.Columns.Count ; i++)
-                {
-                    parentColumns[i] = ds.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]];
-                    childColumns[i] = ds.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]];
-                }
-                System.Diagnostics.Debug.WriteLine(fk.ConstraintName + " " + fk.ConstraintTableName);
-                DataRelation dr = ds.Relations.Add(fk.ConstraintName, parentColumns, childColumns);
-            }
-            return ds;
-        }
-
         #endregion
     }
 }

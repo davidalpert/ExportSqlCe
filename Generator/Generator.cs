@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-
-//ref to: QuickGraph.dll and QuickGraph.Data.dll
-
-//using QuickGraph.Data;
-//using QuickGraph.Serialization;
-//using QuickGraph.Serialization.DirectedGraphML;
-//using QuickGraph.Algorithms;
 
 namespace ExportSqlCE
 {
@@ -594,26 +587,43 @@ namespace ExportSqlCE
             _sbScript.Append(_sep);
         }
 
-        //internal void GenerateSchemaGraph()
-        //{
-        //    var formatNode = new Action<DataTable, DirectedGraphNode>(Generator.FormatNode);
-        //    var formatLink = new Action<DataRelationEdge, DirectedGraphLink>(Generator.FormatLink);
+        internal void GenerateSchemaGraph()
+        {
+            string dgmlFile = Path.GetFileNameWithoutExtension(_outFile) + ".dgml";
+            var dgmlHelper = new DgmlHelper(dgmlFile);
 
-        //    DataSet ds = _repository.GetSchemaDataSet(_tableNames);
+            dgmlHelper.BeginElement("Nodes");
+            foreach (string table in _tableNames)
+            {
+                //Create individual scripts per table
+                _sbScript.Remove(0, _sbScript.Length);
+                GenerateTableScript(table);
+                string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + ".dgml.sqlce");
+                File.WriteAllText(tableScriptPath, GeneratedScript);
+                // Create Nodes              
+                dgmlHelper.WriteNode(table, table, table + ".dgml.sqlce");
+            }
+            dgmlHelper.EndElement();
 
-        //    var g = ds.ToGraph();
-        //    g.ToDirectedGraphML(AlgorithmExtensions.GetVertexIdentity(g), AlgorithmExtensions.GetEdgeIdentity(g), formatNode, formatLink).WriteXml("test.dgml");
-        //}
+            dgmlHelper.BeginElement("Links");
+            foreach (string table in _tableNames)
+            {
+                List<Constraint> foreignKeys = _repository.GetAllForeignKeys(table);
+                // Create Links
+                foreach (Constraint key in foreignKeys)
+                {
+                    dgmlHelper.WriteLink(table, key.UniqueConstraintTableName, key.ConstraintName);
+                }
+            }
+            dgmlHelper.EndElement();
 
-        //static void FormatNode(DataTable dataTable, DirectedGraphNode dgNode)
-        //{
-        //    dgNode.Label = dataTable.TableName;
-        //}
+            //Close the DGML document
+            dgmlHelper.Close();
 
-        //static void FormatLink(DataRelationEdge edge, DirectedGraphLink dgLink)
-        //{
-        //    dgLink.Label = edge.Relation.RelationName;
-        //}
+            //Open the DGML in Visual Studio
+            System.Diagnostics.Process.Start(dgmlFile);
+
+        }
 
         internal void GeneratePrimaryKeys()
         {
@@ -646,9 +656,9 @@ namespace ExportSqlCE
 
         internal void GenerateForeignKeys()
         {
-            List<Constraint> foreingKeys = _repository.GetAllForeignKeys();
+            List<Constraint> foreignKeys = _repository.GetAllForeignKeys();
 
-            foreingKeys.ForEach(delegate(Constraint constraint)
+            foreignKeys.ForEach(delegate(Constraint constraint)
             {
                 _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
                     , constraint.ConstraintTableName

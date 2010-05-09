@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generator\DgmlHelper.cs" />
     <Compile Include="Generator\Generator.cs" />
     <Compile Include="Generator\Helper.cs" />
     <Compile Include="Models\Column.cs" />

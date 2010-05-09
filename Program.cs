@@ -18,6 +18,7 @@ namespace ExportSqlCE
 
                     bool includeData = true;
                     bool saveImageFiles = false;
+                    bool generateGraph = false;
 
                     for (int i = 2; i < args.Length; i++)
                     {
@@ -53,6 +54,10 @@ namespace ExportSqlCE
                         // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
                         generator.GenerateIndex();
 
+                        if (generateGraph)
+                        {
+                            generator.GenerateSchemaGraph();
+                        }
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                     }
