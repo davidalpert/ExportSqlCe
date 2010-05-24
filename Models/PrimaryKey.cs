@@ -1,7 +1,7 @@
 ﻿
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    struct PrimaryKey
+    public struct PrimaryKey
     {
         public string KeyName { get; set; }
         public string ColumnName { get; set; }

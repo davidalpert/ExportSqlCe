@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
     public class DgmlHelper
     {

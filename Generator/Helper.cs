@@ -3,12 +3,12 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    internal static class Helper
+    public static class Helper
     {
 
-        internal static string FinalFiles 
+        public static string FinalFiles 
         {
             get
             {
@@ -29,7 +29,7 @@ namespace ExportSqlCE
 
         private static string finalFiles;
 
-        internal static void WriteIntoFile(string script, string fileLocation, int increment)
+        public static void WriteIntoFile(string script, string fileLocation, int increment)
         {
             if (increment > -1)
             {
@@ -57,13 +57,13 @@ namespace ExportSqlCE
             }
         }
 
-        internal static string FixConnectionString(string connectionString, int timeout)
+        public static string FixConnectionString(string connectionString, int timeout)
         {
             return connectionString.Replace(string.Format(System.Globalization.CultureInfo.InvariantCulture, ";Timeout = \"{0}\"", timeout), string.Empty);
         }
         
 
-        internal static string ScriptDatabaseToFile(string fileName, Scope scope, IRepository repository)
+        public static string ScriptDatabaseToFile(string fileName, Scope scope, IRepository repository)
         {
             Helper.FinalFiles = fileName;
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();

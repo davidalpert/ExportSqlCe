@@ -5,9 +5,9 @@ using System.Data;
 using System.Data.SqlServerCe;
 using System.Text;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    class DBRepository : IRepository
+    public class DBRepository : IRepository
     {
         private readonly string _connectionString;
         private SqlCeConnection cn;

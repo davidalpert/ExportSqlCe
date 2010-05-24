@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    struct Constraint
+    public struct Constraint
     {
         public string ConstraintTableName { get; set; }
         public string ConstraintName { get; set; }

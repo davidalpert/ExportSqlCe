@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using ExportSqlCE;
+using ErikEJ.SqlCeScripting;
 using Microsoft.SqlServer.Management.UI.VSIntegration;
 using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 using Kent.Boogaart.KBCsv;

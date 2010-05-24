@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    class ColumnList : List<string>
+    public class ColumnList : List<string>
     {
         public override string ToString()
         {

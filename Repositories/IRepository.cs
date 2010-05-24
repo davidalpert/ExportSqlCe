@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    interface IRepository : IDisposable
+    public interface IRepository : IDisposable
     {
         List<string> GetAllTableNames();
         List<Column> GetColumnsFromTable();

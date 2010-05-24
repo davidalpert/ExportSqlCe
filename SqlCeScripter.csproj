@@ -91,26 +91,26 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Program Files\Microsoft Visual Studio 9.0\Common7\IDE\PublicAssemblies\EnvDTE80.dll</HintPath>
     </Reference>
-    <Reference Include="EQATEC.Analytics.Monitor, Version=1.0.527.0, Culture=neutral, PublicKeyToken=213c7c68adb58a17, processorArchitecture=MSIL">
+    <Reference Include="EQATEC.Analytics.Monitor, Version=1.0.610.0, Culture=neutral, PublicKeyToken=213c7c68adb58a17, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\EQATEC.Analytics.Monitor.dll</HintPath>
+      <HintPath>lib\EQATEC.Analytics.Monitor.dll</HintPath>
     </Reference>
     <Reference Include="Extensibility, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Kent.Boogaart.HelperTrinity, Version=1.2.0.0, Culture=neutral, PublicKeyToken=cc96fa93a217f7a1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Kent.Boogaart.HelperTrinity.dll</HintPath>
+      <HintPath>lib\Kent.Boogaart.HelperTrinity.dll</HintPath>
     </Reference>
     <Reference Include="Kent.Boogaart.KBCsv, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Kent.Boogaart.KBCsv.dll</HintPath>
+      <HintPath>lib\Kent.Boogaart.KBCsv.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Data.ConnectionUI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Microsoft.Data.ConnectionUI.dll</HintPath>
+      <HintPath>lib\Microsoft.Data.ConnectionUI.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Data.ConnectionUI.Dialog, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Microsoft.Data.ConnectionUI.Dialog.dll</HintPath>
+      <HintPath>lib\Microsoft.Data.ConnectionUI.Dialog.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.ConnectionInfo, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SqlServer.Management.Sdk.SqlStudio, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
@@ -145,19 +145,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generator\DgmlHelper.cs" />
-    <Compile Include="Generator\Generator.cs" />
-    <Compile Include="Generator\Helper.cs" />
-    <Compile Include="Models\Column.cs" />
-    <Compile Include="Models\ColumnList.cs" />
-    <Compile Include="Models\Constraint.cs" />
-    <Compile Include="Models\Index.cs" />
-    <Compile Include="Models\PrimaryKey.cs" />
-    <Compile Include="Models\YesNoOptionEnum.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repositories\DBRepository.cs" />
-    <Compile Include="Repositories\IRepository.cs" />
-    <Compile Include="Repositories\ServerDBRepository.cs" />
     <Compile Include="Scripter\AboutDlg.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -265,6 +253,12 @@
     <Content Include="Resources\Critical.bmp" />
     <None Include="Resources\RefreshDocViewHS.png" />
     <None Include="Resources\saveHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="SqlCeScripting.csproj">
+      <Project>{09B046AF-A861-4D57-B8B4-40D9371EADB6}</Project>
+      <Name>SqlCeScripting</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

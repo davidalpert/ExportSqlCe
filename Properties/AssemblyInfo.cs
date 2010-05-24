@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-[assembly: AssemblyTitle("ExportSQLCE")]
+[assembly: AssemblyTitle("SQL Compact Scripting Utility")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("http://erikej.blogspot.com")]
-[assembly: AssemblyProduct("ExportSqlCE")]
+[assembly: AssemblyProduct("SQL Compact Scripting Utility")]
 [assembly: AssemblyCopyright("Copyright © Bembeng Arifin/Erik Ejlskov Jensen 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

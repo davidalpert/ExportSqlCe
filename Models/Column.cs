@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    internal enum DateFormat
+    public enum DateFormat
     { 
         None,
         DateTime,
@@ -10,7 +10,7 @@ namespace ExportSqlCE
         DateTime2
     }
 
-    class Column
+    public class Column
     {
         public string ColumnName { get; set; }
         public YesNoOption IsNullable { get; set; }

@@ -1,9 +1,9 @@
-﻿namespace ExportSqlCE
+﻿namespace ErikEJ.SqlCeScripting
 {
     /// <summary>
     /// TABLE_NAME, INDEX_NAME, PRIMARY_KEY, [UNIQUE], [CLUSTERED], ORDINAL_POSITION, COLUMN_NAME, COLLATION as SORT_ORDER
     /// </summary>
-    struct Index
+    public struct Index
     {
         public string TableName { get; set; }
         public string IndexName { get; set; }
@@ -15,8 +15,7 @@
 
     }
 
-
-    enum SortOrderEnum
+    public enum SortOrderEnum
     {
         ASC
         , DESC

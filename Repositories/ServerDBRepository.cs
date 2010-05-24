@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
-    class ServerDBRepository : IRepository
+    public class ServerDBRepository : IRepository
     {
         private readonly string _connectionString;
         private SqlConnection cn;

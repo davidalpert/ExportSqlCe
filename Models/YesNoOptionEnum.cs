@@ -1,12 +1,12 @@
-﻿namespace ExportSqlCE
+﻿namespace ErikEJ.SqlCeScripting
 {
-    internal enum YesNoOption
+    public enum YesNoOption
     {
         YES
         , NO
     }
 
-    internal enum Scope
+    public enum Scope
     {
         Schema,
         SchemaData,

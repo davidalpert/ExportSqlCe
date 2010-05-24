@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCeScripter", "SqlCeScrip
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{6ADDA299-86DF-4051-A40A-63D8CC67BABE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCeScripting", "SqlCeScripting.csproj", "{09B046AF-A861-4D57-B8B4-40D9371EADB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		BuildServer|Any CPU = BuildServer|Any CPU
@@ -36,6 +38,15 @@ Global
 		{6ADDA299-86DF-4051-A40A-63D8CC67BABE}.Release|Any CPU.ActiveCfg = Release
 		{6ADDA299-86DF-4051-A40A-63D8CC67BABE}.Release|x86.ActiveCfg = Release
 		{6ADDA299-86DF-4051-A40A-63D8CC67BABE}.Release|x86.Build.0 = Release
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.BuildServer|Any CPU.ActiveCfg = Release|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.BuildServer|Any CPU.Build.0 = Release|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.BuildServer|x86.ActiveCfg = Release|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

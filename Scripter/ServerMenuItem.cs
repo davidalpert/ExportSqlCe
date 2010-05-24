@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using ExportSqlCE;
+using ErikEJ.SqlCeScripting;
 using Microsoft.Data.ConnectionUI;
 using Microsoft.SqlServer.Management.UI.VSIntegration.ObjectExplorer;
 

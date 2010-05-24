@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ExportSqlCE
+namespace ErikEJ.SqlCeScripting
 {
     public class Generator
     {
@@ -17,7 +17,7 @@ namespace ExportSqlCE
         private Int32 _fileCounter = -1;
         private List<Column> _allColumns;
 
-        internal Generator(IRepository repository, string outFile)
+        public Generator(IRepository repository, string outFile)
         {
             Init(repository, outFile);
         }
@@ -35,7 +35,7 @@ namespace ExportSqlCE
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
         }
 
-        internal string GenerateTableScript(string tableName)
+        public string GenerateTableScript(string tableName)
         {
             GenerateTableCreate(tableName, false);
             GeneratePrimaryKeys(tableName);
@@ -44,14 +44,13 @@ namespace ExportSqlCE
             return GeneratedScript;
         }
 
-
-        internal string GenerateTableData(string tableName, bool saveImageFiles)
+        public string GenerateTableData(string tableName, bool saveImageFiles)
         {
             GenerateTableContent(tableName, saveImageFiles);
             return GeneratedScript;
         }
 
-        internal string GeneratedScript
+        public string GeneratedScript
         {
             get { return _sbScript.ToString(); }
         }
@@ -402,7 +401,7 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateTableSelect(string tableName)
+        public void GenerateTableSelect(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
@@ -424,7 +423,7 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateTableInsert(string tableName)
+        public void GenerateTableInsert(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
@@ -459,7 +458,7 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values)
+        public void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values)
         {
             if (fields.Count != values.Count)
             {
@@ -529,7 +528,7 @@ namespace ExportSqlCE
             }
         }
 
-        internal bool ValidColumns(string tableName, IList<string> columns)
+        public bool ValidColumns(string tableName, IList<string> columns)
         {
             List<Column> cols = (from a in _allColumns
                                 where a.TableName == tableName
@@ -548,7 +547,7 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateTableUpdate(string tableName)
+        public void GenerateTableUpdate(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
@@ -574,14 +573,14 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateTableDelete(string tableName)
+        public void GenerateTableDelete(string tableName)
         {
             _sbScript.AppendFormat("DELETE FROM [{0}]{1}", tableName, Environment.NewLine);
             _sbScript.AppendFormat("WHERE <Search Conditions,,>;{0}", Environment.NewLine); 
             _sbScript.Append(_sep);
         }
 
-        internal void GenerateTableDrop(string tableName)
+        public void GenerateTableDrop(string tableName)
         {
             _sbScript.AppendFormat("DROP TABLE [{0}];{1}", tableName, Environment.NewLine);
             _sbScript.Append(_sep);
@@ -706,12 +705,12 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateIndexScript(string tableName, string indexName)
+        public void GenerateIndexScript(string tableName, string indexName)
         {
             GenerateSingleIndex(tableName, indexName);
         }
 
-        internal void GenerateIndexDrop(string tableName, string indexName)
+        public void GenerateIndexDrop(string tableName, string indexName)
         {
             List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
             IOrderedEnumerable<Index> indexesByName = from i in tableIndexes
@@ -730,7 +729,7 @@ namespace ExportSqlCE
             }
         }
 
-        internal void GenerateIndexStatistics(string tableName, string indexName)
+        public void GenerateIndexStatistics(string tableName, string indexName)
         {
             _sbScript.AppendFormat("sp_show_statistics '{0}', '{1}';{2}", tableName, indexName, Environment.NewLine);
             _sbScript.Append(_sep);
@@ -815,7 +814,7 @@ namespace ExportSqlCE
             return sbScriptTemplate.ToString();
         }
 
-        internal List<string> GenerateTableColumns(string tableName)
+        public List<string> GenerateTableColumns(string tableName)
         {
             return  (from a in _allColumns
                     where a.TableName == tableName
