@@ -20,6 +20,7 @@ namespace ErikEJ.SqlCeScripting
         Int32 GetRowVersionOrdinal(string tableName);
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
+        DataSet ExecuteSql(string script);
     }
 
 

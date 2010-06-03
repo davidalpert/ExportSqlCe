@@ -287,6 +287,11 @@ namespace ErikEJ.SqlCeScripting
             return true;
         }
 
+        public DataSet ExecuteSql(string script)
+        {
+            return new DataSet();
+        }
+
         #endregion
 
     }

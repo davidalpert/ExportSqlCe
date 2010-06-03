@@ -26,6 +26,8 @@ namespace ErikEJ.SqlCeScripting
         public bool RowGuidCol { get; set; }
         public string TableName { get; set; }
         public DateFormat DateFormat { get; set; }
+        public int Width { get; set; }
+        public bool PadLeft { get; set; }
         public string ShortType
         {
             get
