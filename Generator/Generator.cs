@@ -586,9 +586,9 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.Append(_sep);
         }
 
-        internal void GenerateSchemaGraph()
+        public void GenerateSchemaGraph()
         {
-            string dgmlFile = Path.GetFileNameWithoutExtension(_outFile) + ".dgml";
+            string dgmlFile = _outFile;
             var dgmlHelper = new DgmlHelper(dgmlFile);
 
             dgmlHelper.BeginElement("Nodes");
@@ -618,10 +618,6 @@ namespace ErikEJ.SqlCeScripting
 
             //Close the DGML document
             dgmlHelper.Close();
-
-            //Open the DGML in Visual Studio
-            System.Diagnostics.Process.Start(dgmlFile);
-
         }
 
         internal void GeneratePrimaryKeys()
