@@ -591,16 +591,22 @@ namespace ErikEJ.SqlCeScripting
             string dgmlFile = _outFile;
             var dgmlHelper = new DgmlHelper(dgmlFile);
 
+            string scriptExt = ".dgml.sqlce";
+            if (_repository.IsServer())
+            {
+                scriptExt = ".dgml.sql";
+            }
+
             dgmlHelper.BeginElement("Nodes");
             foreach (string table in _tableNames)
             {
                 //Create individual scripts per table
                 _sbScript.Remove(0, _sbScript.Length);
                 GenerateTableScript(table);
-                string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + ".dgml.sqlce");
+                string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + scriptExt);
                 File.WriteAllText(tableScriptPath, GeneratedScript);
                 // Create Nodes              
-                dgmlHelper.WriteNode(table, table, table + ".dgml.sqlce");
+                dgmlHelper.WriteNode(table, table, table + scriptExt);
             }
             dgmlHelper.EndElement();
 
