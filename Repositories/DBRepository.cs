@@ -322,8 +322,11 @@ namespace ErikEJ.SqlCeScripting
                     }
                     else
                     {
-                        sb.Append(line);
-                        sb.Append(Environment.NewLine);
+                        if (!line.StartsWith("-- "))
+                        {
+                            sb.Append(line);
+                            sb.Append(Environment.NewLine);
+                        }
                     }
                 }
             }
