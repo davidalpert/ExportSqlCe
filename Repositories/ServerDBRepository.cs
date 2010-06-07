@@ -47,7 +47,7 @@ namespace ErikEJ.SqlCeScripting
                 , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
 #endif
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
-                , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
+                , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim().ToLowerInvariant().Replace("getutcdate()", "getdate()"))
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
                 , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
                 , TableName = dr.GetString(11)
