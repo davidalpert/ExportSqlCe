@@ -379,6 +379,7 @@ namespace ErikEJ.SqlCeScripting
         private DataTable RunDataTable(SqlCeCommand cmd, SqlCeConnection conn)
         {
             System.Data.DataTable table = new System.Data.DataTable();
+            table.MinimumCapacity = 0;
             table.Locale = CultureInfo.InvariantCulture;
             table.Load(cmd.ExecuteReader());
             return table;
