@@ -303,11 +303,18 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script)
         {
             DataSet ds = new DataSet();
-            RunCommands(ds, script);
+            RunCommands(ds, script, false);
             return ds;
         }
 
-        internal void RunCommands(DataSet dataset, string script)
+        public DataSet ExecuteSql(string script, bool checkSyntax)
+        {
+            DataSet ds = new DataSet();
+            RunCommands(ds, script, checkSyntax);
+            return ds;
+        }
+
+        internal void RunCommands(DataSet dataset, string script, bool checkSyntax)
         {
             StringBuilder sb = new StringBuilder(10000);
             using (StringReader reader = new StringReader(script))
@@ -317,7 +324,7 @@ namespace ErikEJ.SqlCeScripting
                 {
                     if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
                     {
-                        RunCommand(sb.ToString(), dataset);
+                        RunCommand(sb.ToString(), dataset, checkSyntax);
                         sb.Remove(0, sb.Length);
                     }
                     else
@@ -332,26 +339,38 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        internal void RunCommand(string commandText, DataSet dataSet)
+        internal void RunCommand(string commandText, DataSet dataSet, bool checkSyntax)
         {
             using (SqlCeCommand cmd = new SqlCeCommand())
             {
                 cmd.CommandText = commandText;
+                cmd.Connection = cn;
 
                 CommandExecute execute = FindExecuteType(commandText);
 
                 if (execute != CommandExecute.Undefined)
                 {
-                    if (execute == CommandExecute.DataTable)
+                    if (checkSyntax)
                     {
-                        dataSet.Tables.Add(RunDataTable(cmd, cn));
+                        SqlCeException ex = CheckSyntax(commandText, cmd);
+                        if (ex != null)
+                        {
+                            throw new Exception(Helper.ShowErrors(ex));
+                        }
                     }
-                    if (execute == CommandExecute.NonQuery)
+                    else
                     {
-                        int rows = RunNonQuery(cmd);
-                        DataTable table = new DataTable();
-                        table.MinimumCapacity = Math.Max(0, rows);
-                        dataSet.Tables.Add(table);
+                        if (execute == CommandExecute.DataTable)
+                        {
+                            dataSet.Tables.Add(RunDataTable(cmd, cn));
+                        }
+                        if (execute == CommandExecute.NonQuery)
+                        {
+                            int rows = cmd.ExecuteNonQuery();
+                            DataTable table = new DataTable();
+                            table.MinimumCapacity = Math.Max(0, rows);
+                            dataSet.Tables.Add(table);
+                        }
                     }
                 }
             }
@@ -359,17 +378,10 @@ namespace ErikEJ.SqlCeScripting
 
         private DataTable RunDataTable(SqlCeCommand cmd, SqlCeConnection conn)
         {
-            cmd.Connection = conn;
             System.Data.DataTable table = new System.Data.DataTable();
             table.Locale = CultureInfo.InvariantCulture;
             table.Load(cmd.ExecuteReader());
             return table;
-        }
-
-        private int RunNonQuery(SqlCeCommand cmd)
-        {
-            cmd.Connection = cn;
-            return cmd.ExecuteNonQuery();
         }
 
         private enum CommandExecute
@@ -399,6 +411,27 @@ namespace ErikEJ.SqlCeScripting
             {
                 return CommandExecute.NonQuery;
             }
+        }
+
+        private SqlCeException CheckSyntax(string statement, SqlCeCommand cmd)
+        {
+            SqlCeTransaction tx = cn.BeginTransaction();
+                
+            try
+            {
+                cmd.Transaction = tx;
+                cmd.ExecuteNonQuery();
+            }
+            catch (SqlCeException ex)
+            {
+                ex.HelpLink = cmd.CommandText;
+                return ex;
+            }
+            finally
+            {
+                tx.Rollback();
+            }
+            return null;
         }
 
         #endregion
