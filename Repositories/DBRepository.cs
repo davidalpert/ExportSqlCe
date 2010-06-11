@@ -8,12 +8,19 @@ using System.Globalization;
 
 namespace ErikEJ.SqlCeScripting
 {
+    /// <summary>
+    /// Implementation of the <see cref="IRepository"/> interface for SQL Server Compact 3.1/3.5
+    /// </summary>
     public class DBRepository : IRepository
     {
         private readonly string _connectionString;
         private SqlCeConnection cn;
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlCeDataReader dr);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DBRepository"/> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
         public DBRepository(string connectionString)
         {
             _connectionString = connectionString;
@@ -21,6 +28,9 @@ namespace ErikEJ.SqlCeScripting
             cn.Open();
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             if (cn != null)
@@ -173,6 +183,11 @@ namespace ErikEJ.SqlCeScripting
 
         #region IRepository Members
 
+        /// <summary>
+        /// Gets the row version ordinal.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
         public Int32 GetRowVersionOrdinal(string tableName)
         {
             object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'rowversion'");
@@ -183,6 +198,11 @@ namespace ErikEJ.SqlCeScripting
             return -1;
         }
 
+        /// <summary>
+        /// Gets the row count.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
         public Int64 GetRowCount(string tableName)
         {
             object value = ExecuteScalar("SELECT CARDINALITY FROM INFORMATION_SCHEMA.INDEXES WHERE PRIMARY_KEY = 1 AND TABLE_NAME = N'" + tableName + "'");
@@ -193,11 +213,22 @@ namespace ErikEJ.SqlCeScripting
             return -1;
         }
 
+        /// <summary>
+        /// Determines whether [has identity column] [the specified table name].
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns>
+        /// 	<c>true</c> if [has identity column] [the specified table name]; otherwise, <c>false</c>.
+        /// </returns>
         public bool HasIdentityColumn(string tableName)
         {
             return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = N'" + tableName + "' AND AUTOINC_SEED IS NOT NULL") != null);
         }
 
+        /// <summary>
+        /// Gets all table names.
+        /// </summary>
+        /// <returns></returns>
         public List<string> GetAllTableNames()
         {
             return ExecuteReader(
@@ -205,11 +236,19 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<string>(AddToListString));
         }
 
+        /// <summary>
+        /// Gets the database info.
+        /// </summary>
+        /// <returns></returns>
         public List<KeyValuePair<string, string>> GetDatabaseInfo()
         {
             return GetSqlCeInfo();
         }
 
+        /// <summary>
+        /// Gets the columns from table.
+        /// </summary>
+        /// <returns></returns>
         public List<Column> GetColumnsFromTable()
         {
             return ExecuteReader(
@@ -220,11 +259,22 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
 
+        /// <summary>
+        /// Gets the data from reader.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
         public IDataReader GetDataFromReader(string tableName)
         {
             return ExecuteDataReader(tableName);
         }
 
+        /// <summary>
+        /// Gets the data from table.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="columns">The columns.</param>
+        /// <returns></returns>
         public DataTable GetDataFromTable(string tableName, List<Column> columns)
         {
             // Include the schema name, may not always be dbo!
@@ -236,7 +286,12 @@ namespace ErikEJ.SqlCeScripting
             sb.Remove(sb.Length - 2, 2);
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
         }
-        
+
+        /// <summary>
+        /// Gets the primary keys from table.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
         public List<PrimaryKey> GetPrimaryKeysFromTable(string tableName)
         {
             return ExecuteReader(
@@ -246,7 +301,11 @@ namespace ErikEJ.SqlCeScripting
                 "where u.TABLE_NAME = '" + tableName + "' AND c.TABLE_NAME = '" + tableName + "' and c.CONSTRAINT_TYPE = 'PRIMARY KEY'"
                 , new AddToListDelegate<PrimaryKey>(AddToListPrimaryKeys));
         }
-        
+
+        /// <summary>
+        /// Gets all foreign keys.
+        /// </summary>
+        /// <returns></returns>
         public List<Constraint> GetAllForeignKeys()
         {
             var list = ExecuteReader(
@@ -260,6 +319,11 @@ namespace ErikEJ.SqlCeScripting
             return Helper.GetGroupForeingKeys(list);
         }
 
+        /// <summary>
+        /// Gets all foreign keys.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
         public List<Constraint> GetAllForeignKeys(string tableName)
         {
             var list = ExecuteReader(
@@ -277,6 +341,7 @@ namespace ErikEJ.SqlCeScripting
         /// <summary>
         /// Get the query based on http://msdn.microsoft.com/en-us/library/ms174156.aspx
         /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         /// <returns></returns>
         public List<Index> GetIndexesFromTable(string tableName)
         {
@@ -290,16 +355,32 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
 
+        /// <summary>
+        /// Renames the table.
+        /// </summary>
+        /// <param name="oldName">The old name.</param>
+        /// <param name="newName">The new name.</param>
         public void RenameTable(string oldName, string newName)
         {
             ExecuteNonQuery(string.Format(System.Globalization.CultureInfo.InvariantCulture, "sp_rename '{0}', '{1}';", oldName, newName));            
         }
 
+        /// <summary>
+        /// Determines whether this instance is server.
+        /// </summary>
+        /// <returns>
+        /// 	<c>true</c> if this instance is server; otherwise, <c>false</c>.
+        /// </returns>
         public bool IsServer()
         {
             return false;
         }
 
+        /// <summary>
+        /// Executes the SQL.
+        /// </summary>
+        /// <param name="script">The script.</param>
+        /// <returns></returns>
         public DataSet ExecuteSql(string script)
         {
             DataSet ds = new DataSet();
@@ -307,12 +388,12 @@ namespace ErikEJ.SqlCeScripting
             return ds;
         }
 
-        public DataSet ExecuteSql(string script, bool checkSyntax)
-        {
-            DataSet ds = new DataSet();
-            RunCommands(ds, script, checkSyntax);
-            return ds;
-        }
+        //public DataSet ExecuteSql(string script, bool checkSyntax)
+        //{
+        //    DataSet ds = new DataSet();
+        //    RunCommands(ds, script, checkSyntax);
+        //    return ds;
+        //}
 
         internal void RunCommands(DataSet dataset, string script, bool checkSyntax)
         {

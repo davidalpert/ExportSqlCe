@@ -7,6 +7,10 @@ using System.Text;
 
 namespace ErikEJ.SqlCeScripting
 {
+    /// <summary>
+    /// Class for generating scripts
+    /// Use the GeneratedScript property to get the resulting script
+    /// </summary>
     public class Generator
     {
         private String _outFile;
@@ -17,6 +21,11 @@ namespace ErikEJ.SqlCeScripting
         private Int32 _fileCounter = -1;
         private List<Column> _allColumns;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Generator"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        /// <param name="outFile">The out file.</param>
         public Generator(IRepository repository, string outFile)
         {
             Init(repository, outFile);
@@ -35,21 +44,35 @@ namespace ErikEJ.SqlCeScripting
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
         }
 
-        public string GenerateTableScript(string tableName)
+        /// <summary>
+        /// Generates the table script.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
+        public void GenerateTableScript(string tableName)
         {
             GenerateTableCreate(tableName, false);
             GeneratePrimaryKeys(tableName);
             GenerateForeignKeys(tableName);
             GenerateIndex(tableName);
-            return GeneratedScript;
         }
 
+        /// <summary>
+        /// Generates the table data.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
+        /// <returns></returns>
         public string GenerateTableData(string tableName, bool saveImageFiles)
         {
             GenerateTableContent(tableName, saveImageFiles);
             return GeneratedScript;
         }
 
+        /// <summary>
+        /// Gets the generated script.
+        /// </summary>
+        /// <value>The generated script.</value>
         public string GeneratedScript
         {
             get { return _sbScript.ToString(); }
@@ -128,7 +151,6 @@ namespace ErikEJ.SqlCeScripting
                 _sbScript.AppendLine();
             }
         }
-
 
         internal void GenerateTable(bool includeData)
         {
@@ -246,6 +268,11 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the content of the table.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
         public void GenerateTableContent(string tableName, bool saveImageFiles)
         {
             // Skip rowversion column
@@ -401,6 +428,10 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the table select statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GenerateTableSelect(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -423,6 +454,10 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the table insert statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GenerateTableInsert(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -458,6 +493,12 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the table insert.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="fields">The fields.</param>
+        /// <param name="values">The values.</param>
         public void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values)
         {
             if (fields.Count != values.Count)
@@ -528,6 +569,12 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Validates the columns.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="columns">The columns.</param>
+        /// <returns></returns>
         public bool ValidColumns(string tableName, IList<string> columns)
         {
             List<Column> cols = (from a in _allColumns
@@ -547,6 +594,10 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the table update statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GenerateTableUpdate(string tableName)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -573,6 +624,10 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the table delete statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GenerateTableDelete(string tableName)
         {
             _sbScript.AppendFormat("DELETE FROM [{0}]{1}", tableName, Environment.NewLine);
@@ -580,12 +635,19 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.Append(_sep);
         }
 
+        /// <summary>
+        /// Generates the table drop statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GenerateTableDrop(string tableName)
         {
             _sbScript.AppendFormat("DROP TABLE [{0}];{1}", tableName, Environment.NewLine);
             _sbScript.Append(_sep);
         }
 
+        /// <summary>
+        /// Generates the schema graph.
+        /// </summary>
         public void GenerateSchemaGraph()
         {
             string dgmlFile = _outFile;
@@ -634,6 +696,10 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the primary keys.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GeneratePrimaryKeys(string tableName)
         {
             List<PrimaryKey> primaryKeys = _repository.GetPrimaryKeysFromTable(tableName);
@@ -675,6 +741,10 @@ namespace ErikEJ.SqlCeScripting
         
         }
 
+        /// <summary>
+        /// Generates the foreign keys.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         public void GenerateForeignKeys(string tableName)
         {
             List<Constraint> foreingKeys = _repository.GetAllForeignKeys(tableName);
@@ -707,11 +777,21 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the index script.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="indexName">Name of the index.</param>
         public void GenerateIndexScript(string tableName, string indexName)
         {
             GenerateSingleIndex(tableName, indexName);
         }
 
+        /// <summary>
+        /// Generates the index drop statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="indexName">Name of the index.</param>
         public void GenerateIndexDrop(string tableName, string indexName)
         {
             List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
@@ -731,6 +811,11 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        /// <summary>
+        /// Generates the index statistics.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="indexName">Name of the index.</param>
         public void GenerateIndexStatistics(string tableName, string indexName)
         {
             _sbScript.AppendFormat("sp_show_statistics '{0}', '{1}';{2}", tableName, indexName, Environment.NewLine);
@@ -740,7 +825,11 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.AppendFormat("sp_show_statistics_steps '{0}', '{1}';{2}", tableName, indexName, Environment.NewLine);
             _sbScript.Append(_sep);
         }
-        
+
+        /// <summary>
+        /// Generates the index create statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
         private void GenerateIndex(string tableName)
         {
             List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
@@ -816,6 +905,11 @@ namespace ErikEJ.SqlCeScripting
             return sbScriptTemplate.ToString();
         }
 
+        /// <summary>
+        /// Generates the table columns.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
         public List<string> GenerateTableColumns(string tableName)
         {
             return  (from a in _allColumns

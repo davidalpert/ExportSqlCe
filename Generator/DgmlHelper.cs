@@ -2,11 +2,11 @@
 
 namespace ErikEJ.SqlCeScripting
 {
-    public class DgmlHelper
+    internal class DgmlHelper
     {
         private XmlTextWriter xtw;
 
-        public DgmlHelper(string outputFile)
+        internal DgmlHelper(string outputFile)
         {
             xtw = new XmlTextWriter(outputFile, System.Text.Encoding.UTF8);
             xtw.Formatting = Formatting.Indented;
@@ -15,7 +15,7 @@ namespace ErikEJ.SqlCeScripting
             xtw.WriteAttributeString("GraphDirection", "LeftToRight");
         }
 
-        public void WriteNode(string id, string label)
+        internal void WriteNode(string id, string label)
         {
             xtw.WriteStartElement("Node");
 
@@ -25,7 +25,7 @@ namespace ErikEJ.SqlCeScripting
             xtw.WriteEndElement();
         }
 
-        public void WriteNode(string id, string label, string reference)
+        internal void WriteNode(string id, string label, string reference)
         {
             xtw.WriteStartElement("Node");
 
@@ -37,7 +37,7 @@ namespace ErikEJ.SqlCeScripting
             xtw.WriteEndElement();
         }
 
-        public void WriteLink(string source, string target, string label)
+        internal void WriteLink(string source, string target, string label)
         {
             xtw.WriteStartElement("Link");
 
@@ -49,17 +49,17 @@ namespace ErikEJ.SqlCeScripting
             xtw.WriteEndElement();
         }
 
-        public void BeginElement(string element)
+        internal void BeginElement(string element)
         {
             xtw.WriteStartElement(element);
         }
 
-        public void EndElement()
+        internal void EndElement()
         {
             xtw.WriteEndElement();
         }
 
-        public void Close()
+        internal void Close()
         {
             xtw.WriteEndElement();
             xtw.Close();
