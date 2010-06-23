@@ -104,13 +104,20 @@ namespace ErikEJ.SqlCeScripting
                 case "money":
                 case "nchar":
                 case "ntext":
-                case "numeric":
                 case "real":
                 case "rowversion":
                 case "uniqueidentifier":
                     return dataType;
 
                 // Conditional conversion
+                case "tinyint":
+                    // Only int or bigint allowed as IDENTITY
+                    if (col.AutoIncrementBy > 0)
+                    {
+                        return "int";
+                    }
+                    return dataType;
+
                 case "smallint":
                     // Only int or bigint allowed as IDENTITY
                     if (col.AutoIncrementBy > 0)
@@ -119,11 +126,11 @@ namespace ErikEJ.SqlCeScripting
                     }
                     return dataType;
 
-                case "tinyint":
+                case "numeric":
                     // Only int or bigint allowed as IDENTITY
                     if (col.AutoIncrementBy > 0)
                     {
-                        return "int";
+                        return "bigint";
                     }
                     return dataType;
 
