@@ -49,11 +49,10 @@ namespace ExportSqlCE
                         }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
+                        Console.WriteLine("Generating the indexes....");
+                        generator.GenerateIndex();
                         Console.WriteLine("Generating the foreign keys....");
                         generator.GenerateForeignKeys();
-                        Console.WriteLine("Generating the indexes....");
-                        // Finally added at 26 September 2008, 24 hrs a day are just not enuf :P
-                        generator.GenerateIndex();
 
                         if (generateGraph)
                         {

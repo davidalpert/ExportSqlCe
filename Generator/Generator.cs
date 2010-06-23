@@ -39,8 +39,8 @@ namespace ErikEJ.SqlCeScripting
                 GenerateTableContent(saveImages);
             }
             GeneratePrimaryKeys();
-            GenerateForeignKeys();
             GenerateIndex();
+            GenerateForeignKeys();
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
         }
 
@@ -53,8 +53,8 @@ namespace ErikEJ.SqlCeScripting
         {
             GenerateTableCreate(tableName, false);
             GeneratePrimaryKeys(tableName);
-            GenerateForeignKeys(tableName);
             GenerateIndex(tableName);
+            GenerateForeignKeys(tableName);
         }
 
         /// <summary>

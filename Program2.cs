@@ -46,10 +46,10 @@ namespace ExportSqlCE
                         }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
-                        Console.WriteLine("Generating the foreign keys....");
-                        generator.GenerateForeignKeys();
                         Console.WriteLine("Generating the indexes....");
                         generator.GenerateIndex();
+                        Console.WriteLine("Generating the foreign keys....");
+                        generator.GenerateForeignKeys();
                         
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
