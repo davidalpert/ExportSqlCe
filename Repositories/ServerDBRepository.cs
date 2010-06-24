@@ -47,7 +47,7 @@ namespace ErikEJ.SqlCeScripting
                 , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
 #endif
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
-                , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim().ToLowerInvariant().Replace("getutcdate()", "getdate()"))
+                , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim().ToLowerInvariant().Replace("getutcdate()", "getdate()").Replace("newsequentialid()", "newid()"))
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
                 , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
                 , TableName = dr.GetString(11)
@@ -175,7 +175,8 @@ namespace ErikEJ.SqlCeScripting
         public List<string> GetAllTableNames()
         {
             return ExecuteReader(
-                "SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = N'BASE TABLE' ORDER BY table_name"
+                "select [name] from sys.tables WHERE type = 'U' AND is_ms_shipped = 0 ORDER BY [name];"
+                //"SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = N'BASE TABLE' ORDER BY table_name"
                 , new AddToListDelegate<string>(AddToListString));
         }
 
@@ -197,9 +198,9 @@ namespace ErikEJ.SqlCeScripting
                 "FROM INFORMATION_SCHEMA.COLUMNS col  " +
                 "JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
                 "AND cols.object_id = OBJECT_ID('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']')  " +
-                "JOIN INFORMATION_SCHEMA.TABLES tab ON col.TABLE_NAME = tab.TABLE_NAME " +
+                "JOIN sys.tables tab ON col.TABLE_NAME = tab.name " +
                 "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
-                "AND tab.TABLE_TYPE = 'BASE TABLE' " +
+                "AND tab.type = 'U' AND is_ms_shipped = 0 " +
                 "AND cols.is_computed = 0 " +
                 "ORDER BY col.TABLE_NAME, col.ORDINAL_POSITION ASC"
                 , new AddToListDelegate<Column>(AddToListColumns));
@@ -237,11 +238,14 @@ namespace ErikEJ.SqlCeScripting
         {
             var list = ExecuteReader(
                 "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
-                "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
-                "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
-                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
-                "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                "WHERE is_disabled = 0 ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
+                "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME,  " +
+                "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME,  " +
+                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1  " +
+                "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id  " +
+                "INNER JOIN sys.tables tab ON tab.name = OBJECT_NAME(f.referenced_object_id) " +
+                "WHERE is_disabled = 0  " +
+                "AND tab.is_ms_shipped = 0 AND tab.type = 'U' " +
+                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
             return Helper.GetGroupForeingKeys(list);
         }

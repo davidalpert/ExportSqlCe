@@ -88,7 +88,7 @@ namespace ErikEJ.SqlCeScripting
             return string.Format(System.Globalization.CultureInfo.InvariantCulture, "Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString(System.Globalization.CultureInfo.CurrentCulture));
         }
 
-        internal static string CheckDataType(string dataType, Column col)
+        internal static string CheckDataType(string dataType, Column col, bool refToIdentity)
         {
             switch (dataType)
             {
@@ -110,17 +110,14 @@ namespace ErikEJ.SqlCeScripting
                     return dataType;
 
                 // Conditional conversion
+                case "smallint":
                 case "tinyint":
                     // Only int or bigint allowed as IDENTITY
                     if (col.AutoIncrementBy > 0)
                     {
                         return "int";
                     }
-                    return dataType;
-
-                case "smallint":
-                    // Only int or bigint allowed as IDENTITY
-                    if (col.AutoIncrementBy > 0)
+                    if (refToIdentity)
                     {
                         return "int";
                     }
@@ -129,6 +126,10 @@ namespace ErikEJ.SqlCeScripting
                 case "numeric":
                     // Only int or bigint allowed as IDENTITY
                     if (col.AutoIncrementBy > 0)
+                    {
+                        return "bigint";
+                    }
+                    if (refToIdentity)
                     {
                         return "bigint";
                     }
