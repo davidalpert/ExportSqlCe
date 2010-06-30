@@ -236,6 +236,26 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<string>(AddToListString));
         }
 
+        public List<string> GetAllSubscriptionNames()
+        {
+            object value = ExecuteScalar("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '__sysMergeSubscriptions' ");
+            if (value == null)
+            {
+                return new List<string>();
+            }
+            else
+            {
+                return ExecuteReader(
+                    "SELECT Publisher + ':' + PublisherDatabase + ':' + Publication as Sub FROM __sysMergeSubscriptions ORDER BY Publisher, PublisherDatabase, Publication"
+                    , new AddToListDelegate<string>(AddToListString));
+            }
+        }
+
+
+//        SELECT Publisher + ':' + PublisherDatabase + ':' + Publication as Sub FROM __sysMergeSubscriptions
+//ORDER BY Publisher + ':' + PublisherDatabase + ':' + Publication 
+
+
         /// <summary>
         /// Gets the database info.
         /// </summary>
@@ -515,6 +535,54 @@ namespace ErikEJ.SqlCeScripting
             }
             return null;
         }
+
+        /// <summary>
+        /// Get the local Datetime for last sync
+        /// </summary>
+        /// <param name="publication"> Publication id: EEJx:Northwind:NwPubl</param>
+        /// <returns></returns>
+        public DateTime GetLastSuccessfulSyncTime(string publication)
+        {
+            SqlCeCommand cmd = null;
+
+            string[] vals = publication.Split(':');
+
+            if (vals.Length != 3)
+                return DateTime.MinValue;
+
+            using (cmd = cn.CreateCommand())
+            {
+                cmd.Connection = cn;
+
+                cmd.CommandText = "SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = @table";
+                cmd.Parameters.Add("@table", SqlDbType.NVarChar, 4000);
+                cmd.Parameters["@table"].Value = "__sysMergeSubscriptions";
+                object obj = cmd.ExecuteScalar();
+
+                if (obj == null)
+                    return DateTime.MinValue;
+                cmd.Parameters.Clear();
+
+                cmd.CommandText = "SELECT LastSuccessfulSync FROM __sysMergeSubscriptions " +
+                    "WHERE Publisher=@publisher AND PublisherDatabase=@database AND Publication=@publication";
+                
+                cmd.Parameters.Add("@publisher", SqlDbType.NVarChar, 4000);
+                cmd.Parameters["@publisher"].Value = vals[0];
+
+                cmd.Parameters.Add("@database", SqlDbType.NVarChar, 4000);
+                cmd.Parameters["@database"].Value = vals[1];                
+
+                cmd.Parameters.Add("@publication", SqlDbType.NVarChar, 4000);
+                cmd.Parameters["@publication"].Value = vals[2];
+
+                obj = cmd.ExecuteScalar();
+                if (obj == null)
+                    return DateTime.MinValue;
+                else
+                    return ((DateTime)obj);
+            }
+        }
+
 
         #endregion
     }

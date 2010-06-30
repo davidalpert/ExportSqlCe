@@ -180,6 +180,12 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<string>(AddToListString));
         }
 
+        public List<string> GetAllSubscriptionNames()
+        {
+            return new List<string>();
+        }
+
+
         public List<KeyValuePair<string, string>> GetDatabaseInfo()
         {
             return new List<KeyValuePair<string,string>>();
@@ -294,6 +300,16 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script)
         {
             return new DataSet();
+        }
+
+        /// <summary>
+        /// Get the local Datetime for last sync
+        /// </summary>
+        /// <param name="publication"> Publication id: EEJx:Northwind:NwPubl</param>
+        /// <returns></returns>
+        public DateTime GetLastSuccessfulSyncTime(string publication)
+        {
+            return DateTime.MinValue;
         }
 
         #endregion

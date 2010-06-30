@@ -21,6 +21,18 @@ namespace ErikEJ.SqlCeScripting
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
         DataSet ExecuteSql(string script);
+        /// <summary>
+        /// Get the local Datetime for last sync
+        /// </summary>
+        /// <param name="publication"> Publication id: EEJx:Northwind:NwPubl</param>
+        /// <returns></returns>
+        DateTime GetLastSuccessfulSyncTime(string publication);
+        /// <summary>
+        /// Returns a list of all Merge subscriptions in the database
+        /// </summary>
+        /// <returns></returns>
+        List<string> GetAllSubscriptionNames();
+        
     }
 
 
