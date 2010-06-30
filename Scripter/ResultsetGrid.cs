@@ -35,18 +35,6 @@ namespace SqlCeScripter
             this.btnNewVersion.ForeColor = SystemColors.ControlText;
             this.btnNewVersion.Text = "Check for updates";
 
-            // Only show once per session
-            if (!Connect.NewVersionShown)
-            {
-                Connect.Monitor.VersionAvailable += (s, ea) =>
-                {
-                    this.downloadUri = ea.DownloadUri;
-                    this.btnNewVersion.ForeColor = Color.Red;
-                    this.btnNewVersion.Text = "New version available: " + ea.OfficialVersion;
-                };
-                Connect.NewVersionShown = true;
-            }
-
             try
             {
                 this.dataGridView1.AutoGenerateColumns = true;
@@ -72,12 +60,10 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
 
@@ -220,12 +206,10 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
 
@@ -264,12 +248,10 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
 
@@ -283,12 +265,10 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

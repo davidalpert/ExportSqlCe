@@ -65,8 +65,6 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
-            Connect.Monitor.TrackFeature("Database.Script");
-
             string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
             string fileName;
             
@@ -91,12 +89,10 @@ namespace SqlCeScripter
                 }
                 catch (System.Data.SqlServerCe.SqlCeException sqlCe)
                 {
-                    Connect.Monitor.TrackException((Exception)sqlCe);
                     Connect.ShowErrors(sqlCe);
                 }
                 catch (Exception ex)
                 {
-                    Connect.Monitor.TrackException(ex);
                     MessageBox.Show(ex.ToString());
                 }
             }

@@ -69,8 +69,6 @@ namespace SqlCeScripter
 
         void item_Click(object sender, EventArgs e)
         {
-            Connect.Monitor.TrackFeature("Database.ScriptServer");
-
             try
             {
                 DataSource sqlDataSource = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
@@ -105,12 +103,10 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlClient.SqlException sql)
             {
-                Connect.Monitor.TrackException((Exception)sql);
                 Connect.ShowErrors(sql);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
 

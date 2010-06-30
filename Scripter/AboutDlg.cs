@@ -12,12 +12,6 @@ namespace SqlCeScripter
         {
             InitializeComponent();
             this.lblVersion.Text = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Connect.Monitor.VersionAvailable += (s, ea) =>
-            {
-                this.downloadUri = ea.DownloadUri;
-                this.linkLabelNewVersion.Visible = true;
-                this.linkLabelNewVersion.Text = "New version available: " + ea.OfficialVersion;
-            };
         }
 
         private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

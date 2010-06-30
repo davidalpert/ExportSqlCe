@@ -125,8 +125,6 @@ namespace SqlCeScripter
 
             try
             {
-                Connect.Monitor.TrackFeature("Index." + action.ToString());
-
                 string connectionString = Helper.FixConnectionString(this.Parent.Connection.ConnectionString, this.Parent.Connection.ConnectionTimeout);
                 using (IRepository repository = new DBRepository(connectionString))
                 {
@@ -198,12 +196,10 @@ namespace SqlCeScripter
             }
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }

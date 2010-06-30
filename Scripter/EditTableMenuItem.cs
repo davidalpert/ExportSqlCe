@@ -54,7 +54,6 @@ namespace SqlCeScripter
 
                 if (!Connect.EditTracked)
                 {
-                    Connect.Monitor.TrackFeature("Table.Edit");
                     Connect.EditTracked = true;
                 }
 
@@ -85,12 +84,10 @@ namespace SqlCeScripter
             
             catch (System.Data.SqlServerCe.SqlCeException sqlCe)
             {
-                Connect.Monitor.TrackException((Exception)sqlCe);
                 Connect.ShowErrors(sqlCe);
             }
             catch (Exception ex)
             {
-                Connect.Monitor.TrackException(ex);
                 MessageBox.Show(ex.ToString());
             }
         }
