@@ -80,6 +80,24 @@ namespace ErikEJ.SqlCeScripting
             repl.InternetPassword = internetPassword;
             repl.Subscriber = subscriber;
             repl.HostName = hostName;
+            
+        }
+
+        public static void DropPublication(string connectionString, string publicationLabel)
+        {
+            string[] vals = publicationLabel.Split(':');
+            string publisher = vals[0];
+            string publicationDatabase = vals[1];
+            string publication = vals[2];
+            using (SqlCeReplication repl = new SqlCeReplication())
+            {
+                repl.SubscriberConnectionString = connectionString;
+                repl.Publisher = publisher;
+                repl.Publication = publication;
+                repl.PublisherDatabase = publicationDatabase;
+                repl.LoadProperties();
+                repl.DropSubscription(DropOption.LeaveDatabase);
+            }
         }
 
         public static ReplicationProperties GetProperties(string connectionString, string publicationLabel)
