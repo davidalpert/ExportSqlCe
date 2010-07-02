@@ -139,14 +139,18 @@ namespace ErikEJ.SqlCeScripting
 
                 repl.EndSynchronize(ar);
                 repl.SaveProperties();
+                string result = "Successfully completed sync" + Environment.NewLine;
+                result += string.Format("Number of changes downloaded: {0}{1}", repl.PublisherChanges.ToString(), Environment.NewLine);
+                result += string.Format("Number of changes uploaded: {0}{1}", repl.SubscriberChanges.ToString(), Environment.NewLine);
+                result += string.Format("Number of conflicts at Publisher:   {0}{1}", repl.PublisherConflicts.ToString(), Environment.NewLine);
 
-                SyncArgs args = new SyncArgs("Successfully completed sync", null);
+                SyncArgs args = new SyncArgs(result, null);
                 Completed(this, args);
             
             }
             catch (SqlCeException e)
             {
-                SyncArgs args = new SyncArgs("Errors", e);
+                SyncArgs args = new SyncArgs("Errors occured during sync", e);
                 Completed(this, args);
             }
         }
