@@ -21,6 +21,7 @@ namespace ErikEJ.SqlCeScripting
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
         DataSet ExecuteSql(string script);
+        DataSet ParseSql(string script);
         /// <summary>
         /// Get the local Datetime for last sync
         /// </summary>

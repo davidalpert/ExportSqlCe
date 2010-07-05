@@ -303,6 +303,11 @@ namespace ErikEJ.SqlCeScripting
             return new DataSet();
         }
 
+        public DataSet ParseSql(string script)
+        {
+            return new DataSet();
+        }
+
         /// <summary>
         /// Get the local Datetime for last sync
         /// </summary>

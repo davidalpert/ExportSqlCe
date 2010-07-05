@@ -408,35 +408,51 @@ namespace ErikEJ.SqlCeScripting
             return ds;
         }
 
-        //public DataSet ExecuteSql(string script, bool checkSyntax)
-        //{
-        //    DataSet ds = new DataSet();
-        //    RunCommands(ds, script, checkSyntax);
-        //    return ds;
-        //}
+        public DataSet ParseSql(string script)
+        {
+            DataSet ds = new DataSet();
+            RunCommands(ds, script, true);
+            return ds;
+        }
 
         internal void RunCommands(DataSet dataset, string script, bool checkSyntax)
         {
-            StringBuilder sb = new StringBuilder(10000);
-            using (StringReader reader = new StringReader(script))
+            using (SqlCeCommand cmd = new SqlCeCommand())
             {
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                cmd.Connection = cn;
+                if (checkSyntax)
                 {
-                    if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
+                    cmd.CommandText = "SET SHOWPLAN_XML ON";
+                    cmd.ExecuteNonQuery();
+                }
+
+                StringBuilder sb = new StringBuilder(10000);
+                using (StringReader reader = new StringReader(script))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        RunCommand(sb.ToString(), dataset, checkSyntax);
-                        sb.Remove(0, sb.Length);
-                    }
-                    else
-                    {
-                        if (!line.StartsWith("-- "))
+                        if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
                         {
-                            sb.Append(line);
-                            sb.Append(Environment.NewLine);
+                            RunCommand(sb.ToString(), dataset, checkSyntax);
+                            sb.Remove(0, sb.Length);
+                        }
+                        else
+                        {
+                            if (!line.StartsWith("-- "))
+                            {
+                                sb.Append(line);
+                                sb.Append(Environment.NewLine);
+                            }
                         }
                     }
                 }
+                if (checkSyntax)
+                {
+                    cmd.CommandText = "SET SHOWPLAN_XML OFF";
+                    cmd.ExecuteNonQuery();
+                }
+
             }
         }
 
@@ -451,27 +467,16 @@ namespace ErikEJ.SqlCeScripting
 
                 if (execute != CommandExecute.Undefined)
                 {
-                    if (checkSyntax)
+                    if (execute == CommandExecute.DataTable)
                     {
-                        SqlCeException ex = CheckSyntax(commandText, cmd);
-                        if (ex != null)
-                        {
-                            throw new Exception(Helper.ShowErrors(ex));
-                        }
+                        dataSet.Tables.Add(RunDataTable(cmd, cn));
                     }
-                    else
+                    if (execute == CommandExecute.NonQuery)
                     {
-                        if (execute == CommandExecute.DataTable)
-                        {
-                            dataSet.Tables.Add(RunDataTable(cmd, cn));
-                        }
-                        if (execute == CommandExecute.NonQuery)
-                        {
-                            int rows = cmd.ExecuteNonQuery();
-                            DataTable table = new DataTable();
-                            table.MinimumCapacity = Math.Max(0, rows);
-                            dataSet.Tables.Add(table);
-                        }
+                        int rows = cmd.ExecuteNonQuery();
+                        DataTable table = new DataTable();
+                        table.MinimumCapacity = Math.Max(0, rows);
+                        dataSet.Tables.Add(table);
                     }
                 }
             }
@@ -513,27 +518,6 @@ namespace ErikEJ.SqlCeScripting
             {
                 return CommandExecute.NonQuery;
             }
-        }
-
-        private SqlCeException CheckSyntax(string statement, SqlCeCommand cmd)
-        {
-            SqlCeTransaction tx = cn.BeginTransaction();
-                
-            try
-            {
-                cmd.Transaction = tx;
-                cmd.ExecuteNonQuery();
-            }
-            catch (SqlCeException ex)
-            {
-                ex.HelpLink = cmd.CommandText;
-                return ex;
-            }
-            finally
-            {
-                tx.Rollback();
-            }
-            return null;
         }
 
         /// <summary>
