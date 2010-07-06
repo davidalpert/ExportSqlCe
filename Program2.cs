@@ -6,10 +6,13 @@ namespace ExportSqlCE
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             if (args.Length < 2 || args.Length > 4)
+            {
                 PrintUsageGuide();
+                return 2;
+            }
             else
             {
                 try
@@ -50,18 +53,21 @@ namespace ExportSqlCE
                         generator.GenerateIndex();
                         Console.WriteLine("Generating the foreign keys....");
                         generator.GenerateForeignKeys();
-                        
+
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
+                        return 0;
                     }
                 }
                 catch (System.Data.SqlClient.SqlException e)
                 {
                     ShowErrors(e);
+                    return 1;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error: " + ex);
+                    return 1;
                 }
             }
         }

@@ -16,6 +16,7 @@ namespace ErikEJ.SqlCeScripting
         private readonly string _connectionString;
         private SqlCeConnection cn;
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlCeDataReader dr);
+        private string showPlan = string.Empty;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DBRepository"/> class.
@@ -408,11 +409,11 @@ namespace ErikEJ.SqlCeScripting
             return ds;
         }
 
-        public DataSet ParseSql(string script)
+        public string ParseSql(string script)
         {
             DataSet ds = new DataSet();
             RunCommands(ds, script, true);
-            return ds;
+            return showPlan;
         }
 
         internal void RunCommands(DataSet dataset, string script, bool checkSyntax)
@@ -449,6 +450,9 @@ namespace ErikEJ.SqlCeScripting
                 }
                 if (checkSyntax)
                 {
+                    cmd.CommandText = "SELECT @@SHOWPLAN;";
+                    showPlan = (string)cmd.ExecuteScalar();
+
                     cmd.CommandText = "SET SHOWPLAN_XML OFF";
                     cmd.ExecuteNonQuery();
                 }

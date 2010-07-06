@@ -303,9 +303,9 @@ namespace ErikEJ.SqlCeScripting
             return new DataSet();
         }
 
-        public DataSet ParseSql(string script)
+        public string ParseSql(string script)
         {
-            return new DataSet();
+            return string.Empty;
         }
 
         /// <summary>
