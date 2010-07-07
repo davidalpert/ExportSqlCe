@@ -61,8 +61,6 @@ namespace ExportSqlCE
                         {
                             generator.GenerateSchemaGraph();
                         }
-                        //ReplicationProperties props = SqlCeReplicationHelper.GetProperties(@"Data Source=C:\data\pfizertest.sdf", "EEJW7X64:Northwind:NwPub");
-
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                         return 0;
