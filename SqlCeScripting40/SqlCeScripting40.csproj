@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A732FB3F-E50F-47FD-A3E7-CB6B4A3E57AF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ErikEJ.SqlCeScripting</RootNamespace>
+    <AssemblyName>SqlCeScripting40</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkSubset>
+    </TargetFrameworkSubset>
+    <ApplicationIcon>data_out.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;V35</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Program Files\Microsoft SQL Server Compact Edition\v4.0\Desktop\System.Data.SqlServerCe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Generator\DgmlHelper.cs">
+      <Link>Generator\DgmlHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Generator\Generator.cs">
+      <Link>Generator\Generator.cs</Link>
+    </Compile>
+    <Compile Include="..\Generator\Helper.cs">
+      <Link>Generator\Helper.cs</Link>
+    </Compile>
+    <Compile Include="..\Generator\SqlCeReplicationHelper.cs">
+      <Link>Generator\SqlCeReplicationHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Models\Column.cs">
+      <Link>Models\Column.cs</Link>
+    </Compile>
+    <Compile Include="..\Models\ColumnList.cs">
+      <Link>Models\ColumnList.cs</Link>
+    </Compile>
+    <Compile Include="..\Models\Constraint.cs">
+      <Link>Models\Constraint.cs</Link>
+    </Compile>
+    <Compile Include="..\Models\Index.cs">
+      <Link>Models\Index.cs</Link>
+    </Compile>
+    <Compile Include="..\Models\PrimaryKey.cs">
+      <Link>Models\PrimaryKey.cs</Link>
+    </Compile>
+    <Compile Include="..\Models\YesNoOptionEnum.cs">
+      <Link>Models\YesNoOptionEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\Properties\AssemblyInfo.cs">
+      <Link>AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Repositories\DBRepository.cs">
+      <Link>Repositories\DBRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\Repositories\IRepository.cs">
+      <Link>Repositories\IRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\Repositories\ServerDBRepository.cs">
+      <Link>Repositories\ServerDBRepository.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data_out.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

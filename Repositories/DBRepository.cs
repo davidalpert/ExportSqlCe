@@ -451,7 +451,10 @@ namespace ErikEJ.SqlCeScripting
                 if (checkSyntax)
                 {
                     cmd.CommandText = "SELECT @@SHOWPLAN;";
-                    showPlan = (string)cmd.ExecuteScalar();
+                    
+                    object obj = cmd.ExecuteScalar();
+                    if (obj.GetType() == typeof(System.String))
+                        showPlan = (string)obj;
 
                     cmd.CommandText = "SET SHOWPLAN_XML OFF";
                     cmd.ExecuteNonQuery();
