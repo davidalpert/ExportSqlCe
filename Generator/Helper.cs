@@ -9,7 +9,7 @@ namespace ErikEJ.SqlCeScripting
     public static class Helper
     {
 
-        public static string FinalFiles 
+        public static string FinalFiles
         {
             get
             {
@@ -62,7 +62,7 @@ namespace ErikEJ.SqlCeScripting
         {
             return connectionString.Replace(string.Format(System.Globalization.CultureInfo.InvariantCulture, ";Timeout = \"{0}\"", timeout), string.Empty);
         }
-        
+
 
         public static string ScriptDatabaseToFile(string fileName, Scope scope, IRepository repository)
         {
@@ -285,46 +285,107 @@ namespace ErikEJ.SqlCeScripting
             return bld.ToString();
         }
 
-            public static string ShowErrors(System.Data.SqlServerCe.SqlCeException e)
+        public static string ShowErrors(System.Data.SqlServerCe.SqlCeException e)
+        {
+            System.Data.SqlServerCe.SqlCeErrorCollection errorCollection = e.Errors;
+
+            StringBuilder bld = new StringBuilder();
+            Exception inner = e.InnerException;
+
+            if (!string.IsNullOrEmpty(e.HelpLink))
             {
-                System.Data.SqlServerCe.SqlCeErrorCollection errorCollection = e.Errors;
-
-                StringBuilder bld = new StringBuilder();
-                Exception inner = e.InnerException;
-
-                if (!string.IsNullOrEmpty(e.HelpLink))
-                {
-                    bld.Append("\nCommand text: ");
-                    bld.Append(e.HelpLink);
-                }
-
-                if (null != inner)
-                {
-                    bld.Append("\nInner Exception: " + inner.ToString());
-                }
-                // Enumerate the errors to a message box.
-                foreach (System.Data.SqlServerCe.SqlCeError err in errorCollection)
-                {
-                    bld.Append("\n Error Code: " + err.HResult.ToString("X", System.Globalization.CultureInfo.InvariantCulture));
-                    bld.Append("\n Message   : " + err.Message);
-                    bld.Append("\n Minor Err.: " + err.NativeError);
-                    bld.Append("\n Source    : " + err.Source);
-
-                    // Enumerate each numeric parameter for the error.
-                    foreach (int numPar in err.NumericErrorParameters)
-                    {
-                        if (0 != numPar) bld.Append("\n Num. Par. : " + numPar);
-                    }
-
-                    // Enumerate each string parameter for the error.
-                    foreach (string errPar in err.ErrorParameters)
-                    {
-                        if (!string.IsNullOrEmpty(errPar)) bld.Append("\n Err. Par. : " + errPar);
-                    }
-                }
-                return bld.ToString();
+                bld.Append("\nCommand text: ");
+                bld.Append(e.HelpLink);
             }
+
+            if (null != inner)
+            {
+                bld.Append("\nInner Exception: " + inner.ToString());
+            }
+            // Enumerate the errors to a message box.
+            foreach (System.Data.SqlServerCe.SqlCeError err in errorCollection)
+            {
+                bld.Append("\n Error Code: " + err.HResult.ToString("X", System.Globalization.CultureInfo.InvariantCulture));
+                bld.Append("\n Message   : " + err.Message);
+                bld.Append("\n Minor Err.: " + err.NativeError);
+                bld.Append("\n Source    : " + err.Source);
+
+                // Enumerate each numeric parameter for the error.
+                foreach (int numPar in err.NumericErrorParameters)
+                {
+                    if (0 != numPar) bld.Append("\n Num. Par. : " + numPar);
+                }
+
+                // Enumerate each string parameter for the error.
+                foreach (string errPar in err.ErrorParameters)
+                {
+                    if (!string.IsNullOrEmpty(errPar)) bld.Append("\n Err. Par. : " + errPar);
+                }
+            }
+            return bld.ToString();
+        }
+
+    }
+
+    public static class SqlCeUpgrade
+    {
+        public static void EnsureVersion40(this System.Data.SqlServerCe.SqlCeEngine engine, string filename)
+        {
+            SQLCEVersion fileversion = DetermineVersion(filename);
+            if (fileversion == SQLCEVersion.SQLCE20)
+                throw new ApplicationException("Unable to upgrade from 2.0 to 4.0");
+
+            if (SQLCEVersion.SQLCE40 > fileversion)
+            {
+                engine.Upgrade();
+            }
+        }
+        private enum SQLCEVersion
+        {
+            SQLCE20 = 0,
+            SQLCE30 = 1,
+            SQLCE35 = 2,
+            SQLCE40 = 3
+        }
+        private static SQLCEVersion DetermineVersion(string filename)
+        {
+            var versionDictionary = new Dictionary<int, SQLCEVersion> 
+            { 
+                { 0x73616261, SQLCEVersion.SQLCE20 }, 
+                { 0x002dd714, SQLCEVersion.SQLCE30},
+                { 0x00357b9d, SQLCEVersion.SQLCE35},
+                { 0x003d0900, SQLCEVersion.SQLCE40}
+            };
+            int versionLONGWORD = 0;
+            try
+            {
+                using (var fs = new FileStream(filename, FileMode.Open))
+                {
+                    fs.Seek(16, SeekOrigin.Begin);
+                    using (BinaryReader reader = new BinaryReader(fs))
+                    {
+                        versionLONGWORD = reader.ReadInt32();
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+            if (versionDictionary.ContainsKey(versionLONGWORD))
+            {
+                return versionDictionary[versionLONGWORD];
+            }
+            else
+            {
+                throw new ApplicationException("Unable to determine database file version");
+            }
+        }
 
 
     }
+
+
+
+
 }

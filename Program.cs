@@ -20,6 +20,13 @@ namespace ExportSqlCE
                     string connectionString = args[0];
                     string outputFileLocation = args[1];
 
+                    //string filename = @"C:\Data\SQLCE\Northwind31.sdf";
+                    //////Northwind31.sdf
+                    //////ShipTerms35.sdf
+                    //var engine = new System.Data.SqlServerCe.SqlCeEngine("Data Source=" + filename);
+                    //engine.EnsureVersion40(filename);
+                    //return 0;
+
                     bool includeData = true;
                     bool saveImageFiles = false;
                     bool generateGraph = false;
@@ -34,11 +41,20 @@ namespace ExportSqlCE
 
                     using (IRepository repository = new DBRepository(connectionString))
                     {
+
+
                         Helper.FinalFiles = outputFileLocation;
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
                         var generator = new Generator(repository, outputFileLocation);
                         // The execution below has to be in this sequence
+
+                        //if (generateGraph)
+                        //{
+                        //    generator.GenerateSchemaGraph(connectionString);
+                        //    return 0;
+                        //}
+
                         Console.WriteLine("Generating the tables....");
 #if V35
                         generator.GenerateTable(true);
@@ -57,10 +73,6 @@ namespace ExportSqlCE
                         Console.WriteLine("Generating the foreign keys....");
                         generator.GenerateForeignKeys();
 
-                        if (generateGraph)
-                        {
-                            generator.GenerateSchemaGraph();
-                        }
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                         return 0;
