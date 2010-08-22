@@ -55,7 +55,8 @@ namespace ErikEJ.SqlCeScripting
                 , DataType = dr.GetString(2)
                 , CharacterMaxLength = (dr.IsDBNull(3) ? 0 : dr.GetInt32(3))
                 , NumericPrecision = (dr.IsDBNull(4) ? 0 : Convert.ToInt32(dr[4], System.Globalization.CultureInfo.InvariantCulture))
-#if V35
+#if V31
+#else
                 , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5], System.Globalization.CultureInfo.InvariantCulture))
                 , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
                 , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
@@ -168,7 +169,8 @@ namespace ErikEJ.SqlCeScripting
         private List<KeyValuePair<string, string>> GetSqlCeInfo()
         {
             List<KeyValuePair<string, string>> valueList = new List<KeyValuePair<string, string>>();
-#if V35
+#if V31
+#else
             valueList = cn.GetDatabaseInfo();
 #endif
             valueList.Add(new KeyValuePair<string,string>("Database", cn.Database));

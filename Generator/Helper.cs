@@ -327,6 +327,8 @@ namespace ErikEJ.SqlCeScripting
 
     }
 
+#if V31
+#else
     public static class SqlCeUpgrade
     {
         public static void EnsureVersion40(this System.Data.SqlServerCe.SqlCeEngine engine, string filename)
@@ -384,8 +386,5 @@ namespace ErikEJ.SqlCeScripting
 
 
     }
-
-
-
-
+#endif
 }

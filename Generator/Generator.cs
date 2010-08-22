@@ -300,7 +300,8 @@ namespace ErikEJ.SqlCeScripting
             using (DataTable dt = _repository.GetDataFromTable(tableName, columns))
             {
                 bool hasIdentity = _repository.HasIdentityColumn(tableName);
-#if V35
+#if V31
+#else
                 if (hasIdentity && dt.Rows.Count > 0)
                 {
                     _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
@@ -436,7 +437,8 @@ namespace ErikEJ.SqlCeScripting
                         _sbScript.Remove(0, _sbScript.Length);
                     }
                 }
-#if V35
+#if V31
+#else
                 if (hasIdentity && dt.Rows.Count > 0)
                 {
                     _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));

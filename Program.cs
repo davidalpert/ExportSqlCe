@@ -56,10 +56,10 @@ namespace ExportSqlCE
                         //}
 
                         Console.WriteLine("Generating the tables....");
-#if V35
-                        generator.GenerateTable(true);
-#else
+#if V31
                         generator.GenerateTable(false);
+#else
+                        generator.GenerateTable(true);
 #endif
                         if (includeData)
                         {
