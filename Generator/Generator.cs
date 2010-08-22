@@ -11,7 +11,11 @@ namespace ErikEJ.SqlCeScripting
     /// Class for generating scripts
     /// Use the GeneratedScript property to get the resulting script
     /// </summary>
-    public class Generator
+#if V40
+    public class Generator4 : IGenerator
+#else
+    public class Generator : IGenerator
+#endif
     {
         private String _outFile;
         private IRepository _repository;
@@ -27,22 +31,45 @@ namespace ErikEJ.SqlCeScripting
         /// </summary>
         /// <param name="repository">The repository.</param>
         /// <param name="outFile">The out file.</param>
+#if V40
+        public Generator4(IRepository repository, string outFile)
+#else
         public Generator(IRepository repository, string outFile)
+#endif
         {
             Init(repository, outFile);
         }
 
-        internal void GenerateAllAndSave(bool includeData, bool saveImages)
+#if V40
+        public Generator4(IRepository repository)
+#else
+        public Generator(IRepository repository)
+#endif
         {
-            GenerateTable(includeData);
-            if (includeData)
+            Init(repository, null);
+        }
+
+        public string ScriptDatabaseToFile(Scope scope)
+        {
+            Helper.FinalFiles = _outFile;
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            switch (scope)
             {
-                GenerateTableContent(saveImages);
+                case Scope.Schema:
+                    GenerateAllAndSave(false, false);
+                    break;
+                case Scope.SchemaData:
+                    GenerateAllAndSave(true, false);
+                    break;
+                case Scope.SchemaDataBlobs:
+                    GenerateAllAndSave(true, true);
+                    break;
+                default:
+                    break;
             }
-            GeneratePrimaryKeys();
-            GenerateIndex();
-            GenerateForeignKeys();
-            Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
+            sw.Stop();
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString(System.Globalization.CultureInfo.CurrentCulture));
         }
 
         /// <summary>
@@ -77,214 +104,6 @@ namespace ErikEJ.SqlCeScripting
         public string GeneratedScript
         {
             get { return _sbScript.ToString(); }
-        }
-
-        internal int FileCounter
-        {
-            get
-            {
-                if (_fileCounter > -1)
-                    _fileCounter++;
-                return _fileCounter;
-            }
-        }
-
-        private void Init(IRepository repository, string outFile)
-        {
-            _outFile = outFile;
-            _repository = repository;
-            _sbScript = new StringBuilder(10485760);
-            _tableNames = _repository.GetAllTableNames();
-            _allColumns = _repository.GetColumnsFromTable();
-            _allForeignKeys = repository.GetAllForeignKeys();
-
-            if (_repository.IsServer())
-            {
-                // Check if datatypes are supported when exporting from server
-                // Either they can be converted, are supported, or an exception is thrown (if not supported)
-                // Currently only sql_variant is not supported
-                foreach (Column col in _allColumns)
-                {
-                    col.CharacterMaxLength = Helper.CheckDateColumnLength(col.DataType, col);
-                    col.DateFormat = Helper.CheckDateFormat(col.DataType);
-                    
-                    // Check if the current column points to a unique identity column,
-                    // as the two columns' datatypes must match
-                    bool refToIdentity = false;
-                    var columnForeignKeys =
-                        _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName).ToDictionary(
-                            p => p.Columns.ToString());
-                    if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
-                    {
-                        var refCol = _allColumns.Where(c => c.TableName == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueConstraintTableName
-                            && string.Format("[{0}]", c.ColumnName) == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueColumnName).Single();
-                        if (refCol != null && refCol.AutoIncrementBy > 0)
-                        {
-                            refToIdentity = true;                        
-                        }
-                    }
-
-                    // This modifies the datatype to be SQL Compact compatible
-                    col.DataType = Helper.CheckDataType(col.DataType, col, refToIdentity);
-                }
-                _sbScript.AppendFormat("-- Script Date: {0} {1}  - Generated by Export2SqlCe version {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
-            }
-            else
-            {
-                _sbScript.AppendFormat("-- Script Date: {0} {1}  - Generated by ExportSqlCe version {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
-            }
-            _sbScript.AppendLine();
-            if (!string.IsNullOrEmpty(_outFile) && !_repository.IsServer())
-            {
-                _sbScript.Append("-- Database information:");
-                _sbScript.AppendLine();
-
-                foreach (var kv in _repository.GetDatabaseInfo())
-                {
-                    _sbScript.Append("-- ");
-                    _sbScript.Append(kv.Key);
-                    _sbScript.Append(": ");
-                    _sbScript.Append(kv.Value);
-                    _sbScript.AppendLine();
-                }
-                _sbScript.AppendLine();
-
-                // Populate all tablenames
-                _sbScript.Append("-- User Table information:");
-                _sbScript.AppendLine();
-                _sbScript.Append("-- ");
-                _sbScript.Append("Number of tables: ");
-                _sbScript.Append(_tableNames.Count);
-                _sbScript.AppendLine();
-
-                foreach (string tableName in _tableNames)
-                {
-                    Int64 rowCount = _repository.GetRowCount(tableName);
-                    _sbScript.Append("-- ");
-                    _sbScript.Append(tableName);
-                    _sbScript.Append(": ");
-                    _sbScript.Append(rowCount);
-                    _sbScript.Append(" row(s)");
-                    _sbScript.AppendLine();
-                }
-                _sbScript.AppendLine();
-            }
-        }
-
-        internal void GenerateTable(bool includeData)
-        {
-            foreach (string tableName in _tableNames)
-                GenerateTableCreate(tableName, includeData);
-
-        }
-
-        internal void GenerateTableCreate(string tableName, bool includeData)
-        {
-            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
-            if (columns.Count > 0)
-            {
-                _sbScript.AppendFormat("CREATE TABLE [{0}] ({1}  ", tableName, Environment.NewLine);
-
-                columns.ForEach(delegate(Column col)
-                {
-                    string line = string.Empty;
-                    switch (col.DataType)
-                    {
-                        case "nvarchar":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "nchar":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , "nchar"
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "numeric":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2},{3}) {4} {5}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.NumericPrecision
-                                , col.NumericScale
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "binary":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "varbinary":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        default:
-                            if (includeData)
-                            {
-                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                    "[{0}] {1} {2} {3} {4}{5}"
-                                    , col.ColumnName
-                                    , col.DataType
-                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
-                                    );
-                            }
-                            else
-                            {
-                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                    "[{0}] {1} {2} {3} {4}{5}"
-                                    , col.ColumnName
-                                    , col.DataType
-                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
-                                    );
-                            }
-
-                            break;
-                    }
-                    _sbScript.AppendFormat("{0}{1}, ",line.Trim(), Environment.NewLine);
-                });
-
-                // Remove the last comma
-                _sbScript.Remove(_sbScript.Length - 2, 2);
-                _sbScript.AppendFormat(");{0}", Environment.NewLine);
-                _sbScript.Append(_sep);
-            }
-        }
-
-        internal void GenerateTableContent(bool saveImageFiles)
-        {
-            foreach (string tableName in _tableNames)
-            {
-                GenerateTableContent(tableName, saveImageFiles);
-            }
         }
 
         /// <summary>
@@ -978,5 +797,228 @@ namespace ErikEJ.SqlCeScripting
                     where a.TableName == tableName
                     select a.ColumnName).ToList();
         }
+
+        internal void GenerateAllAndSave(bool includeData, bool saveImages)
+        {
+            GenerateTable(includeData);
+            if (includeData)
+            {
+                GenerateTableContent(saveImages);
+            }
+            GeneratePrimaryKeys();
+            GenerateIndex();
+            GenerateForeignKeys();
+            Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
+        }
+
+        internal int FileCounter
+        {
+            get
+            {
+                if (_fileCounter > -1)
+                    _fileCounter++;
+                return _fileCounter;
+            }
+        }
+
+        private void Init(IRepository repository, string outFile)
+        {
+            _outFile = outFile;
+            _repository = repository;
+            _sbScript = new StringBuilder(10485760);
+            _tableNames = _repository.GetAllTableNames();
+            _allColumns = _repository.GetColumnsFromTable();
+            _allForeignKeys = repository.GetAllForeignKeys();
+
+            if (_repository.IsServer())
+            {
+                // Check if datatypes are supported when exporting from server
+                // Either they can be converted, are supported, or an exception is thrown (if not supported)
+                // Currently only sql_variant is not supported
+                foreach (Column col in _allColumns)
+                {
+                    col.CharacterMaxLength = Helper.CheckDateColumnLength(col.DataType, col);
+                    col.DateFormat = Helper.CheckDateFormat(col.DataType);
+
+                    // Check if the current column points to a unique identity column,
+                    // as the two columns' datatypes must match
+                    bool refToIdentity = false;
+                    var columnForeignKeys =
+                        _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName).ToDictionary(
+                            p => p.Columns.ToString());
+                    if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
+                    {
+                        var refCol = _allColumns.Where(c => c.TableName == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueConstraintTableName
+                            && string.Format("[{0}]", c.ColumnName) == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueColumnName).Single();
+                        if (refCol != null && refCol.AutoIncrementBy > 0)
+                        {
+                            refToIdentity = true;
+                        }
+                    }
+
+                    // This modifies the datatype to be SQL Compact compatible
+                    col.DataType = Helper.CheckDataType(col.DataType, col, refToIdentity);
+                }
+                _sbScript.AppendFormat("-- Script Date: {0} {1}  - Generated by Export2SqlCe version {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
+            }
+            else
+            {
+                _sbScript.AppendFormat("-- Script Date: {0} {1}  - Generated by ExportSqlCe version {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
+            }
+            _sbScript.AppendLine();
+            if (!string.IsNullOrEmpty(_outFile) && !_repository.IsServer())
+            {
+                _sbScript.Append("-- Database information:");
+                _sbScript.AppendLine();
+
+                foreach (var kv in _repository.GetDatabaseInfo())
+                {
+                    _sbScript.Append("-- ");
+                    _sbScript.Append(kv.Key);
+                    _sbScript.Append(": ");
+                    _sbScript.Append(kv.Value);
+                    _sbScript.AppendLine();
+                }
+                _sbScript.AppendLine();
+
+                // Populate all tablenames
+                _sbScript.Append("-- User Table information:");
+                _sbScript.AppendLine();
+                _sbScript.Append("-- ");
+                _sbScript.Append("Number of tables: ");
+                _sbScript.Append(_tableNames.Count);
+                _sbScript.AppendLine();
+
+                foreach (string tableName in _tableNames)
+                {
+                    Int64 rowCount = _repository.GetRowCount(tableName);
+                    _sbScript.Append("-- ");
+                    _sbScript.Append(tableName);
+                    _sbScript.Append(": ");
+                    _sbScript.Append(rowCount);
+                    _sbScript.Append(" row(s)");
+                    _sbScript.AppendLine();
+                }
+                _sbScript.AppendLine();
+            }
+        }
+
+        internal void GenerateTable(bool includeData)
+        {
+            foreach (string tableName in _tableNames)
+                GenerateTableCreate(tableName, includeData);
+
+        }
+
+        internal void GenerateTableCreate(string tableName, bool includeData)
+        {
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            if (columns.Count > 0)
+            {
+                _sbScript.AppendFormat("CREATE TABLE [{0}] ({1}  ", tableName, Environment.NewLine);
+
+                columns.ForEach(delegate(Column col)
+                {
+                    string line = string.Empty;
+                    switch (col.DataType)
+                    {
+                        case "nvarchar":
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
+                                , col.ColumnName
+                                , col.DataType
+                                , col.CharacterMaxLength
+                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                );
+                            break;
+                        case "nchar":
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
+                                , col.ColumnName
+                                , "nchar"
+                                , col.CharacterMaxLength
+                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                );
+                            break;
+                        case "numeric":
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2},{3}) {4} {5}"
+                                , col.ColumnName
+                                , col.DataType
+                                , col.NumericPrecision
+                                , col.NumericScale
+                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                );
+                            break;
+                        case "binary":
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
+                                , col.ColumnName
+                                , col.DataType
+                                , col.CharacterMaxLength
+                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                );
+                            break;
+                        case "varbinary":
+                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                "[{0}] {1}({2}) {3} {4}"
+                                , col.ColumnName
+                                , col.DataType
+                                , col.CharacterMaxLength
+                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                );
+                            break;
+                        default:
+                            if (includeData)
+                            {
+                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                    "[{0}] {1} {2} {3} {4}{5}"
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
+                                    );
+                            }
+                            else
+                            {
+                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                    "[{0}] {1} {2} {3} {4}{5}"
+                                    , col.ColumnName
+                                    , col.DataType
+                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                                    );
+                            }
+
+                            break;
+                    }
+                    _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
+                });
+
+                // Remove the last comma
+                _sbScript.Remove(_sbScript.Length - 2, 2);
+                _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+        }
+
+        internal void GenerateTableContent(bool saveImageFiles)
+        {
+            foreach (string tableName in _tableNames)
+            {
+                GenerateTableContent(tableName, saveImageFiles);
+            }
+        }
+
+
     }
 }

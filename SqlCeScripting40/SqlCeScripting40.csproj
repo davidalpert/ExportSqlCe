@@ -23,7 +23,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;V40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -31,11 +31,15 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;V40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ISqlCeScripting, Version=3.0.0.6, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\ISqlCeScripting.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -57,38 +61,17 @@
     <Compile Include="..\Generator\Helper.cs">
       <Link>Generator\Helper.cs</Link>
     </Compile>
+    <Compile Include="..\Generator\SqlCeHelper.cs">
+      <Link>Generator\SqlCeHelper.cs</Link>
+    </Compile>
     <Compile Include="..\Generator\SqlCeReplicationHelper.cs">
       <Link>Generator\SqlCeReplicationHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\Models\Column.cs">
-      <Link>Models\Column.cs</Link>
-    </Compile>
-    <Compile Include="..\Models\ColumnList.cs">
-      <Link>Models\ColumnList.cs</Link>
-    </Compile>
-    <Compile Include="..\Models\Constraint.cs">
-      <Link>Models\Constraint.cs</Link>
-    </Compile>
-    <Compile Include="..\Models\Index.cs">
-      <Link>Models\Index.cs</Link>
-    </Compile>
-    <Compile Include="..\Models\PrimaryKey.cs">
-      <Link>Models\PrimaryKey.cs</Link>
-    </Compile>
-    <Compile Include="..\Models\YesNoOptionEnum.cs">
-      <Link>Models\YesNoOptionEnum.cs</Link>
     </Compile>
     <Compile Include="..\Properties\AssemblyInfo.cs">
       <Link>AssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\Repositories\DBRepository.cs">
       <Link>Repositories\DBRepository.cs</Link>
-    </Compile>
-    <Compile Include="..\Repositories\IRepository.cs">
-      <Link>Repositories\IRepository.cs</Link>
-    </Compile>
-    <Compile Include="..\Repositories\ServerDBRepository.cs">
-      <Link>Repositories\ServerDBRepository.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

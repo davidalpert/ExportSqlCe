@@ -11,7 +11,11 @@ namespace ErikEJ.SqlCeScripting
     /// <summary>
     /// Implementation of the <see cref="IRepository"/> interface for SQL Server Compact 3.1/3.5
     /// </summary>
+#if V40
+    public class DB4Repository : IRepository
+#else
     public class DBRepository : IRepository
+#endif
     {
         private readonly string _connectionString;
         private SqlCeConnection cn;
@@ -22,7 +26,11 @@ namespace ErikEJ.SqlCeScripting
         /// Initializes a new instance of the <see cref="DBRepository"/> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
+#if V40
+        public DB4Repository(string connectionString)
+#else
         public DBRepository(string connectionString)
+#endif
         {
             _connectionString = connectionString;
             cn = new SqlCeConnection(_connectionString);
@@ -578,5 +586,6 @@ namespace ErikEJ.SqlCeScripting
 
 
         #endregion
+
     }
 }

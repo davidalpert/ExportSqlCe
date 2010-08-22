@@ -251,6 +251,10 @@
     <None Include="Resources\saveHS.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="ISqlCeScripting.csproj">
+      <Project>{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}</Project>
+      <Name>ISqlCeScripting</Name>
+    </ProjectReference>
     <ProjectReference Include="SqlCeScripting.csproj">
       <Project>{09B046AF-A861-4D57-B8B4-40D9371EADB6}</Project>
       <Name>SqlCeScripting</Name>

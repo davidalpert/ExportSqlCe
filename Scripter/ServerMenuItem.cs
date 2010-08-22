@@ -96,7 +96,8 @@ namespace SqlCeScripter
                         fileName = fd.FileName;
                         using (IRepository repository = new ServerDBRepository(connectionString))
                         {
-                            System.Windows.Forms.MessageBox.Show(Helper.ScriptDatabaseToFile(fileName, scope, repository));
+                            var generator = new Generator(repository, fd.FileName);
+                            System.Windows.Forms.MessageBox.Show(generator.ScriptDatabaseToFile(scope));
                         }
                    }
                 }

@@ -84,7 +84,8 @@ namespace SqlCeScripter
                 {
                     using (IRepository repository = new DBRepository(connectionString))
                     {
-                        System.Windows.Forms.MessageBox.Show(Helper.ScriptDatabaseToFile(fileName, scope, repository));
+                        var generator = new Generator(repository, fd.FileName);
+                        System.Windows.Forms.MessageBox.Show(generator.ScriptDatabaseToFile(scope));
                     }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException sqlCe)

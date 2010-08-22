@@ -110,7 +110,7 @@ namespace SqlCeScripter
                 
                 using (IRepository repository = new DBRepository(connectionString))
                 {
-                    var generator = new Generator(repository, string.Empty);
+                    var generator = new Generator(repository);
 
                     using (ImportOptions imo = new ImportOptions(this.Parent.Name))
                     {

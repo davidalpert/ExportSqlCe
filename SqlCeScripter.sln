@@ -7,6 +7,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCeScripting", "SqlCeScripting.csproj", "{09B046AF-A861-4D57-B8B4-40D9371EADB6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISqlCeScripting", "ISqlCeScripting.csproj", "{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		BuildServer|Any CPU = BuildServer|Any CPU
@@ -47,6 +49,15 @@ Global
 		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09B046AF-A861-4D57-B8B4-40D9371EADB6}.Release|x86.ActiveCfg = Release|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.BuildServer|Any CPU.ActiveCfg = Release|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.BuildServer|Any CPU.Build.0 = Release|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.BuildServer|x86.ActiveCfg = Release|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
