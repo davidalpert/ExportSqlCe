@@ -59,7 +59,7 @@ namespace ExportSqlCE
 #if V31
                         generator.GenerateTable(false);
 #else
-                        generator.GenerateTable(true);
+                        generator.GenerateTable(includeData);
 #endif
                         if (includeData)
                         {
