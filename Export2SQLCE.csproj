@@ -47,6 +47,7 @@
     <Compile Include="Generator\DgmlHelper.cs" />
     <Compile Include="Generator\Generator.cs" />
     <Compile Include="Generator\Helper.cs" />
+    <Compile Include="Generator\IGenerator.cs" />
     <Compile Include="Models\Column.cs" />
     <Compile Include="Models\ColumnList.cs" />
     <Compile Include="Models\Constraint.cs" />

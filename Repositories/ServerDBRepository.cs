@@ -5,13 +5,20 @@ using System.Data.SqlClient;
 
 namespace ErikEJ.SqlCeScripting
 {
+#if V40
+    public class ServerDBRepository4 : IRepository
+#else
     public class ServerDBRepository : IRepository
+#endif
     {
         private readonly string _connectionString;
         private SqlConnection cn;
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlDataReader dr);
-
+#if V40
+        public ServerDBRepository4(string connectionString)
+#else
         public ServerDBRepository(string connectionString)
+#endif
         {
             _connectionString = connectionString;
             cn = new SqlConnection(_connectionString);

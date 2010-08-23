@@ -73,6 +73,9 @@
     <Compile Include="..\Repositories\DBRepository.cs">
       <Link>Repositories\DBRepository.cs</Link>
     </Compile>
+    <Compile Include="..\Repositories\ServerDBRepository.cs">
+      <Link>Repositories\ServerDBRepository.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="data_out.ico" />
