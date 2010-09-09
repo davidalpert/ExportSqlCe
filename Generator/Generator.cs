@@ -916,98 +916,104 @@ namespace ErikEJ.SqlCeScripting
             {
                 _sbScript.AppendFormat("CREATE TABLE [{0}] ({1}  ", tableName, Environment.NewLine);
 
-                columns.ForEach(delegate(Column col)
+                foreach (Column col in columns)
                 {
                     string line = string.Empty;
-                    switch (col.DataType)
-                    {
-                        case "nvarchar":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "nchar":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , "nchar"
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "numeric":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2},{3}) {4} {5}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.NumericPrecision
-                                , col.NumericScale
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "binary":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        case "varbinary":
-                            line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                "[{0}] {1}({2}) {3} {4}"
-                                , col.ColumnName
-                                , col.DataType
-                                , col.CharacterMaxLength
-                                , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                );
-                            break;
-                        default:
-                            if (includeData)
-                            {
-                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                    "[{0}] {1} {2} {3} {4}{5}"
-                                    , col.ColumnName
-                                    , col.DataType
-                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
-                                    );
-                            }
-                            else
-                            {
-                                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                                    "[{0}] {1} {2} {3} {4}{5}"
-                                    , col.ColumnName
-                                    , col.DataType
-                                    , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                                    , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                                    , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
-                                    , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
-                                    );
-                            }
-
-                            break;
-                    }
+                    line = GenerateColumLine(includeData, col, line);
                     _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
-                });
+                }
 
                 // Remove the last comma
                 _sbScript.Remove(_sbScript.Length - 2, 2);
                 _sbScript.AppendFormat(");{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
+        }
+
+        private static string GenerateColumLine(bool includeData, Column col, string line)
+        {
+            switch (col.DataType)
+            {
+                case "nvarchar":
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1}({2}) {3} {4}"
+                        , col.ColumnName
+                        , col.DataType
+                        , col.CharacterMaxLength
+                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        );
+                    break;
+                case "nchar":
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1}({2}) {3} {4}"
+                        , col.ColumnName
+                        , "nchar"
+                        , col.CharacterMaxLength
+                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        );
+                    break;
+                case "numeric":
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1}({2},{3}) {4} {5}"
+                        , col.ColumnName
+                        , col.DataType
+                        , col.NumericPrecision
+                        , col.NumericScale
+                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        );
+                    break;
+                case "binary":
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1}({2}) {3} {4}"
+                        , col.ColumnName
+                        , col.DataType
+                        , col.CharacterMaxLength
+                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        );
+                    break;
+                case "varbinary":
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1}({2}) {3} {4}"
+                        , col.ColumnName
+                        , col.DataType
+                        , col.CharacterMaxLength
+                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        );
+                    break;
+                default:
+                    if (includeData)
+                    {
+                        line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                            "[{0}] {1} {2} {3} {4}{5}"
+                            , col.ColumnName
+                            , col.DataType
+                            , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                            , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                            , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                            , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
+                            );
+                    }
+                    else
+                    {
+                        line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                            "[{0}] {1} {2} {3} {4}{5}"
+                            , col.ColumnName
+                            , col.DataType
+                            , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
+                            , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                            , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                            , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                            );
+                    }
+
+                    break;
+            }
+            return line;
         }
 
         internal void GenerateTableContent(bool saveImageFiles)
