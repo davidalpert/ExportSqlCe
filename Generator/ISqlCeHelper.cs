@@ -9,5 +9,6 @@ namespace ErikEJ.SqlCeScripting
     {
         string FormatError(Exception ex);
         string GetFullConnectionString(string connectionString);
+        void CreateDatabase(string connectionString);
     }
 }

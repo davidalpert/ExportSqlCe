@@ -32,5 +32,12 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public void CreateDatabase(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.CreateDatabase();
+            }
+        }
     }
 }
