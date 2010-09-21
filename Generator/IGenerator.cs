@@ -27,6 +27,11 @@ namespace ErikEJ.SqlCeScripting
         void GenerateIndexStatistics(string tableName, string indexName);
         List<string> GenerateTableColumns(string tableName);
 
+        void GenerateColumnAddScript(Column column);
+        void GenerateColumnDropScript(Column column);
+        void GenerateColumnAlterScript(Column column);
+        void GenerateColumnSetDefaultScript(Column column);
+        void GenerateColumnDropDefaultScript(Column column);
 
     }
 }

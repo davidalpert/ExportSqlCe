@@ -797,6 +797,39 @@ namespace ErikEJ.SqlCeScripting
                     select a.ColumnName).ToList();
         }
 
+        public void GenerateColumnAddScript(Column column)
+        {
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ADD {1}{2}", column.TableName, GenerateColumLine(false, column), Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
+
+        public void GenerateColumnDropScript(Column column)
+        {
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP COLUMN [{1}]{2}", column.TableName, column.ColumnName, Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
+
+        public void GenerateColumnAlterScript(Column column)
+        {
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN {1}{2}", column.TableName, GenerateColumLine(false, column), Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
+
+        public void GenerateColumnSetDefaultScript(Column column)
+        {
+            // ALTER TABLE MyCustomers ALTER COLUMN CompanyName SET DEFAULT 'A. Datum Corporation'
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN [{1}] SET DEFAULT {2}{3}", column.TableName, column.ColumnName, column.ColumnDefault, Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
+
+        public void GenerateColumnDropDefaultScript(Column column)
+        {
+            //ALTER TABLE MyCustomers ALTER COLUMN CompanyName DROP DEFAULT
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN [{1}] DROP DEFAULT{2}", column.TableName, column.ColumnName, Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
+
+
         internal void GenerateAllAndSave(bool includeData, bool saveImages)
         {
             GenerateTable(includeData);
@@ -918,8 +951,7 @@ namespace ErikEJ.SqlCeScripting
 
                 foreach (Column col in columns)
                 {
-                    string line = string.Empty;
-                    line = GenerateColumLine(includeData, col, line);
+                    string line = GenerateColumLine(includeData, col);
                     _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
                 }
 
@@ -930,8 +962,9 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        private static string GenerateColumLine(bool includeData, Column col, string line)
+        private static string GenerateColumLine(bool includeData, Column col)
         {
+            string line = string.Empty;
             switch (col.DataType)
             {
                 case "nvarchar":
