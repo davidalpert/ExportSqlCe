@@ -25,6 +25,7 @@ namespace ErikEJ.SqlCeScripting
         private Int32 _fileCounter = -1;
         private List<Column> _allColumns;
         private List<Constraint> _allForeignKeys;
+        private bool _batchInserts = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Generator"/> class.
@@ -65,6 +66,10 @@ namespace ErikEJ.SqlCeScripting
                 case Scope.SchemaDataBlobs:
                     GenerateAllAndSave(true, true);
                     break;
+                case Scope.SchemaDataAzure:
+                    _batchInserts = true;
+                    GenerateAllAndSave(true, false);
+                    break;                    
                 default:
                     break;
             }
@@ -247,14 +252,29 @@ namespace ErikEJ.SqlCeScripting
 
                     _sbScript.Append(");");
                     _sbScript.Append(Environment.NewLine);
-                    _sbScript.Append(_sep);
+                    if (_batchInserts && ((iRow + 1) % 100) == 0) 
+                    {
+                        _sbScript.Append(_sep);
+                    }
+                    else if (!_batchInserts)
+                    {
+                        _sbScript.Append(_sep);
+                    }
                     // Split large output!
                     if (_sbScript.Length > 9485760 && !string.IsNullOrEmpty(_outFile))
                     {
+                        if (_batchInserts)
+                        {
+                            _sbScript.Append(_sep);
+                        }
                         _fileCounter++;
                         Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
                         _sbScript.Remove(0, _sbScript.Length);
                     }
+                }
+                if (_batchInserts)
+                {
+                    _sbScript.Append(_sep);
                 }
 #if V31
 #else
@@ -629,7 +649,7 @@ namespace ErikEJ.SqlCeScripting
         {
             List<Constraint> foreingKeys = _repository.GetAllForeignKeys(tableName);
 
-            foreingKeys.ForEach(delegate(Constraint constraint)
+            foreach (Constraint constraint in foreingKeys)
             {
                 _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
                     , constraint.ConstraintTableName
@@ -641,7 +661,7 @@ namespace ErikEJ.SqlCeScripting
                     , constraint.UpdateRule
                     , Environment.NewLine);
                 _sbScript.Append(_sep);
-            });
+            };
 
         }
 
@@ -829,6 +849,33 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.Append(_sep);
         }
 
+
+        public void GeneratePrimaryKeyDrop(PrimaryKey primaryKey, string tableName)
+        {
+            //ALTER TABLE xx DROP CONSTRAINT yy
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}]{2}", tableName, primaryKey.KeyName, Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
+
+        public void GenerateForeignKey(Constraint constraint)
+        {
+            _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
+                , constraint.ConstraintTableName
+                , constraint.ConstraintName
+                , constraint.Columns.ToString()
+                , constraint.UniqueConstraintTableName
+                , constraint.UniqueColumns.ToString()
+                , constraint.DeleteRule
+                , constraint.UpdateRule
+                , Environment.NewLine);
+            _sbScript.Append(_sep);
+        }
+
+        public void GenerateForeignKeyDrop(Constraint constraint)
+        {
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}]{2}", constraint.ConstraintTableName, constraint.ConstraintName, Environment.NewLine));
+            _sbScript.Append(_sep);
+        }
 
         internal void GenerateAllAndSave(bool includeData, bool saveImages)
         {
@@ -1051,6 +1098,15 @@ namespace ErikEJ.SqlCeScripting
 
         internal void GenerateTableContent(bool saveImageFiles)
         {
+            foreach (string tableName in _tableNames)
+            {
+                GenerateTableContent(tableName, saveImageFiles);
+            }
+        }
+
+        internal void GenerateTableContent(bool saveImageFiles, bool sqlAzure)
+        {
+            _batchInserts = sqlAzure;
             foreach (string tableName in _tableNames)
             {
                 GenerateTableContent(tableName, saveImageFiles);

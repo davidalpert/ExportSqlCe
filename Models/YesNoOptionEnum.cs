@@ -10,7 +10,8 @@
     {
         Schema,
         SchemaData,
-        SchemaDataBlobs
+        SchemaDataBlobs,
+        SchemaDataAzure
     }
 
 }

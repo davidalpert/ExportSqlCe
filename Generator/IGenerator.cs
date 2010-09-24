@@ -33,5 +33,9 @@ namespace ErikEJ.SqlCeScripting
         void GenerateColumnSetDefaultScript(Column column);
         void GenerateColumnDropDefaultScript(Column column);
 
+        void GeneratePrimaryKeyDrop(PrimaryKey primaryKey, string tableName);
+        void GenerateForeignKey(Constraint constraint);
+        void GenerateForeignKeyDrop(Constraint constraint);
+
     }
 }

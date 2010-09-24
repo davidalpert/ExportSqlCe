@@ -33,15 +33,20 @@ namespace SqlCeScripter
             dbItem.Tag = Scope.SchemaData;
             dbItem.Click += new EventHandler(item_Click);
 
+            ToolStripMenuItem dbItem0 = new ToolStripMenuItem("Schema and Data for SQL Azure...");
+            dbItem0.Tag = Scope.SchemaDataAzure;
+            dbItem0.Click += new EventHandler(item_Click);
+
             ToolStripMenuItem dbItem1 = new ToolStripMenuItem("Schema and Data with BLOB files...");
             dbItem1.Tag = Scope.SchemaDataBlobs;
             dbItem1.Click += new EventHandler(item_Click);
 
-            ToolStripMenuItem dbItem2 = new ToolStripMenuItem("Schema...");
+            ToolStripMenuItem dbItem2 = new ToolStripMenuItem("Schema only...");
             dbItem2.Tag = Scope.Schema;
             dbItem2.Click += new EventHandler(item_Click);
 
             item.DropDownItems.Add(dbItem);
+            item.DropDownItems.Add(dbItem0);
             item.DropDownItems.Add(dbItem1);
             item.DropDownItems.Add(dbItem2);
 
