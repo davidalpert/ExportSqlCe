@@ -886,11 +886,18 @@ namespace ErikEJ.SqlCeScripting
         internal void GenerateAllAndSave(bool includeData, bool saveImages)
         {
             GenerateTable(includeData);
+            if (_batchForAzure)
+            {
+                GeneratePrimaryKeys();
+            }
             if (includeData)
             {
                 GenerateTableContent(saveImages);
             }
-            GeneratePrimaryKeys();
+            if (!_batchForAzure)
+            {
+                GeneratePrimaryKeys();
+            }
             GenerateIndex();
             GenerateForeignKeys();
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
