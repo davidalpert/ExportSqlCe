@@ -41,7 +41,7 @@ namespace ExportSqlCE
                         Helper.FinalFiles = outputFileLocation;
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
-                        var generator = new Generator(repository, outputFileLocation);
+                        var generator = new Generator(repository, outputFileLocation, sqlAzure);
 
                         Console.WriteLine("Generating the tables....");
 #if V31
@@ -57,7 +57,7 @@ namespace ExportSqlCE
                         if (includeData)
                         {
                             Console.WriteLine("Generating the data....");
-                            generator.GenerateTableContent(saveImageFiles, sqlAzure);
+                            generator.GenerateTableContent(saveImageFiles);
                         }
                         if (!sqlAzure)
                         {

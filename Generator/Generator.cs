@@ -25,7 +25,7 @@ namespace ErikEJ.SqlCeScripting
         private Int32 _fileCounter = -1;
         private List<Column> _allColumns;
         private List<Constraint> _allForeignKeys;
-        private bool _batchInserts = false;
+        private bool _batchForAzure = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Generator"/> class.
@@ -50,6 +50,12 @@ namespace ErikEJ.SqlCeScripting
             Init(repository, null);
         }
 
+        internal Generator(IRepository repository, string outFile, bool azure)
+        {
+            _batchForAzure = azure;
+            Init(repository, outFile);
+        }
+
         public string ScriptDatabaseToFile(Scope scope)
         {
             Helper.FinalFiles = _outFile;
@@ -67,7 +73,7 @@ namespace ErikEJ.SqlCeScripting
                     GenerateAllAndSave(true, true);
                     break;
                 case Scope.SchemaDataAzure:
-                    _batchInserts = true;
+                    _batchForAzure = true;
                     GenerateAllAndSave(true, false);
                     break;                    
                 default:
@@ -252,18 +258,18 @@ namespace ErikEJ.SqlCeScripting
 
                     _sbScript.Append(");");
                     _sbScript.Append(Environment.NewLine);
-                    if (_batchInserts && ((iRow + 1) % 100) == 0) 
+                    if (_batchForAzure && ((iRow + 1) % 1000) == 0) 
                     {
                         _sbScript.Append(_sep);
                     }
-                    else if (!_batchInserts)
+                    else if (!_batchForAzure)
                     {
                         _sbScript.Append(_sep);
                     }
                     // Split large output!
                     if (_sbScript.Length > 9485760 && !string.IsNullOrEmpty(_outFile))
                     {
-                        if (_batchInserts)
+                        if (_batchForAzure)
                         {
                             _sbScript.Append(_sep);
                         }
@@ -272,7 +278,7 @@ namespace ErikEJ.SqlCeScripting
                         _sbScript.Remove(0, _sbScript.Length);
                     }
                 }
-                if (_batchInserts)
+                if (_batchForAzure)
                 {
                     _sbScript.Append(_sep);
                 }
@@ -819,7 +825,7 @@ namespace ErikEJ.SqlCeScripting
 
         public void GenerateColumnAddScript(Column column)
         {
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] ADD {1}{2}", column.TableName, GenerateColumLine(false, column), Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ADD {1}{2}", column.TableName, GenerateColumLine(false, column, _batchForAzure), Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
@@ -831,7 +837,7 @@ namespace ErikEJ.SqlCeScripting
 
         public void GenerateColumnAlterScript(Column column)
         {
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN {1}{2}", column.TableName, GenerateColumLine(false, column), Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN {1}{2}", column.TableName, GenerateColumLine(false, column, _batchForAzure), Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
@@ -998,7 +1004,7 @@ namespace ErikEJ.SqlCeScripting
 
                 foreach (Column col in columns)
                 {
-                    string line = GenerateColumLine(includeData, col);
+                    string line = GenerateColumLine(includeData, col, _batchForAzure);
                     _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
                 }
 
@@ -1009,7 +1015,7 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        private static string GenerateColumLine(bool includeData, Column col)
+        private static string GenerateColumLine(bool includeData, Column col, bool azure)
         {
             string line = string.Empty;
             switch (col.DataType)
@@ -1066,6 +1072,11 @@ namespace ErikEJ.SqlCeScripting
                         );
                     break;
                 default:
+                    string rowGuidCol = string.Empty;
+                    if (col.RowGuidCol && !azure)
+                    {
+                        rowGuidCol = "ROWGUIDCOL";
+                    }
                     if (includeData)
                     {
                         line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
@@ -1074,7 +1085,7 @@ namespace ErikEJ.SqlCeScripting
                             , col.DataType
                             , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                             , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                            , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                            , rowGuidCol
                             , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
                             );
                     }
@@ -1086,7 +1097,7 @@ namespace ErikEJ.SqlCeScripting
                             , col.DataType
                             , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
                             , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                            , (col.RowGuidCol ? "ROWGUIDCOL" : string.Empty)
+                            , rowGuidCol
                             , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
                             );
                     }
@@ -1098,15 +1109,6 @@ namespace ErikEJ.SqlCeScripting
 
         internal void GenerateTableContent(bool saveImageFiles)
         {
-            foreach (string tableName in _tableNames)
-            {
-                GenerateTableContent(tableName, saveImageFiles);
-            }
-        }
-
-        internal void GenerateTableContent(bool saveImageFiles, bool sqlAzure)
-        {
-            _batchInserts = sqlAzure;
             foreach (string tableName in _tableNames)
             {
                 GenerateTableContent(tableName, saveImageFiles);
