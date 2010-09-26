@@ -625,6 +625,10 @@ namespace ErikEJ.SqlCeScripting
                 _sbScript.AppendFormat(");{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
+            else if (_batchForAzure)
+            {
+                _sbScript.AppendFormat("PRINT N'** Warning: Table [{0}] does not have a primary clustered key - it cannot be migrated to SQL Azure;{1}", tableName, Environment.NewLine);
+            }
         }
 
         internal void GenerateForeignKeys()
