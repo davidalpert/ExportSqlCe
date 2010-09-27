@@ -50,7 +50,12 @@ namespace ErikEJ.SqlCeScripting
             Init(repository, null);
         }
 
-        internal Generator(IRepository repository, string outFile, bool azure)
+#if V40
+        public Generator4(IRepository repository, string outFile, bool azure)
+#else
+
+        public Generator(IRepository repository, string outFile, bool azure)
+#endif
         {
             _batchForAzure = azure;
             Init(repository, outFile);
