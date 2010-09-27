@@ -25,6 +25,7 @@ namespace ErikEJ.SqlCeScripting
         private Int32 _fileCounter = -1;
         private List<Column> _allColumns;
         private List<Constraint> _allForeignKeys;
+        private List<PrimaryKey> _allPrimaryKeys;
         private bool _batchForAzure = false;
 
         /// <summary>
@@ -559,7 +560,8 @@ namespace ErikEJ.SqlCeScripting
                         category = "Field Foreign";
                     }
 
-                    List<PrimaryKey> primaryKeys = _repository.GetPrimaryKeysFromTable(table);
+                    List<PrimaryKey> primaryKeys = _allPrimaryKeys.Where(p => p.TableName == table).ToList();
+                    //_repository.GetPrimaryKeysFromTable(table);
                     if (primaryKeys.Count > 0)
                     {
                         var keys = (from k in primaryKeys
@@ -613,7 +615,9 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="tableName">Name of the table.</param>
         public void GeneratePrimaryKeys(string tableName)
         {
-            List<PrimaryKey> primaryKeys = _repository.GetPrimaryKeysFromTable(tableName);
+            List<PrimaryKey> primaryKeys = _allPrimaryKeys.Where(p => p.TableName == tableName).ToList();
+            
+            //_repository.GetPrimaryKeysFromTable(tableName);
 
             if (primaryKeys.Count > 0)
             {
@@ -930,6 +934,7 @@ namespace ErikEJ.SqlCeScripting
             _tableNames = _repository.GetAllTableNames();
             _allColumns = _repository.GetColumnsFromTable();
             _allForeignKeys = repository.GetAllForeignKeys();
+            _allPrimaryKeys = repository.GetAllPrimaryKeys();
 
             if (_repository.IsServer())
             {

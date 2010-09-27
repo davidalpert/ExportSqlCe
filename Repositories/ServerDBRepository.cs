@@ -95,9 +95,9 @@ namespace ErikEJ.SqlCeScripting
         {
             list.Add(new PrimaryKey
             {
-                ColumnName = dr.GetString(0)
-                ,
-                KeyName = dr.GetString(1)
+                ColumnName = dr.GetString(0),
+                KeyName = dr.GetString(1),
+                TableName = dr.GetString(2)
             });
         }
 
@@ -235,13 +235,13 @@ namespace ErikEJ.SqlCeScripting
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
         }
         
-        public List<PrimaryKey> GetPrimaryKeysFromTable(string tableName)
+        public List<PrimaryKey> GetAllPrimaryKeys()
         {
             return ExecuteReader(
-                "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME " +
+                "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME, c.TABLE_NAME " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
-                    "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME " +
-                "where u.TABLE_NAME = '" + tableName + "' AND c.TABLE_NAME = '" + tableName + "' and c.CONSTRAINT_TYPE = 'PRIMARY KEY'"
+                "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME AND u.TABLE_NAME = c.TABLE_NAME " +
+                "where c.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY c.CONSTRAINT_NAME"
                 , new AddToListDelegate<PrimaryKey>(AddToListPrimaryKeys));
         }
 
