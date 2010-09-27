@@ -22,7 +22,6 @@ namespace ExportSqlCE
 
                     bool includeData = true;
                     bool saveImageFiles = false;
-                    bool generateGraph = false;
                     bool sqlAzure = false;
 
                     for (int i = 2; i < args.Length; i++)
