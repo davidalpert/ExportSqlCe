@@ -233,33 +233,97 @@ namespace ErikEJ.SqlCeScripting
         {
             var groupedForeingKeys = new List<Constraint>();
 
-            var uniqueConstaints = (from c in foreignKeys
-                                    select c.ConstraintName).Distinct();
-
-            foreach (string item in uniqueConstaints)
+            var uniqueTables = (from c in foreignKeys
+                                select c.ConstraintTableName).Distinct();
+            int i = 1;
+            foreach (string tableName in uniqueTables)
             {
-                string value = item;
-                var constraints = foreignKeys.Where(c => c.ConstraintName.Equals(value, System.StringComparison.Ordinal)).ToList();
-
-                if (constraints.Count == 1)
                 {
-                    Constraint constraint = constraints[0];
-                    constraint.Columns.Add(constraint.ColumnName);
-                    constraint.UniqueColumns.Add(constraint.UniqueColumnName);
-                    groupedForeingKeys.Add(constraint);
-                }
-                else
-                {
-                    var newConstraint = new Constraint { ConstraintTableName = constraints[0].ConstraintTableName, ConstraintName = constraints[0].ConstraintName, UniqueConstraintTableName = constraints[0].UniqueConstraintTableName, UniqueConstraintName = constraints[0].UniqueConstraintName, DeleteRule = constraints[0].DeleteRule, UpdateRule = constraints[0].UpdateRule, Columns = new ColumnList(), UniqueColumns = new ColumnList() };
-                    foreach (Constraint c in constraints)
+                    var uniqueConstraints = (from c in foreignKeys
+                                             where c.ConstraintTableName == tableName
+                                            select c.ConstraintName).Distinct();
+                    foreach (string item in uniqueConstraints)
                     {
-                        newConstraint.Columns.Add(c.ColumnName);
-                        newConstraint.UniqueColumns.Add(c.UniqueColumnName);
+                        string value = item;
+                        var constraints = foreignKeys.Where(c => c.ConstraintName.Equals(value, System.StringComparison.Ordinal) && c.ConstraintTableName == tableName).ToList();
+
+                        if (constraints.Count == 1)
+                        {
+                            Constraint constraint = constraints[0];
+                            constraint.Columns.Add(constraint.ColumnName);
+                            constraint.UniqueColumns.Add(constraint.UniqueColumnName);
+                            var found = groupedForeingKeys.Where(fk => fk.ConstraintName == constraint.ConstraintName && fk.ConstraintTableName != constraint.ConstraintTableName).Any();
+                            if (found)
+                            {
+                                constraint.ConstraintName = constraint.ConstraintName + i.ToString();
+                                i++;
+                            }
+                            groupedForeingKeys.Add(constraint);
+                        }
+                        else
+                        {
+                            var newConstraint = new Constraint { ConstraintTableName = constraints[0].ConstraintTableName, ConstraintName = constraints[0].ConstraintName, UniqueConstraintTableName = constraints[0].UniqueConstraintTableName, UniqueConstraintName = constraints[0].UniqueConstraintName, DeleteRule = constraints[0].DeleteRule, UpdateRule = constraints[0].UpdateRule, Columns = new ColumnList(), UniqueColumns = new ColumnList() };
+                            foreach (Constraint c in constraints)
+                            {
+                                newConstraint.Columns.Add(c.ColumnName);
+                                newConstraint.UniqueColumns.Add(c.UniqueColumnName);
+                            }
+                            var found = groupedForeingKeys.Where(fk => fk.ConstraintName == newConstraint.ConstraintName && fk.ConstraintTableName != newConstraint.ConstraintTableName).Any();
+                            if (found)
+                            {
+                                newConstraint.ConstraintName = newConstraint.ConstraintName + i.ToString();
+                                i++;
+                            }
+                            groupedForeingKeys.Add(newConstraint);
+                        }
                     }
-                    groupedForeingKeys.Add(newConstraint);
                 }
             }
             return groupedForeingKeys;
+        }
+
+        internal static List<PrimaryKey> EnsureUniqueNames(List<PrimaryKey> primaryKeys)
+        {
+
+            // Fix for duplicate constraint names (which causes script failure in SQL Server)
+            // https://connect.microsoft.com/SQLServer/feedback/details/586600/duplicate-constraint-foreign-key-name
+            var fixedPrimaryKeys = new List<PrimaryKey>();
+
+            var uniqueTables = (from c in primaryKeys
+                                select c.TableName).Distinct();
+            int i = 1;
+            foreach (string tableName in uniqueTables)
+            {
+                {
+                    var uniqueKeys = (from c in primaryKeys
+                                             where c.TableName == tableName
+                                             select c.KeyName).Distinct();
+                    foreach (string value in uniqueKeys)
+                    {
+                        var pks = primaryKeys.Where(c => c.KeyName.Equals(value, System.StringComparison.Ordinal) && c.TableName == tableName).ToList();
+                        if (pks.Count > 0)
+                        {
+                            var found = primaryKeys.Where(fk => fk.KeyName == pks[0].KeyName && fk.TableName != pks[0].TableName).Any();
+                            string newKeyName = pks[0].KeyName;
+                            if (found)
+                            {
+                                newKeyName = pks[0].KeyName + i.ToString();
+                                i++;
+                            }
+                            foreach (var item in pks)
+                            {
+                                PrimaryKey pk = new PrimaryKey();
+                                pk.ColumnName = item.ColumnName;
+                                pk.TableName = item.TableName;
+                                pk.KeyName = newKeyName;
+                                fixedPrimaryKeys.Add(pk);
+                            }
+
+                        }                        
+                    }
+                }
+            }
+            return fixedPrimaryKeys;
         }
 
         public static string ShowErrors(System.Data.SqlClient.SqlException e)

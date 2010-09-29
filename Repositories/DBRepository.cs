@@ -333,35 +333,7 @@ namespace ErikEJ.SqlCeScripting
                 "where c.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY c.CONSTRAINT_NAME"
                 , new AddToListDelegate<PrimaryKey>(AddToListPrimaryKeys));
 
-            // Fix for duplicate constraint names (which causes script failure in SQL Server)
-            // https://connect.microsoft.com/SQLServer/feedback/details/586600/duplicate-constraint-foreign-key-name
-            var dict = new Dictionary<string, PrimaryKey>();
-            int i = 1;
-            List<PrimaryKey> fixedList = new List<PrimaryKey>();
-
-            foreach (PrimaryKey pk in list)
-            {
-                if (!dict.ContainsKey(pk.KeyName))
-                {
-                    dict.Add(pk.KeyName, pk);
-                }
-                else
-                {
-                    dict.Add(pk.KeyName + i.ToString(CultureInfo.InvariantCulture), pk);
-                    i++;
-                }
-            }
-            foreach (KeyValuePair<string, PrimaryKey> kvp in dict)
-            {
-                PrimaryKey pk  = new PrimaryKey();
-                pk.ColumnName = kvp.Value.ColumnName;
-                pk.KeyName = kvp.Key;
-                pk.TableName = kvp.Value.TableName;
-                fixedList.Add(pk);
-            }
-
-            return fixedList;
-
+            return Helper.EnsureUniqueNames(list);
         }
 
         /// <summary>
@@ -371,7 +343,7 @@ namespace ErikEJ.SqlCeScripting
         public List<Constraint> GetAllForeignKeys()
         {
             var list = ExecuteReader(
-                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
+                "SELECT DISTINCT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
                 "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
                 "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
                 "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
@@ -379,43 +351,7 @@ namespace ErikEJ.SqlCeScripting
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
 
-            // Fix for duplicate constraint names (which causes script failure in SQL Server)
-            // https://connect.microsoft.com/SQLServer/feedback/details/586600/duplicate-constraint-foreign-key-name
-            var dict = new Dictionary<string, Constraint>();
-            int i = 1;
-            List<Constraint> fixedList = new List<Constraint>();
-
-            foreach (Constraint pk in list)
-            {
-                if (!dict.ContainsKey(pk.ConstraintName))
-                {
-                    dict.Add(pk.ConstraintName, pk);
-                }
-                else
-                {
-                    dict.Add(pk.ConstraintName + i.ToString(CultureInfo.InvariantCulture), pk);
-                    i++;
-                }
-            }
-            foreach (KeyValuePair<string, Constraint> kvp in dict)
-            {
-                Constraint cs = new Constraint
-                {
-                    ColumnName = kvp.Value.ColumnName,
-                    ConstraintName = kvp.Key,
-                    Columns = kvp.Value.Columns,
-                    ConstraintTableName = kvp.Value.ConstraintTableName,
-                    DeleteRule = kvp.Value.DeleteRule,
-                    UniqueColumnName = kvp.Value.UniqueColumnName,
-                    UniqueColumns = kvp.Value.UniqueColumns,
-                    UniqueConstraintName = kvp.Value.UniqueConstraintName,
-                    UniqueConstraintTableName = kvp.Value.UniqueConstraintTableName,
-                    UpdateRule = kvp.Value.UpdateRule
-                };
-                fixedList.Add(cs);
-            }
-
-            return Helper.GetGroupForeingKeys(fixedList);
+            return Helper.GetGroupForeingKeys(list);
         }
 
         /// <summary>
