@@ -229,7 +229,7 @@ namespace ErikEJ.SqlCeScripting
         }
 
         // Contrib from hugo on CodePlex - thanks!
-        internal static List<Constraint> GetGroupForeingKeys(List<Constraint> foreignKeys)
+        internal static List<Constraint> GetGroupForeingKeys(List<Constraint> foreignKeys, List<string> allTables)
         {
             var groupedForeingKeys = new List<Constraint>();
 
@@ -258,6 +258,16 @@ namespace ErikEJ.SqlCeScripting
                                 constraint.ConstraintName = constraint.ConstraintName + i.ToString();
                                 i++;
                             }
+                            else
+                            {
+                                var tfound = allTables.Where(ut => ut == constraint.ConstraintName).Any();
+                                if (tfound)
+                                {
+                                    constraint.ConstraintName = constraint.ConstraintName + i.ToString();
+                                    i++;
+                                }
+                            }
+
                             groupedForeingKeys.Add(constraint);
                         }
                         else
