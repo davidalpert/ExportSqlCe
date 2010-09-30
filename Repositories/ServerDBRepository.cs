@@ -258,7 +258,7 @@ namespace ErikEJ.SqlCeScripting
                 "AND tab.is_ms_shipped = 0 AND tab.type = 'U' " +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
-            return Helper.GetGroupForeingKeys(list);
+            return Helper.GetGroupForeingKeys(list, GetAllTableNames());
         }
 
         public List<Constraint> GetAllForeignKeys(string tableName)
@@ -272,7 +272,7 @@ namespace ErikEJ.SqlCeScripting
                 "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
-            return Helper.GetGroupForeingKeys(list);
+            return Helper.GetGroupForeingKeys(list, GetAllTableNames());
         }
 
         /// <summary>

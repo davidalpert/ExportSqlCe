@@ -48,9 +48,9 @@
             this.label1.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(121, 32);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(207, 18);
+            this.label1.Size = new System.Drawing.Size(241, 18);
             this.label1.TabIndex = 1;
-            this.label1.Text = "ExportSqlCe SSMS 2008 add-in";
+            this.label1.Text = "ExportSqlCe SSMS 2008 (R2) add-in";
             // 
             // linkLabel1
             // 
@@ -154,10 +154,10 @@
             this.linkLabelNewVersion.Location = new System.Drawing.Point(61, 230);
             this.linkLabelNewVersion.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
             this.linkLabelNewVersion.Name = "linkLabelNewVersion";
-            this.linkLabelNewVersion.Size = new System.Drawing.Size(130, 14);
+            this.linkLabelNewVersion.Size = new System.Drawing.Size(122, 14);
             this.linkLabelNewVersion.TabIndex = 10;
             this.linkLabelNewVersion.TabStop = true;
-            this.linkLabelNewVersion.Text = "New version available: ";
+            this.linkLabelNewVersion.Text = "New version available";
             this.linkLabelNewVersion.Visible = false;
             this.linkLabelNewVersion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelNewVersion_LinkClicked);
             // 
