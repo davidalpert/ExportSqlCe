@@ -1016,6 +1016,11 @@ namespace ErikEJ.SqlCeScripting
 
         }
 
+        public void GenerateTableCreate(string tableName)
+        {
+            GenerateTableCreate(tableName, false);
+        }
+
         internal void GenerateTableCreate(string tableName, bool includeData)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();

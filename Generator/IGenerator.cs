@@ -17,6 +17,7 @@ namespace ErikEJ.SqlCeScripting
         void GenerateTableUpdate(string tableName);
         void GenerateTableDelete(string tableName);
         void GenerateTableDrop(string tableName);
+        void GenerateTableCreate(string tabelName);
         void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values);
         bool ValidColumns(string tableName, IList<string> columns);
         void GenerateSchemaGraph(string connectionString);
