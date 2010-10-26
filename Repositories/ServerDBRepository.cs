@@ -41,6 +41,20 @@ namespace ErikEJ.SqlCeScripting
 
         private static void AddToListColumns(ref List<Column> list, SqlDataReader dr)
         {
+            string defValue = string.Empty;
+            if (!dr.IsDBNull(8))
+            {
+                var t = dr.GetString(8);
+                if (t.ToLowerInvariant().Contains("getutcdate()"))
+                {
+                    t = "(GETDATE())";
+                }
+                if (t.ToLowerInvariant().Contains("newsequentialid()"))
+                {
+                    t = "(NEWID())";
+                }
+                defValue = t;
+            }
             list.Add(new Column
             {
                 ColumnName = dr.GetString(0)
@@ -52,7 +66,7 @@ namespace ErikEJ.SqlCeScripting
                 , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
                 , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
                 , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
-                , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim().ToLowerInvariant().Replace("getutcdate()", "getdate()").Replace("newsequentialid()", "newid()"))
+                , ColumnDefault = defValue
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
                 , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
                 , TableName = dr.GetString(11)
