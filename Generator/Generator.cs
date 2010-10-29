@@ -953,9 +953,21 @@ namespace ErikEJ.SqlCeScripting
                     // Check if the current column points to a unique identity column,
                     // as the two columns' datatypes must match
                     bool refToIdentity = false;
-                    var columnForeignKeys =
-                        _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName).ToDictionary(
-                            p => p.Columns.ToString());
+                    Dictionary<string, Constraint> columnForeignKeys = new Dictionary<string, Constraint>();
+
+                    // Fix for multiple constraints with same columns
+                    var _tableKeys = _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName);
+                    foreach (var constraint in _tableKeys)
+                    { 
+                        if (!columnForeignKeys.ContainsKey(constraint.Columns.ToString()))
+                        {
+                            columnForeignKeys.Add(constraint.Columns.ToString(), constraint);
+                        }
+                    }
+                    //var columnForeignKeys =
+                    //    _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName).ToDictionary(
+                    //        p => p.Columns.ToString());
+
                     if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
                     {
                         var refCol = _allColumns.Where(c => c.TableName == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueConstraintTableName
