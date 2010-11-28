@@ -47,8 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generator\IGenerator.cs" />
     <Compile Include="Generator\ISqlCeHelper.cs" />
+    <Compile Include="Generator\IGenerator.cs" />
+    <Compile Include="Generator\SqlCeDiff.cs" />
     <Compile Include="Models\Column.cs" />
     <Compile Include="Models\ColumnList.cs" />
     <Compile Include="Models\Constraint.cs" />

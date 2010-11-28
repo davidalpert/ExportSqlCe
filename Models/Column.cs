@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -48,4 +49,43 @@ namespace ErikEJ.SqlCeScripting
             }
         }
     }
+
+    // Custom comparer for the Column class
+    class ColumnComparer : IEqualityComparer<Column>
+    {
+        // Products are equal if their names and product numbers are equal.
+        public bool Equals(Column x, Column y)
+        {
+
+            //Check whether the compared objects reference the same data.
+            if (Object.ReferenceEquals(x, y)) return true;
+
+            //Check whether any of the compared objects is null.
+            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null))
+                return false;
+
+            //Check whether the products' properties are equal.
+            return x.ColumnName == y.ColumnName && x.TableName == y.TableName;
+        }
+
+        // If Equals() returns true for a pair of objects 
+        // then GetHashCode() must return the same value for these objects.
+
+        public int GetHashCode(Column column)
+        {
+            //Check whether the object is null
+            if (Object.ReferenceEquals(column, null)) return 0;
+
+            //Get hash code for the Name field if it is not null.
+            int hashColumnName = column.ColumnName == null ? 0 : column.ColumnName.GetHashCode();
+
+            //Get hash code for the Code field.
+            int hashTableName = column.TableName.GetHashCode();
+
+            //Calculate the hash code for the product.
+            return hashColumnName ^ hashTableName;
+        }
+
+    }
+
 }
