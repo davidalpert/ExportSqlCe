@@ -139,7 +139,7 @@ namespace SqlCeScripter
 
         void dataGridView1_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            MessageBox.Show(string.Format(System.Globalization.CultureInfo.InvariantCulture, "DataGridView error: {0}, row: {1}, column: {2}", e.Exception.Message, e.RowIndex + 1, e.ColumnIndex + 1)); 
+            // MessageBox.Show(string.Format(System.Globalization.CultureInfo.InvariantCulture, "DataGridView error: {0}, row: {1}, column: {2}", e.Exception.Message, e.RowIndex + 1, e.ColumnIndex + 1)); 
         }
 
 

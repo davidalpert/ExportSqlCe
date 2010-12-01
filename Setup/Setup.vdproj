@@ -4228,7 +4228,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ISqlCeScripting, Version=3.5.0.4, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ISqlCeScripting, Version=3.5.0.5, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_9987EC8D29930F2D7BDD0D24540771D5"
@@ -4755,7 +4755,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SqlCeScripting, Version=3.5.0.4, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SqlCeScripting, Version=3.5.0.5, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_BEB435C6D7CC305A5FF87DC2A129A16C"
@@ -5788,14 +5788,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ExportSqlCe"
-        "ProductCode" = "8:{9D850381-101F-4599-B172-1D1F48249ADD}"
-        "PackageCode" = "8:{E6AE1256-4D18-4E92-837A-D7E510B6C9C8}"
+        "ProductCode" = "8:{98AA6A1F-F748-4F3C-8EC6-E02014C2BD59}"
+        "PackageCode" = "8:{34DB79E9-38FE-4B4E-93CE-E7298971A35E}"
         "UpgradeCode" = "8:{12E391ED-E6CE-4233-A3DE-584CD3F8288A}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:3.5.4"
+        "ProductVersion" = "8:3.5.5"
         "Manufacturer" = "8:ErikEJ"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.codeplex.com/ExportSqlCE"
