@@ -39,5 +39,76 @@ namespace ErikEJ.SqlCeScripting
                 engine.CreateDatabase();
             }
         }
+#if V40
+        public void UpgradeTo40(string connectionString)
+        {
+            string filename;
+            using (SqlCeConnection conn = new SqlCeConnection(connectionString))
+            {
+                filename = conn.Database;
+            }
+            if (filename.Contains("|DataDirectory|"))
+                throw new ApplicationException("DataDirectory macro not supported for upgrade");
+
+            SQLCEVersion fileversion = DetermineVersion(filename);
+            if (fileversion == SQLCEVersion.SQLCE20)
+                throw new ApplicationException("Unable to upgrade from 2.0 to 4.0");
+
+            if (SQLCEVersion.SQLCE40 > fileversion)
+            {
+                SqlCeEngine engine = new SqlCeEngine(connectionString);
+                engine.Upgrade();
+            }
+        }
+        private enum SQLCEVersion
+        {
+            SQLCE20 = 0,
+            SQLCE30 = 1,
+            SQLCE35 = 2,
+            SQLCE40 = 3
+        }
+        private static SQLCEVersion DetermineVersion(string filename)
+        {
+            var versionDictionary = new System.Collections.Generic.Dictionary<int, SQLCEVersion> 
+        { 
+            { 0x73616261, SQLCEVersion.SQLCE20 }, 
+            { 0x002dd714, SQLCEVersion.SQLCE30},
+            { 0x00357b9d, SQLCEVersion.SQLCE35},
+            { 0x003d0900, SQLCEVersion.SQLCE40}
+        };
+            int versionLONGWORD = 0;
+            try
+            {
+                using (var fs = new System.IO.FileStream(filename, System.IO.FileMode.Open))
+                {
+                    fs.Seek(16, System.IO.SeekOrigin.Begin);
+                    using (System.IO.BinaryReader reader = new System.IO.BinaryReader(fs))
+                    {
+                        versionLONGWORD = reader.ReadInt32();
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+            if (versionDictionary.ContainsKey(versionLONGWORD))
+            {
+                return versionDictionary[versionLONGWORD];
+            }
+            else
+            {
+                throw new ApplicationException("Unable to determine database file version");
+            }
+        }
+
+#else
+        public void UpgradeTo40(string connectionString)
+        {
+            throw new NotImplementedException("Not implemented");
+        }
+#endif
+
+
     }
 }
