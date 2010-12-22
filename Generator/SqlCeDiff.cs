@@ -163,7 +163,7 @@ namespace ErikEJ.SqlCeScripting
                 foreach (var fk in sourceFKs)
                 {
                     Constraint targetFK = targetFKs.Where(s => s.ConstraintName == fk.ConstraintName).SingleOrDefault();
-                    if (string.IsNullOrEmpty(targetFK.ConstraintName.Trim()))
+                    if (string.IsNullOrEmpty(targetFK.ConstraintName))
                     {
                         generator.GenerateForeignKey(fk);
                     }
@@ -172,7 +172,7 @@ namespace ErikEJ.SqlCeScripting
                 foreach (var fk in targetFKs)
                 {
                     Constraint sourceFK = sourceFKs.Where(s => s.ConstraintName == fk.ConstraintName).SingleOrDefault();
-                    if (string.IsNullOrEmpty(sourceFK.ConstraintName.Trim()))
+                    if (string.IsNullOrEmpty(sourceFK.ConstraintName))
                     {
                         generator.GenerateForeignKeyDrop(fk);
                     }
