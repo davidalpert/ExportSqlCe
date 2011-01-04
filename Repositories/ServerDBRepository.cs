@@ -322,6 +322,13 @@ namespace ErikEJ.SqlCeScripting
             return new DataSet();
         }
 
+        public DataSet ExecuteSql(string script, out string showPlanString)
+        {
+            showPlanString = string.Empty;
+            return new DataSet();
+        }
+
+
         public string ParseSql(string script)
         {
             return string.Empty;

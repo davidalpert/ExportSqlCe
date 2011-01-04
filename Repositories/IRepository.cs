@@ -20,7 +20,19 @@ namespace ErikEJ.SqlCeScripting
         Int32 GetRowVersionOrdinal(string tableName);
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
+        /// <summary>
+        /// Runs the supplied script
+        /// </summary>
+        /// <param name="script"></param>
+        /// <returns></returns>
         DataSet ExecuteSql(string script);
+        /// <summary>
+        /// Execute the supplied script, and return the Actual Execution Plan
+        /// </summary>
+        /// <param name="script"></param>
+        /// <param name="showPlanString"></param>
+        /// <returns></returns>
+        DataSet ExecuteSql(string script, out string showPlanString);
         /// <summary>
         /// Get the Showplan XML from a SQL statement
         /// </summary>

@@ -419,18 +419,26 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script)
         {
             DataSet ds = new DataSet();
-            RunCommands(ds, script, false);
+            RunCommands(ds, script, false, false);
             return ds;
         }
 
         public string ParseSql(string script)
         {
             DataSet ds = new DataSet();
-            RunCommands(ds, script, true);
+            RunCommands(ds, script, true, false);
             return showPlan;
         }
 
-        internal void RunCommands(DataSet dataset, string script, bool checkSyntax)
+        public DataSet ExecuteSql(string script, out string showPlanString)
+        {
+            DataSet ds = new DataSet();
+            RunCommands(ds, script, false, true);
+            showPlanString = showPlan;
+            return ds;
+        }
+
+        internal void RunCommands(DataSet dataset, string script, bool checkSyntax, bool includePlan)
         {
             using (SqlCeCommand cmd = new SqlCeCommand())
             {
@@ -438,6 +446,12 @@ namespace ErikEJ.SqlCeScripting
                 if (checkSyntax)
                 {
                     cmd.CommandText = "SET SHOWPLAN_XML ON";
+                    cmd.ExecuteNonQuery();
+                }
+
+                if (includePlan)
+                {
+                    cmd.CommandText = "SET STATISTICS XML ON;";
                     cmd.ExecuteNonQuery();
                 }
 
@@ -449,7 +463,7 @@ namespace ErikEJ.SqlCeScripting
                     {
                         if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
                         {
-                            RunCommand(sb.ToString(), dataset, checkSyntax);
+                            RunCommand(sb.ToString(), dataset);
                             sb.Remove(0, sb.Length);
                         }
                         else
@@ -474,10 +488,23 @@ namespace ErikEJ.SqlCeScripting
                     cmd.ExecuteNonQuery();
                 }
 
+                if (includePlan)
+                {
+                    cmd.CommandText = "SELECT @@SHOWPLAN;";
+
+                    object obj = cmd.ExecuteScalar();
+                    if (obj.GetType() == typeof(System.String))
+                        showPlan = (string)obj;
+
+                    cmd.CommandText = "SET STATISTICS XML OFF";
+                    cmd.ExecuteNonQuery();
+                }
+
+
             }
         }
 
-        internal void RunCommand(string commandText, DataSet dataSet, bool checkSyntax)
+        internal void RunCommand(string commandText, DataSet dataSet)
         {
             using (SqlCeCommand cmd = new SqlCeCommand())
             {
