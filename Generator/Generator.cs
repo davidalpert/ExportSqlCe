@@ -592,7 +592,7 @@ namespace ErikEJ.SqlCeScripting
                 List<Constraint> foreignKeys = _repository.GetAllForeignKeys(table);
                 foreach (Constraint key in foreignKeys)
                 {
-                    dgmlHelper.WriteLink(string.Format("{0}_{1}", table, key.ColumnName.Replace("[", "").Replace("]", "")), string.Format("{0}_{1}", key.UniqueConstraintTableName, key.UniqueColumnName.Replace("[", "").Replace("]", "")), key.ConstraintName, "Foreign Key");
+                    dgmlHelper.WriteLink(string.Format("{0}_{1}", table, key.Columns[0].ToString()), string.Format("{0}_{1}", key.UniqueConstraintTableName, key.UniqueColumns[0].ToString()), key.ConstraintName, "Foreign Key");
                 }
             }
             dgmlHelper.EndElement();
