@@ -18,11 +18,11 @@ using ErikEJ.SqlCeScripting;
             DataReaderTest
         }
 
-        private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\PosData40.sdf;Max Database Size=512";
+        private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\ams40.sdf;Max Database Size=512";
         private const string serverConnectionString = @"data source=(local);User=amsdbuser;Password=amsdbuser;Initial Catalog=AMS;";
 
         [Test]
-        public void TestDiff()
+        public void ExerciseEngineWithTable()
         {
             using (IRepository sourceRepository = new DB4Repository(sdfConnectionString))
             {
@@ -34,19 +34,5 @@ using ErikEJ.SqlCeScripting;
 
             }
         }
-
-
-        [Test]
-        public void TestDgml()
-        {
-            using (IRepository sourceRepository = new DB4Repository(sdfConnectionString))
-            {
-                var generator = new Generator4(sourceRepository, @"c:\temp\test.dgml");
-                generator.GenerateSchemaGraph(sdfConnectionString);
-            }
-        }
-
-
-
     }
 
