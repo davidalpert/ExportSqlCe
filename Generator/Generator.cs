@@ -405,6 +405,10 @@ namespace ErikEJ.SqlCeScripting
                     {
                         _sbScript.Append("null");
                     }
+                    //else if (value == string.Empty)
+                    //{
+                    //    _sbScript.Append("''");
+                    //}
                     else if (column.DataType == "nchar" || column.DataType == "nvarchar" || column.DataType == "ntext")
                     {
                         _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''"));
@@ -419,11 +423,18 @@ namespace ErikEJ.SqlCeScripting
                     }
                     else if (column.DataType == "bit")
                     {
-                        bool boolVal = Boolean.Parse(value);
-                        if (boolVal)
-                        { _sbScript.Append("1"); }
+                        if (value == "0" || value == "1")
+                        {
+                            _sbScript.Append(value);
+                        }
                         else
-                        { _sbScript.Append("0"); }
+                        {
+                            bool boolVal = Boolean.Parse(value);
+                            if (boolVal)
+                            { _sbScript.Append("1"); }
+                            else
+                            { _sbScript.Append("0"); }
+                        }
                     }
                     else
                     {

@@ -34,5 +34,56 @@ using ErikEJ.SqlCeScripting;
 
             }
         }
+
+        //[Test]
+        //public void TestImportBoolean()
+        //{
+        //    using (IRepository repository = new DB4Repository(@"Data Source=C:\Data\SQLCE\Test\Empty Site40.sdf"))
+        //    {
+        //        var generator = new Generator4(repository);
+        //        using (var reader = new Kent.Boogaart.KBCsv.CsvReader(@"C:\Data\SQLCE\offmst\offmst.txt"))
+        //        {
+        //            reader.ValueSeparator = ',';
+        //            Kent.Boogaart.KBCsv.HeaderRecord hr = reader.ReadHeaderRecord();
+        //            if (generator.ValidColumns("offmst", hr.Values))
+        //            {
+        //                foreach (Kent.Boogaart.KBCsv.DataRecord record in reader.DataRecords)
+        //                {
+        //                    generator.GenerateTableInsert("offmst", hr.Values, record.Values);
+        //                }
+        //            }
+
+        //        }
+        //    }
+        //}
+
+
+        //C:\Data\SQLCE\ImportNullStringExample\BookNullString.csv
+
+        //[Test]
+        //public void TestImportEmptyString()
+        //{
+        //    using (IRepository repository = new DB4Repository(@"Data Source=C:\Data\SQLCE\Test\Empty Site40.sdf"))
+        //    {
+        //        var generator = new Generator4(repository);
+        //        using (var reader = new Kent.Boogaart.KBCsv.CsvReader(@"C:\Data\SQLCE\ImportNullStringExample\BookNullString.csv"))
+        //        {
+        //            reader.ValueSeparator = ';';
+        //            Kent.Boogaart.KBCsv.HeaderRecord hr = reader.ReadHeaderRecord();
+        //            if (generator.ValidColumns("Book", hr.Values))
+        //            {
+        //                foreach (Kent.Boogaart.KBCsv.DataRecord record in reader.DataRecords)
+        //                {
+        //                    generator.GenerateTableInsert("Book", hr.Values, record.Values);
+        //                }
+        //            }
+
+        //        }
+        //    }
+        //}
+
+
+
+
     }
 
