@@ -563,9 +563,18 @@ namespace ErikEJ.SqlCeScripting
                     if (col.IsNullable == YesNoOption.YES)
                         category = "Field Optional";
 
-                    var columnForeignKeys =
-                        _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName).ToDictionary(
-                            p => p.Columns.ToString());
+                    // Fix for multiple constraints with same columns
+                    Dictionary<string, Constraint> columnForeignKeys = new Dictionary<string, Constraint>();
+
+                    var _tableKeys = _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName);
+                    foreach (var constraint in _tableKeys)
+                    {
+                        if (!columnForeignKeys.ContainsKey(constraint.Columns.ToString()))
+                        {
+                            columnForeignKeys.Add(constraint.Columns.ToString(), constraint);
+                        }
+                    }
+
                     if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
                     {
                         category = "Field Foreign";
@@ -975,9 +984,6 @@ namespace ErikEJ.SqlCeScripting
                             columnForeignKeys.Add(constraint.Columns.ToString(), constraint);
                         }
                     }
-                    //var columnForeignKeys =
-                    //    _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName).ToDictionary(
-                    //        p => p.Columns.ToString());
 
                     if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
                     {

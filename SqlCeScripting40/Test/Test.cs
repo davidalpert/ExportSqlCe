@@ -19,7 +19,7 @@ using ErikEJ.SqlCeScripting;
         }
 
         private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\ams40.sdf;Max Database Size=512";
-        private const string serverConnectionString = @"data source=(local);User=amsdbuser;Password=amsdbuser;Initial Catalog=AMS;";
+        private const string serverConnectionString = @"data source=(local);Initial Catalog=xavier;Integrated Security=true";
 
         [Test]
         public void ExerciseEngineWithTable()
@@ -34,6 +34,17 @@ using ErikEJ.SqlCeScripting;
 
             }
         }
+
+        [Test]
+        public void TestServerDgml()
+        {
+            using (IRepository sourceRepository = new  ServerDBRepository4(serverConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, @"C:\temp\test2.dgml");
+                generator.GenerateSchemaGraph(serverConnectionString);
+            }
+        }
+
 
         //[Test]
         //public void TestImportBoolean()
