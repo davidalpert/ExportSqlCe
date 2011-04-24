@@ -37,6 +37,12 @@ namespace ErikEJ.SqlCeScripting
                 generator.GenerateForeignKeys(tableName);
             }
 
+            // Drop each table in the target but not the source
+            foreach (string tableName in targetTables.Except(sourceTables))
+            {
+                generator.GenerateTableDrop(tableName);
+            }
+
             //For each table both in target and source
             foreach (string tableName in sourceTables.Intersect(targetTables))
             {
@@ -52,11 +58,6 @@ namespace ErikEJ.SqlCeScripting
                 foreach (var column in sourceColumns.Except(targetColumns, new ColumnComparer()))
                 {
                     generator.GenerateColumnAddScript(column);
-                }
-                // Dropped columns
-                foreach (var column in targetColumns.Except(sourceColumns, new ColumnComparer()))
-                {
-                    generator.GenerateColumnDropScript(column);
                 }
                 // Same columns, check for changes
                 foreach (var sourceColumn in sourceColumns.Intersect(targetColumns, new ColumnComparer()))
@@ -151,7 +152,7 @@ namespace ErikEJ.SqlCeScripting
                     var sourceIX = sourceIXs.Where(s => s.IndexName == index.IndexName);
                     if (sourceIX.Count() == 0)
                     {
-                        generator.GenerateIndexDrop(index.TableName, index.IndexName);
+                        generator.GenerateIndexOnlyDrop(index.TableName, index.IndexName);
                     }
                 }
 
@@ -176,6 +177,11 @@ namespace ErikEJ.SqlCeScripting
                     {
                         generator.GenerateForeignKeyDrop(fk);
                     }
+                }
+                // Dropped columns
+                foreach (var column in targetColumns.Except(sourceColumns, new ColumnComparer()))
+                {
+                    generator.GenerateColumnDropScript(column);
                 }
 
             }

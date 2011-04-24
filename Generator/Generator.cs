@@ -750,6 +750,12 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public void GenerateIndexOnlyDrop(string tableName, string indexName)
+        {
+            _sbScript.AppendFormat("DROP INDEX [{0}].[{1}];{2}", tableName, indexName, Environment.NewLine);
+            _sbScript.Append(_sep);            
+        }
+
         /// <summary>
         /// Generates the index statistics.
         /// </summary>

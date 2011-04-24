@@ -25,6 +25,7 @@ namespace ErikEJ.SqlCeScripting
         void GenerateForeignKeys(string tableName);
         void GenerateIndexScript(string tableName, string indexName);
         void GenerateIndexDrop(string tableName, string indexName);
+        void GenerateIndexOnlyDrop(string tableName, string indexName); 
         void GenerateIndexStatistics(string tableName, string indexName);
         List<string> GenerateTableColumns(string tableName);
 
