@@ -37,11 +37,11 @@ namespace ErikEJ.SqlCeScripting
                 generator.GenerateForeignKeys(tableName);
             }
 
-            // Drop each table in the target but not the source
-            foreach (string tableName in targetTables.Except(sourceTables))
-            {
-                generator.GenerateTableDrop(tableName);
-            }
+            //// Drop each table in the target but not the source
+            //foreach (string tableName in targetTables.Except(sourceTables))
+            //{
+            //    generator.GenerateTableDrop(tableName);
+            //}
 
             //For each table both in target and source
             foreach (string tableName in sourceTables.Intersect(targetTables))
@@ -92,8 +92,8 @@ namespace ErikEJ.SqlCeScripting
                     {
                         generator.GenerateColumnDropDefaultScript(sourceColumn);
                     }
-
-                    if (sourceColumn.ColumnDefault != targetColumn.ColumnDefault)
+                    // If both columns have defaults, but they are different
+                    if ((sourceColumn.ColumnHasDefault && targetColumn.ColumnHasDefault) && (sourceColumn.ColumnDefault != targetColumn.ColumnDefault))
                     {
                         generator.GenerateColumnSetDefaultScript(sourceColumn);
                     }
