@@ -153,10 +153,16 @@ namespace ErikEJ.SqlCeScripting
                 //These datatypes are converted
                 // See also http://msdn.microsoft.com/en-us/library/ms143241.aspx
                 case "char":
+                    //SQL Server allows up to 8000 chars, SQL Compact only 4000
+                    if (col.CharacterMaxLength > 4000)
+                    {
+                        return "ntext";
+                    };
                     return "nchar";
                 case "varchar":
                     // Support for varchar(MAX)
-                    if (col.CharacterMaxLength == -1)
+                    //SQL Server allows up to 8000 chars, SQL Compact only 4000
+                    if (col.CharacterMaxLength == -1 || col.CharacterMaxLength > 4000)
                     {
                         return "ntext";
                     };
@@ -396,6 +402,34 @@ namespace ErikEJ.SqlCeScripting
                 }
             }
             return bld.ToString();
+        }
+
+        public static IRepository CreateRepository(string connectionString)
+        {
+            //if your Data source connection string argument does not specify the User Id, Initial catalog, Integrated security, 
+            //or Trusted Connection arguments, and instead specifies a file path, 
+            //the source will be treated as a SQL Server Compact database
+            bool isServer = false;
+            connectionString = connectionString.Replace(" =", "=");
+            connectionString = connectionString.Replace("= ", "=");
+            if (connectionString.ToLowerInvariant().Contains("user id="))
+                isServer = true;
+            if (connectionString.ToLowerInvariant().Contains("uid="))
+                isServer = true;
+            if (connectionString.ToLowerInvariant().Contains("initial catalog="))
+                isServer = true;
+            if (connectionString.ToLowerInvariant().Contains("integrated security="))
+                isServer = true;
+            if (connectionString.ToLowerInvariant().Contains("trusted_connection="))
+                isServer = true;
+            if (isServer)
+            {
+                return new ServerDBRepository(connectionString);
+            }
+            else
+            {
+                return new DBRepository(connectionString);
+            }
         }
 
     }

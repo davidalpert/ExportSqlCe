@@ -24,60 +24,122 @@ namespace ExportSqlCE
                     bool saveImageFiles = false;
                     bool sqlAzure = false;
 
-                    for (int i = 2; i < args.Length; i++)
+                    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                    sw.Start();
+                            
+                    if (args[0].Equals("diff", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (args[i].Contains("schemaonly"))
-                            includeData = false;
-                        if (args[i].Contains("saveimages"))
-                            saveImageFiles = true;
-                        if (args[i].Contains("sqlazure"))
-                            sqlAzure = true;
-                    }
-
-                    using (IRepository repository = new DBRepository(connectionString))
-                    {
-
-                        Helper.FinalFiles = outputFileLocation;
-                        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                        sw.Start();
-                        var generator = new Generator(repository, outputFileLocation, sqlAzure);
-
-                        Console.WriteLine("Generating the tables....");
 #if V31
-                        generator.GenerateTable(false);
+                        PrintUsageGuide();
+                        return 2;                        
 #else
-                        generator.GenerateTable(includeData);
+                        if (args.Length == 4)
+                        {
+                            using (var source = Helper.CreateRepository(args[1]))
+                            {
+                                using (var target = Helper.CreateRepository(args[2]))
+                                {
+                                    //Must have SQL Compact as target or source
+                                    if (target.GetType() == typeof(DBRepository) || source.GetType() == typeof(DBRepository))
+                                    {
+                                        var generator = new Generator(source);
+                                        SqlCeDiff.CreateDiffScript(source, target, generator);
+                                        System.IO.File.WriteAllText(generator.GeneratedScript, args[3]);
+                                        return 0;
+                                    }
+                                }
+                            }
+                            return 1;
+                        }
+                        else
+                        {
+                            PrintUsageGuide();
+                            return 2;
+                        }
 #endif
-                        if (sqlAzure)
+                    }
+                    else if (args[0].Equals("dgml", StringComparison.OrdinalIgnoreCase))
+                    {
+#if V31
+                        PrintUsageGuide();
+                        return 2;
+#else
+                        if (args.Length == 3)
                         {
-                            Console.WriteLine("Generating the primary keys (SQL Azure)....");
-                            generator.GeneratePrimaryKeys();
+                            using (var source = Helper.CreateRepository(args[1]))
+                            {
+                                var generator = new Generator(source, args[2]);
+                                generator.GenerateSchemaGraph(args[1]);
+                            }
+                            return 0;
                         }
-                        if (includeData)
+                        else
                         {
-                            Console.WriteLine("Generating the data....");
-                            generator.GenerateTableContent(saveImageFiles);
+                            PrintUsageGuide();
+                            return 2;
                         }
-                        if (!sqlAzure)
+#endif                        
+                    }
+                    else
+                    {
+                        for (int i = 2; i < args.Length; i++)
                         {
-                            Console.WriteLine("Generating the primary keys....");
-                            generator.GeneratePrimaryKeys();
+                            if (args[i].Contains("schemaonly"))
+                                includeData = false;
+                            if (args[i].Contains("saveimages"))
+                                saveImageFiles = true;
+                            if (args[i].Contains("sqlazure"))
+                                sqlAzure = true;
                         }
-                        Console.WriteLine("Generating the indexes....");
-                        generator.GenerateIndex();
-                        Console.WriteLine("Generating the foreign keys....");
-                        generator.GenerateForeignKeys();
 
-                        Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
+                        using (IRepository repository = new DBRepository(connectionString))
+                        {
+
+                            Helper.FinalFiles = outputFileLocation;
+                            var generator = new Generator(repository, outputFileLocation, sqlAzure);
+
+                            Console.WriteLine("Generating the tables....");
+#if V31
+                            generator.GenerateTable(false);
+#else
+                            generator.GenerateTable(includeData);
+#endif
+                            if (sqlAzure)
+                            {
+                                Console.WriteLine("Generating the primary keys (SQL Azure)....");
+                                generator.GeneratePrimaryKeys();
+                            }
+                            if (includeData)
+                            {
+                                Console.WriteLine("Generating the data....");
+                                generator.GenerateTableContent(saveImageFiles);
+                            }
+                            if (!sqlAzure)
+                            {
+                                Console.WriteLine("Generating the primary keys....");
+                                generator.GeneratePrimaryKeys();
+                            }
+                            Console.WriteLine("Generating the indexes....");
+                            generator.GenerateIndex();
+                            Console.WriteLine("Generating the foreign keys....");
+                            generator.GenerateForeignKeys();
+                            Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
+                        }
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                         return 0;
                     }
                 }
                 catch (System.Data.SqlServerCe.SqlCeException e)
                 {
-                    ShowErrors(e);
+                    Console.WriteLine(Helper.ShowErrors(e));
                     return 1;
                 }
+                catch (System.Data.SqlClient.SqlException es)
+                {
+                    Console.WriteLine(Helper.ShowErrors(es)); 
+                    return 1;
+                }
+
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error: " + ex);
@@ -86,50 +148,31 @@ namespace ExportSqlCE
             }
         }
 
-        private static void ShowErrors(System.Data.SqlServerCe.SqlCeException e)
-        {
-            System.Data.SqlServerCe.SqlCeErrorCollection errorCollection = e.Errors;
-
-            StringBuilder bld = new StringBuilder();
-            Exception inner = e.InnerException;
-
-            if (null != inner)
-            {
-                Console.WriteLine("Inner Exception: " + inner.ToString());
-            }
-            // Enumerate the errors to a message box.
-            foreach (System.Data.SqlServerCe.SqlCeError err in errorCollection)
-            {
-                bld.Append("\n Error Code: " + err.HResult.ToString("X", System.Globalization.CultureInfo.InvariantCulture));
-                bld.Append("\n Message   : " + err.Message);
-                bld.Append("\n Minor Err.: " + err.NativeError);
-                bld.Append("\n Source    : " + err.Source);
-
-                // Enumerate each numeric parameter for the error.
-                foreach (int numPar in err.NumericErrorParameters)
-                {
-                    if (0 != numPar) bld.Append("\n Num. Par. : " + numPar);
-                }
-
-                // Enumerate each string parameter for the error.
-                foreach (string errPar in err.ErrorParameters)
-                {
-                    if (!string.IsNullOrEmpty(errPar)) bld.Append("\n Err. Par. : " + errPar);
-                }
-
-                Console.WriteLine(bld.ToString());
-                bld.Remove(0, bld.Length);
-            }
-        }
-
         private static void PrintUsageGuide()
         {
-            Console.WriteLine("Usage : ");
+            Console.WriteLine("Usage : (To script an entire database)");
             Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [schemaonly] [saveimages] [sqlazure]");
             Console.WriteLine(" (schemaonly, saveimages and sqlazure are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Example : ");
             Console.WriteLine(" ExportSQLCE.exe \"Data Source=D:\\Northwind.sdf;\" Northwind.sql");
+            Console.WriteLine("");
+            Console.WriteLine("");
+#if V31
+#else
+            Console.WriteLine("Usage: (To create a schema diff script)");
+            Console.WriteLine(" ExportSQLCE.exe diff [SQL Compact or SQL Server Connection String (source)] ");
+            Console.WriteLine(" [SQL Compact or SQL Server Connection String (target)] [output file location]");
+            Console.WriteLine("Example :");
+            Console.WriteLine(" ExportSQLCE.exe diff \"Data Source=D:\\Northwind.sdf;\" \"Data Source=.\\SQLEXPRESS,Inital Catalog=Northwind\" NorthwindDiff.sql");
+            Console.WriteLine("");
+            Console.WriteLine("");
+
+            Console.WriteLine("Usage: (To create a database graph)");
+            Console.WriteLine(" ExportSQLCE.exe dgml [SQL Compact or SQL Server Connection String (source)] [output file location]");
+            Console.WriteLine("Example :");
+            Console.WriteLine(" ExportSQLCE.exe dgml \"Data Source=D:\\Northwind.sdf;\" C:\\temp\\northwind.dgml");
+#endif
         }
     }
 }
