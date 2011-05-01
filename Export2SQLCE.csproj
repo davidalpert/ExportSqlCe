@@ -55,6 +55,7 @@
     <Compile Include="Models\PrimaryKey.cs" />
     <Compile Include="Models\YesNoOptionEnum.cs" />
     <Compile Include="Program2.cs" />
+    <Compile Include="Repositories\DBRepository.cs" />
     <Compile Include="Repositories\ServerDBRepository.cs" />
     <Compile Include="Repositories\IRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

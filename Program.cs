@@ -44,7 +44,7 @@ namespace ExportSqlCE
                                     {
                                         var generator = new Generator(source);
                                         SqlCeDiff.CreateDiffScript(source, target, generator);
-                                        System.IO.File.WriteAllText(generator.GeneratedScript, args[3]);
+                                        System.IO.File.WriteAllText(args[3], generator.GeneratedScript);
                                         return 0;
                                     }
                                 }
