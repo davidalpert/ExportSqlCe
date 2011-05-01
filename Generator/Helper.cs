@@ -424,11 +424,20 @@ namespace ErikEJ.SqlCeScripting
                 isServer = true;
             if (isServer)
             {
+#if V40
+                return new ServerDBRepository4(connectionString);
+#else
                 return new ServerDBRepository(connectionString);
+#endif
+
             }
             else
             {
+#if V40
+                return new DB4Repository(connectionString);
+#else
                 return new DBRepository(connectionString);
+#endif
             }
         }
 
