@@ -29,7 +29,7 @@ using ErikEJ.SqlCeScripting;
                 var generator = new Generator4(sourceRepository);
                 using (IRepository targetRepository = new ServerDBRepository4(serverConnectionString))
                 {
-                    SqlCeDiff.CreateDiffScript(sourceRepository, targetRepository, generator);
+                    SqlCeDiff.CreateDiffScript(sourceRepository, targetRepository, generator, false);
                 }
 
             }

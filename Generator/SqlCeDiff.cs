@@ -10,7 +10,7 @@ namespace ErikEJ.SqlCeScripting
         private SqlCeDiff()
         {}
 
-        public static void CreateDiffScript(IRepository sourceRepository, IRepository targetRepository,IGenerator generator)
+        public static void CreateDiffScript(IRepository sourceRepository, IRepository targetRepository,IGenerator generator, bool includeTargetDrops)
         {
             List<string> sourceTables = sourceRepository.GetAllTableNames();
             List<string> targetTables = targetRepository.GetAllTableNames();
@@ -37,11 +37,14 @@ namespace ErikEJ.SqlCeScripting
                 generator.GenerateForeignKeys(tableName);
             }
 
-            //// Drop each table in the target but not the source
-            //foreach (string tableName in targetTables.Except(sourceTables))
-            //{
-            //    generator.GenerateTableDrop(tableName);
-            //}
+            // Drop each table in the target but not the source
+            if (includeTargetDrops)
+            {
+                foreach (string tableName in targetTables.Except(sourceTables))
+                {
+                    generator.GenerateTableDrop(tableName);
+                }
+            }
 
             //For each table both in target and source
             foreach (string tableName in sourceTables.Intersect(targetTables))

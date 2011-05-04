@@ -43,7 +43,7 @@ namespace ExportSqlCE
                                     if (target.GetType() == typeof(DBRepository) || source.GetType() == typeof(DBRepository))
                                     {
                                         var generator = new Generator(source);
-                                        SqlCeDiff.CreateDiffScript(source, target, generator);
+                                        SqlCeDiff.CreateDiffScript(source, target, generator, false);
                                         System.IO.File.WriteAllText(args[3], generator.GeneratedScript);
                                         return 0;
                                     }
