@@ -419,6 +419,7 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script)
         {
             DataSet ds = new DataSet();
+            ds.EnforceConstraints = false;
             RunCommands(ds, script, false, false);
             return ds;
         }
@@ -426,6 +427,7 @@ namespace ErikEJ.SqlCeScripting
         public string ParseSql(string script)
         {
             DataSet ds = new DataSet();
+            ds.EnforceConstraints = false;
             RunCommands(ds, script, true, false);
             return showPlan;
         }
@@ -433,6 +435,7 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script, out string showPlanString)
         {
             DataSet ds = new DataSet();
+            ds.EnforceConstraints = false;
             RunCommands(ds, script, false, true);
             showPlanString = showPlan;
             return ds;
@@ -517,7 +520,12 @@ namespace ErikEJ.SqlCeScripting
                 {
                     if (execute == CommandExecute.DataTable)
                     {
-                        dataSet.Tables.Add(RunDataTable(cmd, cn));
+                        string[] tables = new string[1];
+                        tables[0] = "table1";
+                        SqlCeDataReader rdr = cmd.ExecuteReader();
+                        dataSet.Load(cmd.ExecuteReader(), LoadOption.OverwriteChanges, tables);
+                        dataSet.Tables[0].MinimumCapacity = 0;
+                        dataSet.Tables[0].Locale = CultureInfo.InvariantCulture;
                     }
                     if (execute == CommandExecute.NonQuery)
                     {
@@ -528,15 +536,6 @@ namespace ErikEJ.SqlCeScripting
                     }
                 }
             }
-        }
-
-        private DataTable RunDataTable(SqlCeCommand cmd, SqlCeConnection conn)
-        {
-            System.Data.DataTable table = new System.Data.DataTable();
-            table.MinimumCapacity = 0;
-            table.Locale = CultureInfo.InvariantCulture;
-            table.Load(cmd.ExecuteReader());
-            return table;
         }
 
         private enum CommandExecute
