@@ -194,7 +194,6 @@ namespace ErikEJ.SqlCeScripting
                     return "nvarchar";
 
                 default:
-                    // Currently not supported: sql_variant
                     throw new System.NotSupportedException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Data type {0} in table {1}, colum {2} is not supported, please change to a supported type", dataType, col.TableName, col.ColumnName));
             }
 

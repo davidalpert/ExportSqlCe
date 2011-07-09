@@ -227,6 +227,7 @@ namespace ErikEJ.SqlCeScripting
                 "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
                 "AND tab.type = 'U' AND is_ms_shipped = 0 " +
                 "AND cols.is_computed = 0 " +
+                "AND DATA_TYPE <> 'sql_variant' " +
                 "ORDER BY col.TABLE_NAME, col.ORDINAL_POSITION ASC"
                 , new AddToListDelegate<Column>(AddToListColumns));
         }
