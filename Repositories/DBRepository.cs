@@ -521,11 +521,11 @@ namespace ErikEJ.SqlCeScripting
                     if (execute == CommandExecute.DataTable)
                     {
                         string[] tables = new string[1];
-                        tables[0] = "table1";
+                        tables[0] = "table" + dataSet.Tables.Count.ToString();
                         SqlCeDataReader rdr = cmd.ExecuteReader();
                         dataSet.Load(cmd.ExecuteReader(), LoadOption.OverwriteChanges, tables);
-                        dataSet.Tables[0].MinimumCapacity = 0;
-                        dataSet.Tables[0].Locale = CultureInfo.InvariantCulture;
+                        dataSet.Tables[dataSet.Tables.Count - 1].MinimumCapacity = 0;
+                        dataSet.Tables[dataSet.Tables.Count - 1].Locale = CultureInfo.InvariantCulture;
                     }
                     if (execute == CommandExecute.NonQuery)
                     {
