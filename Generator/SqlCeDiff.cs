@@ -149,15 +149,6 @@ namespace ErikEJ.SqlCeScripting
                         generator.GenerateIndexScript(index.TableName, index.IndexName);
                     }
                 }
-                // Check deleted indexes (by name only)
-                foreach (var index in targetIXs)
-                {
-                    var sourceIX = sourceIXs.Where(s => s.IndexName == index.IndexName);
-                    if (sourceIX.Count() == 0)
-                    {
-                        generator.GenerateIndexOnlyDrop(index.TableName, index.IndexName);
-                    }
-                }
 
                 // Check foreign keys
                 List<Constraint> sourceFKs = sourceRepository.GetAllForeignKeys(tableName);
@@ -181,6 +172,17 @@ namespace ErikEJ.SqlCeScripting
                         generator.GenerateForeignKeyDrop(fk);
                     }
                 }
+
+                // Check deleted indexes (by name only)
+                foreach (var index in targetIXs)
+                {
+                    var sourceIX = sourceIXs.Where(s => s.IndexName == index.IndexName);
+                    if (sourceIX.Count() == 0)
+                    {
+                        generator.GenerateIndexOnlyDrop(index.TableName, index.IndexName);
+                    }
+                }
+
                 // Dropped columns
                 foreach (var column in targetColumns.Except(sourceColumns, new ColumnComparer()))
                 {

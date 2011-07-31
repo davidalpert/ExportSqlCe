@@ -464,6 +464,7 @@ namespace ErikEJ.SqlCeScripting
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
+                        line = line.Trim();
                         if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
                         {
                             RunCommand(sb.ToString(), dataset);
