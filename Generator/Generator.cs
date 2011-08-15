@@ -920,10 +920,29 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.Append(_sep);
         }
 
+        public void GenerateForeignKey(string tableName, string keyName)
+        {
+            var key = _allForeignKeys.Where(c => c.ConstraintTableName == tableName && c.ConstraintName == keyName).SingleOrDefault();
+            if (key != null)
+            {
+                GenerateForeignKey(key);
+            }
+        }
+
+
         public void GenerateForeignKeyDrop(Constraint constraint)
         {
             _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}]{2}", constraint.ConstraintTableName, constraint.ConstraintName, Environment.NewLine));
             _sbScript.Append(_sep);
+        }
+
+        public void GenerateForeignKeyDrop(string tableName, string keyName)
+        {
+            var key = _allForeignKeys.Where(c => c.ConstraintTableName == tableName && c.ConstraintName == keyName).SingleOrDefault();
+            if (key != null)
+            {
+                GenerateForeignKeyDrop(key);
+            }
         }
 
         internal void GenerateAllAndSave(bool includeData, bool saveImages)

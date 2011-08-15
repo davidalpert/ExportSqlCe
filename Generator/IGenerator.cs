@@ -38,6 +38,8 @@ namespace ErikEJ.SqlCeScripting
         void GeneratePrimaryKeyDrop(PrimaryKey primaryKey, string tableName);
         void GenerateForeignKey(Constraint constraint);
         void GenerateForeignKeyDrop(Constraint constraint);
-
+        void GenerateForeignKeyDrop(string tableName, string keyName);
+        void GenerateForeignKey(string tableName, string keyName);
+        
     }
 }
