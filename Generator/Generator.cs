@@ -279,9 +279,28 @@ namespace ErikEJ.SqlCeScripting
                         {
                             _sbScript.Append(_sep);
                         }
+#if V31
+#else
+                        if (hasIdentity && dt.Rows.Count > 0)
+                        {
+                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
+                            _sbScript.Append(Environment.NewLine);
+                            _sbScript.Append(_sep);
+                        }
+#endif
+
                         _fileCounter++;
                         Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
                         _sbScript.Remove(0, _sbScript.Length);
+#if V31
+#else
+                        if (hasIdentity && dt.Rows.Count > 0)
+                        {
+                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+                            _sbScript.Append(Environment.NewLine);
+                            _sbScript.Append(_sep);
+                        }
+#endif
                     }
                 }
                 if (_batchForAzure)
