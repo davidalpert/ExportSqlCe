@@ -20,6 +20,8 @@ using ErikEJ.SqlCeScripting;
 
         private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\ams40.sdf;Max Database Size=512";
         private const string serverConnectionString = @"data source=(local);Initial Catalog=xavier;Integrated Security=true";
+        private const string chinookConnectionString = @"Data Source=C:\projects\Chinook\Chinook40.sdf;";
+        
 
         [Test]
         public void ExerciseEngineWithTable()
@@ -42,6 +44,17 @@ using ErikEJ.SqlCeScripting;
             {
                 var generator = new Generator4(sourceRepository, @"C:\temp\test2.dgml");
                 generator.GenerateSchemaGraph(serverConnectionString);
+            }
+        }
+
+
+        [Test]
+        public void TestCeDgml()
+        {
+            using (IRepository sourceRepository = new DB4Repository(chinookConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, @"C:\temp\testChinook40.dgml");
+                generator.GenerateSchemaGraph(chinookConnectionString);
             }
         }
 

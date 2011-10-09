@@ -56,6 +56,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Generator\DescriptionHelper.cs">
+      <Link>Generator\DescriptionHelper.cs</Link>
+    </Compile>
     <Compile Include="..\Generator\DgmlHelper.cs">
       <Link>Generator\DgmlHelper.cs</Link>
     </Compile>

@@ -21,6 +21,7 @@ namespace ErikEJ.SqlCeScripting
         void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values);
         bool ValidColumns(string tableName, IList<string> columns);
         void GenerateSchemaGraph(string connectionString);
+        void GenerateSchemaGraph(string connectionString, bool includeSystemTables);
         void GeneratePrimaryKeys(string tableName);
         void GenerateForeignKeys(string tableName);
         void GenerateIndexScript(string tableName, string indexName);

@@ -547,10 +547,15 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.Append(_sep);
         }
 
+        public void GenerateSchemaGraph(string connectionString)
+        {
+            GenerateSchemaGraph(connectionString, true);
+        }
+
         /// <summary>
         /// Generates the schema graph.
         /// </summary>
-        public void GenerateSchemaGraph(string connectionString)
+        public void GenerateSchemaGraph(string connectionString, bool includeSystemTables)
         {
             string dgmlFile = _outFile;
             var dgmlHelper = new DgmlHelper(dgmlFile);
@@ -561,17 +566,25 @@ namespace ErikEJ.SqlCeScripting
                 scriptExt = ".dgml.sql";
             }
 
+            var descriptionHelper = new DescriptionHelper();
+
+            List<DbDescription> descriptionCache = descriptionHelper.GetDescriptions(_repository);
+
             dgmlHelper.BeginElement("Nodes");
-            dgmlHelper.WriteNode("Database", connectionString, null, "Database", "Expanded", null);
+            var dbdesc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == null).Select(dc => dc.Description).SingleOrDefault();
+            dgmlHelper.WriteNode("Database", connectionString, null, "Database", "Expanded", dbdesc);
             foreach (string table in _tableNames)
             {
+                if (!includeSystemTables && table.StartsWith("__"))
+                    continue;
                 //Create individual scripts per table
                 _sbScript.Remove(0, _sbScript.Length);
                 GenerateTableScript(table);
                 string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + scriptExt);
                 File.WriteAllText(tableScriptPath, GeneratedScript);
-                // Create Nodes              
-                dgmlHelper.WriteNode(table, table, table + scriptExt, "Table", "Collapsed", null);
+                // Create Nodes
+                var desc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == table).Select(dc => dc.Description).SingleOrDefault();
+                dgmlHelper.WriteNode(table, table, table + scriptExt, "Table", "Collapsed", desc);
                 List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
                 foreach (Column col in columns)
                 {
@@ -600,7 +613,6 @@ namespace ErikEJ.SqlCeScripting
                     }
 
                     List<PrimaryKey> primaryKeys = _allPrimaryKeys.Where(p => p.TableName == table).ToList();
-                    //_repository.GetPrimaryKeysFromTable(table);
                     if (primaryKeys.Count > 0)
                     {
                         var keys = (from k in primaryKeys
@@ -610,7 +622,9 @@ namespace ErikEJ.SqlCeScripting
                             category = "Field Primary";
 
                     }
-
+                    var colDesc = descriptionCache.Where(dc => dc.Parent == table && dc.Object == col.ColumnName).Select(dc => dc.Description).SingleOrDefault();
+                    if (!string.IsNullOrEmpty(colDesc))
+                        shortType = shortType + Environment.NewLine + colDesc;
                     dgmlHelper.WriteNode(string.Format("{0}_{1}", table, col.ColumnName), col.ColumnName, null, category, null, shortType);
                 }
             }
@@ -619,6 +633,9 @@ namespace ErikEJ.SqlCeScripting
             dgmlHelper.BeginElement("Links");
             foreach (string table in _tableNames)
             {
+                if (!includeSystemTables && table.StartsWith("__"))
+                    continue;
+
                 dgmlHelper.WriteLink("Database", table, null, "Contains");
                 
                 List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();

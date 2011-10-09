@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generator\DescriptionHelper.cs" />
     <Compile Include="Generator\DgmlHelper.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -56,6 +57,7 @@
     <Compile Include="Models\Column.cs" />
     <Compile Include="Models\ColumnList.cs" />
     <Compile Include="Models\Constraint.cs" />
+    <Compile Include="Models\DbDescription.cs" />
     <Compile Include="Models\Index.cs" />
     <Compile Include="Models\PrimaryKey.cs" />
     <Compile Include="Models\YesNoOptionEnum.cs" />
