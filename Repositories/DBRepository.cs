@@ -21,6 +21,7 @@ namespace ErikEJ.SqlCeScripting
         private SqlCeConnection cn;
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlCeDataReader dr);
         private string showPlan = string.Empty;
+        private bool schemaHasChanged = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DBRepository"/> class.
@@ -419,15 +420,22 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script)
         {
             DataSet ds = new DataSet();
-            ds.EnforceConstraints = false;
             RunCommands(ds, script, false, false);
+            return ds;
+        }
+
+        public DataSet ExecuteSql(string script, out bool schemaChanged)
+        {
+            schemaHasChanged = false;
+            DataSet ds = new DataSet();
+            RunCommands(ds, script, false, false);
+            schemaChanged = schemaHasChanged;
             return ds;
         }
 
         public string ParseSql(string script)
         {
             DataSet ds = new DataSet();
-            ds.EnforceConstraints = false;
             RunCommands(ds, script, true, false);
             return showPlan;
         }
@@ -435,14 +443,24 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script, out string showPlanString)
         {
             DataSet ds = new DataSet();
-            ds.EnforceConstraints = false;
             RunCommands(ds, script, false, true);
             showPlanString = showPlan;
             return ds;
         }
 
+        public DataSet ExecuteSql(string script, out string showPlanString, out bool schemaChanged)
+        {
+            schemaHasChanged = false;
+            DataSet ds = new DataSet();
+            RunCommands(ds, script, false, true);
+            showPlanString = showPlan;
+            schemaChanged = schemaHasChanged;
+            return ds;
+        }
+
         internal void RunCommands(DataSet dataset, string script, bool checkSyntax, bool includePlan)
         {
+            dataset.EnforceConstraints = false;
             using (SqlCeCommand cmd = new SqlCeCommand())
             {
                 cmd.Connection = cn;
@@ -528,8 +546,10 @@ namespace ErikEJ.SqlCeScripting
                         dataSet.Tables[dataSet.Tables.Count - 1].MinimumCapacity = 0;
                         dataSet.Tables[dataSet.Tables.Count - 1].Locale = CultureInfo.InvariantCulture;
                     }
-                    if (execute == CommandExecute.NonQuery)
+                    if (execute == CommandExecute.NonQuery || execute == CommandExecute.NonQuerySchemaChanged)
                     {
+                        if (execute == CommandExecute.NonQuerySchemaChanged)
+                            schemaHasChanged = true;
                         int rows = cmd.ExecuteNonQuery();
                         DataTable table = new DataTable();
                         table.MinimumCapacity = Math.Max(0, rows);
@@ -543,7 +563,8 @@ namespace ErikEJ.SqlCeScripting
         {
             Undefined,
             DataTable,
-            NonQuery
+            NonQuery,
+            NonQuerySchemaChanged
         }
 
         private static CommandExecute FindExecuteType(string commandText)
@@ -562,7 +583,11 @@ namespace ErikEJ.SqlCeScripting
             {
                 return CommandExecute.DataTable;
             }
-            else 
+            else if (test.ToUpperInvariant().StartsWith("CREATE ") || test.ToUpperInvariant().StartsWith("ALTER ") || test.ToUpperInvariant().StartsWith("DROP "))
+            {
+                return CommandExecute.NonQuerySchemaChanged;
+            }
+            else
             {
                 return CommandExecute.NonQuery;
             }

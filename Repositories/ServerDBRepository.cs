@@ -323,9 +323,22 @@ namespace ErikEJ.SqlCeScripting
             return new DataSet();
         }
 
+        public DataSet ExecuteSql(string script, out bool schemaChanged)
+        {
+            schemaChanged = false;
+            return new DataSet();
+        }
+
         public DataSet ExecuteSql(string script, out string showPlanString)
         {
             showPlanString = string.Empty;
+            return new DataSet();
+        }
+
+        public DataSet ExecuteSql(string script, out string showPlanString, out bool schemaChanged)
+        {
+            showPlanString = string.Empty;
+            schemaChanged = false;
             return new DataSet();
         }
 
