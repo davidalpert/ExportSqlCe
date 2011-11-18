@@ -471,6 +471,17 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        internal void AddIdentityInsert(string tableName)
+        {
+            bool hasIdentity = _repository.HasIdentityColumn(tableName);
+            if (hasIdentity)
+            {
+                _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+                _sbScript.Append(Environment.NewLine);
+                _sbScript.Append(_sep);
+            }
+        }
+
         /// <summary>
         /// Validates the columns.
         /// </summary>
