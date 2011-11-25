@@ -2,6 +2,7 @@
 using System.Text;
 using ErikEJ.SqlCeScripting;
 using Kent.Boogaart.KBCsv;
+using System.Reflection;
 
 namespace Csv2SqlCe
 {
@@ -9,6 +10,7 @@ namespace Csv2SqlCe
     {
         static int Main(string[] args)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
             if (args.Length < 4 || args.Length > 5)
             {
                 PrintUsageGuide();
@@ -74,6 +76,25 @@ namespace Csv2SqlCe
             }
         }
 
+        static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            string[] names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+
+            String resourceName = "Csv2SqlCe." +
+               new AssemblyName(args.Name).Name + ".dll";
+
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            {
+                if (stream != null)
+                {
+                    Byte[] assemblyData = new Byte[stream.Length];
+                    stream.Read(assemblyData, 0, assemblyData.Length);
+                    return Assembly.Load(assemblyData);
+                }
+                return null;
+            }
+        }
+
         private static void ShowErrors(System.Data.SqlClient.SqlException e)
         {
             System.Data.SqlClient.SqlErrorCollection errorCollection = e.Errors;
@@ -100,7 +121,7 @@ namespace Csv2SqlCe
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" CsvSQLCE.exe [SQL Server Compact Connection String] [Path to CSV file] [Path to SQL File] [Table] [Separator]");
+            Console.WriteLine(" CsvSQLCE.exe [SQL Server Compact Connection String] [Path to CSV file] [Path to SQL File] [TableName] [Separator]");
             Console.WriteLine(" (Separator is optional, default is comma)");
             Console.WriteLine("");
             Console.WriteLine("Examples : ");
