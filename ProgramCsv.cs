@@ -43,13 +43,16 @@ namespace Csv2SqlCe
                         return 1;
                     }
 
-                    using (IRepository repository = new DBRepository(connectionString))
+                    using (IRepository repository =  Helper.CreateRepository(connectionString))
                     {
                         Helper.FinalFiles = outputFileLocation;
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
+#if V40
+                        var generator = new Generator4(repository, outputFileLocation);
+#else
                         var generator = new Generator(repository, outputFileLocation);
-
+#endif
                         generator.AddIdentityInsert(tableName);
 
                         using (var reader = new CsvReader(inputFileLocation))
