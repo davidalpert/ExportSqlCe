@@ -39,17 +39,12 @@ namespace ExportSqlCE
                             {
                                 using (var target = Helper.CreateRepository(args[2]))
                                 {
-                                    //Must have SQL Compact as target or source
-                                    if (target.GetType() == typeof(DBRepository) || source.GetType() == typeof(DBRepository))
-                                    {
-                                        var generator = new Generator(source);
-                                        SqlCeDiff.CreateDiffScript(source, target, generator, false);
-                                        System.IO.File.WriteAllText(args[3], generator.GeneratedScript);
-                                        return 0;
-                                    }
+                                    var generator = Helper.CreateGenerator(source);
+                                    SqlCeDiff.CreateDiffScript(source, target, generator, false);
+                                    System.IO.File.WriteAllText(args[3], generator.GeneratedScript);
+                                    return 0;
                                 }
                             }
-                            return 1;
                         }
                         else
                         {
@@ -68,7 +63,7 @@ namespace ExportSqlCE
                         {
                             using (var source = Helper.CreateRepository(args[1]))
                             {
-                                var generator = new Generator(source, args[2]);
+                                var generator = Helper.CreateGenerator(source);
                                 generator.GenerateSchemaGraph(args[1]);
                             }
                             return 0;
@@ -92,12 +87,15 @@ namespace ExportSqlCE
                                 sqlAzure = true;
                         }
 
-                        using (IRepository repository = new DBRepository(connectionString))
+                        using (IRepository repository = Helper.CreateRepository(connectionString))
                         {
 
                             Helper.FinalFiles = outputFileLocation;
+#if V40
+                            var generator = new Generator4(repository, outputFileLocation, sqlAzure);
+#else
                             var generator = new Generator(repository, outputFileLocation, sqlAzure);
-
+#endif
                             Console.WriteLine("Generating the tables....");
 #if V31
                             generator.GenerateTable(false);

@@ -4,13 +4,14 @@ using ErikEJ.SqlCeScripting;
 using Kent.Boogaart.KBCsv;
 using System.Reflection;
 
+
 namespace Csv2SqlCe
 {
     class Program
     {
         static int Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+            //AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
             if (args.Length < 4 || args.Length > 5)
             {
                 PrintUsageGuide();
@@ -26,13 +27,19 @@ namespace Csv2SqlCe
                     string tableName = args[3];
 
                     Char separator = ',';
-                    //TODO add check of args4
                     if (args.Length == 5 && args[4].Length == 1) 
                         separator = Convert.ToChar(args[4]);
 
                     if (!System.IO.File.Exists(inputFileLocation))
                     {
                         System.Console.WriteLine("Input file not found");
+                        return 1;
+                    }
+
+                    string outPath = System.IO.Path.GetDirectoryName(outputFileLocation);
+                    if (!System.IO.Directory.Exists(outPath))
+                    {
+                        System.Console.WriteLine("Output folder does not exist");
                         return 1;
                     }
 
@@ -63,9 +70,9 @@ namespace Csv2SqlCe
                         return 0;
                     }
                 }
-                catch (System.Data.SqlClient.SqlException e)
+                catch (System.Data.SqlServerCe.SqlCeException e)
                 {
-                    ShowErrors(e);
+                    Helper.ShowErrors(e);
                     return 1;
                 }
                 catch (Exception ex)
@@ -95,38 +102,14 @@ namespace Csv2SqlCe
             }
         }
 
-        private static void ShowErrors(System.Data.SqlClient.SqlException e)
-        {
-            System.Data.SqlClient.SqlErrorCollection errorCollection = e.Errors;
-
-            StringBuilder bld = new StringBuilder();
-            Exception inner = e.InnerException;
-
-            if (null != inner)
-            {
-                Console.WriteLine("Inner Exception: " + inner.ToString());
-            }
-            // Enumerate the errors to a message box.
-            foreach (System.Data.SqlClient.SqlError err in errorCollection)
-            {
-                bld.Append("\n Message   : " + err.Message);
-                bld.Append("\n Source    : " + err.Source);
-                bld.Append("\n Number    : " + err.Number);
-
-                Console.WriteLine(bld.ToString());
-                bld.Remove(0, bld.Length);
-            }
-        }
-
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" CsvSQLCE.exe [SQL Server Compact Connection String] [Path to CSV file] [Path to SQL File] [TableName] [Separator]");
+            Console.WriteLine(" CsvSQLCE.exe [SQL Server Compact Connection String] [Path to input CSV file] [Path to output SQL Script] [TableName] [Separator]");
             Console.WriteLine(" (Separator is optional, default is comma)");
             Console.WriteLine("");
-            Console.WriteLine("Examples : ");
-            //Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
-            //Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
+            Console.WriteLine("Example : ");
+            Console.WriteLine(" Csv2SqlCe.exe \"Data Source=C:\\Data\\Northwind.sdf\" \"C:\\Data\\Shippers.csv\" \"C:\\Data\\Shippers.sqlce\" \"Shippers\" \";\" ");
             Console.WriteLine("");
         }
     }

@@ -440,6 +440,19 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+
+        public static IGenerator CreateGenerator(IRepository repository)
+        {
+#if V40
+                return new Generator4(repository);
+#else
+                return new Generator(repository);
+#endif
+        }
     }
 
 }
+
+
+
+
