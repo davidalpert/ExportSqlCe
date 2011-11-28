@@ -60,6 +60,7 @@ namespace ErikEJ.SqlCeScripting
                 engine.Upgrade();
             }
         }
+
         private enum SQLCEVersion
         {
             SQLCE20 = 0,
@@ -67,6 +68,7 @@ namespace ErikEJ.SqlCeScripting
             SQLCE35 = 2,
             SQLCE40 = 3
         }
+
         private static SQLCEVersion DetermineVersion(string filename)
         {
             var versionDictionary = new System.Collections.Generic.Dictionary<int, SQLCEVersion> 
@@ -102,12 +104,24 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public string PathFromConnectionString(string connectionString)
+        {
+            SqlCeConnectionStringBuilder sb = new SqlCeConnectionStringBuilder(connectionString);
+            return sb.DataSource;
+        }
+
 #else
         public void UpgradeTo40(string connectionString)
         {
             throw new NotImplementedException("Not implemented");
         }
+
+        public string PathFromConnectionString(string connectionString)
+        { 
+            throw new NotImplementedException("Not implemented");
+        }
 #endif
+
 
 
     }

@@ -10,6 +10,7 @@ namespace ErikEJ.SqlCeScripting
         string FormatError(Exception ex);
         string GetFullConnectionString(string connectionString);
         void CreateDatabase(string connectionString);
+        string PathFromConnectionString(string connectionString);
         void UpgradeTo40(string connectionString);
     }
 }
