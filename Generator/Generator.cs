@@ -471,7 +471,7 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        internal void AddIdentityInsert(string tableName)
+        public void AddIdentityInsert(string tableName)
         {
             bool hasIdentity = _repository.HasIdentityColumn(tableName);
             if (hasIdentity)
@@ -1012,7 +1012,7 @@ namespace ErikEJ.SqlCeScripting
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
         }
 
-        internal int FileCounter
+        public int FileCounter
         {
             get
             {
