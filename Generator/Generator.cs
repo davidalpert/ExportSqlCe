@@ -169,7 +169,8 @@ namespace ErikEJ.SqlCeScripting
                         }
                         else if (dt.Columns[iColumn].DataType == typeof(String))
                         {
-                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''"));
+                            //Addresses bug at codeplex [workitem:17036]
+                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''").Replace("\n", "'+NCHAR(10)+NCHAR(13)+'"));
                         }
                         else if (dt.Columns[iColumn].DataType == typeof(DateTime))
                         {
@@ -430,7 +431,8 @@ namespace ErikEJ.SqlCeScripting
                     //}
                     else if (column.DataType == "nchar" || column.DataType == "nvarchar" || column.DataType == "ntext")
                     {
-                        _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''"));
+                        //Addresses bug at codeplex [workitem:17036]
+                        _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''").Replace("\n", "'+NCHAR(10)+NCHAR(13)+'"));
                     }
                     else if (column.DataType == "datetime")
                     {
