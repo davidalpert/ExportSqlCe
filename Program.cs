@@ -21,6 +21,7 @@ namespace ExportSqlCE
                     string outputFileLocation = args[1];
 
                     bool includeData = true;
+                    bool includeSchema = true;
                     bool saveImageFiles = false;
                     bool sqlAzure = false;
 
@@ -79,8 +80,16 @@ namespace ExportSqlCE
                     {
                         for (int i = 2; i < args.Length; i++)
                         {
+                            if (args[i].Contains("dataonly"))
+                            {
+                                includeData = true;
+                                includeSchema = false;
+                            }
                             if (args[i].Contains("schemaonly"))
+                            {
                                 includeData = false;
+                                includeSchema = true;
+                            }
                             if (args[i].Contains("saveimages"))
                                 saveImageFiles = true;
                             if (args[i].Contains("sqlazure"))
@@ -102,7 +111,7 @@ namespace ExportSqlCE
 #else
                             generator.GenerateTable(includeData);
 #endif
-                            if (sqlAzure)
+                            if (sqlAzure && includeSchema)
                             {
                                 Console.WriteLine("Generating the primary keys (SQL Azure)....");
                                 generator.GeneratePrimaryKeys();
@@ -112,15 +121,18 @@ namespace ExportSqlCE
                                 Console.WriteLine("Generating the data....");
                                 generator.GenerateTableContent(saveImageFiles);
                             }
-                            if (!sqlAzure)
+                            if (!sqlAzure && includeSchema)
                             {
                                 Console.WriteLine("Generating the primary keys....");
                                 generator.GeneratePrimaryKeys();
                             }
-                            Console.WriteLine("Generating the indexes....");
-                            generator.GenerateIndex();
-                            Console.WriteLine("Generating the foreign keys....");
-                            generator.GenerateForeignKeys();
+                            if (includeSchema)
+                            {
+                                Console.WriteLine("Generating the indexes....");
+                                generator.GenerateIndex();
+                                Console.WriteLine("Generating the foreign keys....");
+                                generator.GenerateForeignKeys();
+                            }
                             Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         }
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
@@ -149,8 +161,8 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : (To script an entire database)");
-            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [schemaonly] [saveimages] [sqlazure]");
-            Console.WriteLine(" (schemaonly, saveimages and sqlazure are optional parameters)");
+            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [schemaonly|dataonly] [saveimages] [sqlazure]");
+            Console.WriteLine(" (schemaonly|dataonly, saveimages and sqlazure are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Example : ");
             Console.WriteLine(" ExportSQLCE.exe \"Data Source=D:\\Northwind.sdf;\" Northwind.sql");
