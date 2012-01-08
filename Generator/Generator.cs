@@ -169,8 +169,7 @@ namespace ErikEJ.SqlCeScripting
                         }
                         else if (dt.Columns[iColumn].DataType == typeof(String))
                         {
-                            //Addresses bug at codeplex [workitem:17036]
-                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''").Replace("\n", "'+NCHAR(10)+NCHAR(13)+'"));
+                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''"));
                         }
                         else if (dt.Columns[iColumn].DataType == typeof(DateTime))
                         {
@@ -218,7 +217,7 @@ namespace ErikEJ.SqlCeScripting
                             _sbScript.Append(ts.ToString());
                             _sbScript.Append("'");
                         }
-                        else if (dt.Columns[iColumn].DataType == typeof(Byte[]))
+                        else if (dt.Columns[iColumn].DataType == typeof(Byte[]) || dt.Columns[iColumn].DataType.Name == "SqlHierarchyId")
                         {
                             Byte[] buffer = (Byte[])dt.Rows[iRow][iColumn];
                             if (saveImageFiles)
@@ -431,8 +430,7 @@ namespace ErikEJ.SqlCeScripting
                     //}
                     else if (column.DataType == "nchar" || column.DataType == "nvarchar" || column.DataType == "ntext")
                     {
-                        //Addresses bug at codeplex [workitem:17036]
-                        _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''").Replace("\n", "'+NCHAR(10)+NCHAR(13)+'"));
+                        _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''"));
                     }
                     else if (column.DataType == "datetime")
                     {
