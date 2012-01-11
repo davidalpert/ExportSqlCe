@@ -249,6 +249,11 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<string>(AddToListString));
         }
 
+        public List<string> GetAllTableNamesForExclusion()
+        {
+            return GetAllTableNames();
+        }
+
         public List<string> GetAllSubscriptionNames()
         {
             object value = ExecuteScalar("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '__sysMergeSubscriptions' ");

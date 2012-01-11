@@ -7,6 +7,7 @@ namespace ErikEJ.SqlCeScripting
 {
     public interface IGenerator
     {
+        void ExcludeTables(IList<string> tablesToExclude);
         string ScriptDatabaseToFile(Scope scope);
         void GenerateTableScript(string tableName);
         string GenerateTableData(string tableName, bool saveImageFiles);

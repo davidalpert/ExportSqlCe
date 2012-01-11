@@ -7,6 +7,7 @@ namespace ErikEJ.SqlCeScripting
     public interface IRepository : IDisposable
     {
         List<string> GetAllTableNames();
+        List<string> GetAllTableNamesForExclusion();
         List<Column> GetColumnsFromTable();
         DataTable GetDataFromTable(string tableName, List<Column> columns);
         IDataReader GetDataFromReader(string tableName);

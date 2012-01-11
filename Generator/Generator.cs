@@ -62,6 +62,16 @@ namespace ErikEJ.SqlCeScripting
             Init(repository, outFile);
         }
 
+        public void ExcludeTables(IList<string> tablesToExclude)
+        {
+            var allTables = _repository.GetAllTableNamesForExclusion();
+            foreach (string tableToExclude in tablesToExclude)
+            {
+                allTables.Remove(tableToExclude);
+            }
+            _tableNames = allTables;
+        }
+
         public string ScriptDatabaseToFile(Scope scope)
         {
             Helper.FinalFiles = _outFile;
@@ -709,21 +719,26 @@ namespace ErikEJ.SqlCeScripting
 
         internal void GenerateForeignKeys()
         {
-            List<Constraint> foreignKeys = _allForeignKeys;
-
-            foreignKeys.ForEach(delegate(Constraint constraint)
+            foreach (string tableName in _tableNames)
             {
-                _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
-                    , constraint.ConstraintTableName
-                    , constraint.ConstraintName
-                    , constraint.Columns.ToString()
-                    , constraint.UniqueConstraintTableName
-                    , constraint.UniqueColumns.ToString()
-                    , constraint.DeleteRule
-                    , constraint.UpdateRule
-                    , Environment.NewLine);
-                _sbScript.Append(_sep);
-            });            
+                GenerateForeignKeys(tableName);
+            }
+
+            //List<Constraint> foreignKeys = _allForeignKeys;
+
+            //foreignKeys.ForEach(delegate(Constraint constraint)
+            //{
+            //    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
+            //        , constraint.ConstraintTableName
+            //        , constraint.ConstraintName
+            //        , constraint.Columns.ToString()
+            //        , constraint.UniqueConstraintTableName
+            //        , constraint.UniqueColumns.ToString()
+            //        , constraint.DeleteRule
+            //        , constraint.UpdateRule
+            //        , Environment.NewLine);
+            //    _sbScript.Append(_sep);
+            //});            
         
         }
 
