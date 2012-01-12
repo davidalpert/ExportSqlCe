@@ -69,8 +69,14 @@ namespace ErikEJ.SqlCeScripting
             {
                 allTables.Remove(tableToExclude);
             }
-            _tableNames = allTables;
+            var finalTables = new List<string>();
+            foreach (string table in allTables)
+            {
+                finalTables.Add(GetLocalName(table));
+            }
+            _tableNames = finalTables;
         }
+
 
         public string ScriptDatabaseToFile(Scope scope)
         {
@@ -1158,6 +1164,19 @@ namespace ErikEJ.SqlCeScripting
                 _sbScript.Remove(_sbScript.Length - 2, 2);
                 _sbScript.AppendFormat(");{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
+            }
+        }
+
+        private string GetLocalName(string table)
+        {
+            if (table.Contains("."))
+            {
+                var split = table.Split('.');
+                return split[1];
+            }
+            else
+            {
+                return table;
             }
         }
 
