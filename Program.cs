@@ -59,12 +59,12 @@ namespace ExportSqlCE
 #if V31
                         PrintUsageGuide();
                         return 2;
-#else
+#endif
                         if (args.Length == 3)
                         {
                             using (var source = Helper.CreateRepository(args[1]))
                             {
-                                var generator = Helper.CreateGenerator(source);
+                                var generator = Helper.CreateGenerator(source, args[2]);
                                 generator.GenerateSchemaGraph(args[1]);
                             }
                             return 0;
@@ -74,8 +74,33 @@ namespace ExportSqlCE
                             PrintUsageGuide();
                             return 2;
                         }
-#endif                        
                     }
+                    else if (args[0].Equals("wpdc", StringComparison.OrdinalIgnoreCase))
+                    {
+#if V31
+                        PrintUsageGuide();
+                        return 2;
+#endif
+#if V40
+                        PrintUsageGuide();
+                        return 2;
+#endif
+                        if (args.Length == 3)
+                        {
+                            using (var repo = Helper.CreateRepository(args[1]))
+                            {
+                                var dch = new DataContextHelper();
+                                dch.GenerateWPDataContext(repo, args[1], args[2]);
+                            }
+                            return 0;
+                        }
+                        else
+                        {
+                            PrintUsageGuide();
+                            return 2;
+                        }
+                    }
+
                     else
                     {
                         for (int i = 2; i < args.Length; i++)
@@ -182,6 +207,16 @@ namespace ExportSqlCE
             Console.WriteLine(" ExportSQLCE.exe dgml [SQL Compact or SQL Server Connection String (source)] [output file location]");
             Console.WriteLine("Example :");
             Console.WriteLine(" ExportSQLCE.exe dgml \"Data Source=D:\\Northwind.sdf;\" C:\\temp\\northwind.dgml");
+            Console.WriteLine("");
+            Console.WriteLine("");
+
+            Console.WriteLine("Usage: (To create a Windows Phone DataContext)");
+            Console.WriteLine(" ExportSQLCE.exe wpdc [SQL Compact or SQL Server Connection String (source)] [output file location]");
+            Console.WriteLine("Example :");
+            Console.WriteLine(" ExportSQLCE.exe wpdc \"Data Source=D:\\Northwind.sdf;\" C:\\temp\\Northwind.cs");
+            Console.WriteLine("");
+            Console.WriteLine("");
+
 #endif
         }
     }

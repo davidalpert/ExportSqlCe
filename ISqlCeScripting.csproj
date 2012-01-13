@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generator\DataContextHelper.cs" />
     <Compile Include="Generator\DescriptionHelper.cs" />
     <Compile Include="Generator\ISqlCeHelper.cs" />
     <Compile Include="Generator\IGenerator.cs" />

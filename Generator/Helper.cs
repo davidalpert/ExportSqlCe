@@ -449,6 +449,16 @@ namespace ErikEJ.SqlCeScripting
                 return new Generator(repository);
 #endif
         }
+
+        public static IGenerator CreateGenerator(IRepository repository, string outFile)
+        {
+#if V40
+                return new Generator4(repository, outFile);
+#else
+            return new Generator(repository, outFile);
+#endif
+        }
+
     }
 
 }
