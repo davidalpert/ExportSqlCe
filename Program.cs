@@ -84,7 +84,7 @@ namespace ExportSqlCE
 #if V40
                         PrintUsageGuide();
                         return 2;
-#endif
+#else
                         if (args.Length == 3)
                         {
                             using (var repo = Helper.CreateRepository(args[1]))
@@ -99,6 +99,7 @@ namespace ExportSqlCE
                             PrintUsageGuide();
                             return 2;
                         }
+#endif
                     }
 
                     else

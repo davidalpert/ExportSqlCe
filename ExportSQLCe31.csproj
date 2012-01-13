@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generator\DataContextHelper.cs" />
     <Compile Include="Generator\DescriptionHelper.cs" />
     <Compile Include="Generator\DgmlHelper.cs" />
     <Compile Include="Generator\Generator.cs" />
