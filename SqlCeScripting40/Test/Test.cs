@@ -58,7 +58,23 @@ using ErikEJ.SqlCeScripting;
             }
         }
 
+        [Test]
+        public void TestDiffNullRef()
+        {
+            string target = @"Data Source=C:\Data\SQLCE\Test\DiffNullRefDatabases\ArtistManager.sdf";
+            string source = @"Data Source=C:\Data\SQLCE\Test\DiffNullRefDatabases\ArtistManagerDesignDatabase.sdf";
 
+            using (IRepository sourceRepository = new DB4Repository(source))
+            {
+                var generator = new Generator4(sourceRepository);
+                using (IRepository targetRepository = new DB4Repository(target))
+                {
+                    SqlCeDiff.CreateDiffScript(sourceRepository, targetRepository, generator, false);
+                }
+            }
+        }
+        
+        
         //[Test]
         //public void TestImportBoolean()
         //{
