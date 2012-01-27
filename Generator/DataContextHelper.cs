@@ -321,7 +321,7 @@ public class DebugWriter : TextWriter
                 
             }
 
-            AddIndexes(repository, dcLines, n, false);
+            AddIndexes(repository, dcLines, n, true);
 
             System.IO.File.WriteAllLines(path, dcLines.ToArray());
         }
