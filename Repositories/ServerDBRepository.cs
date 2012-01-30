@@ -200,7 +200,6 @@ namespace ErikEJ.SqlCeScripting
 
         public List<string> GetAllTableNamesForExclusion()
         {
-            //TODO Return [schema].[name]
             return ExecuteReader(
                 "SELECT S.name + '.' + T.name  from sys.tables T INNER JOIN sys.schemas S ON T.schema_id = S.schema_id WHERE [type] = 'U' AND is_ms_shipped = 0 ORDER BY T.[name];"
                 , new AddToListDelegate<string>(AddToListString));
@@ -210,7 +209,6 @@ namespace ErikEJ.SqlCeScripting
         {
             return new List<string>();
         }
-
 
         public List<KeyValuePair<string, string>> GetDatabaseInfo()
         {

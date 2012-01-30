@@ -8,7 +8,7 @@ namespace ExportSqlCE
     {
         static int Main(string[] args)
         {
-            if (args.Length < 2 || args.Length > 4)
+            if (args.Length < 2 || args.Length > 5)
             {
                 PrintUsageGuide();
                 return 2;
@@ -22,13 +22,16 @@ namespace ExportSqlCE
 
                     bool includeData = true;
                     bool saveImageFiles = false;
+                    System.Collections.Generic.List<string> exclusions = new System.Collections.Generic.List<string>();
 
                     for (int i = 2; i < args.Length; i++)
                     {
-                        if (args[i].Contains("schemaonly"))
+                        if (args[i].StartsWith("schemaonly"))
                             includeData = false;
-                        if (args[i].Contains("saveimages"))
+                        if (args[i].StartsWith("saveimages"))
                             saveImageFiles = true;
+                        if (args[i].StartsWith("exclude:"))
+                            ParseExclusions(exclusions, args[i]);
                     }
 
                     using (IRepository repository = new ServerDBRepository(connectionString))
@@ -37,6 +40,9 @@ namespace ExportSqlCE
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
                         var generator = new Generator(repository, outputFileLocation);
+                        
+                        generator.ExcludeTables(exclusions);
+
                         // The execution below has to be in this sequence
                         Console.WriteLine("Generating the tables....");
                         generator.GenerateTable(includeData);
@@ -70,6 +76,19 @@ namespace ExportSqlCE
             }
         }
 
+        private static void ParseExclusions(System.Collections.Generic.List<string> exclusions, string excludeParam)
+        {
+            excludeParam = excludeParam.Replace("exclude:", string.Empty);
+            if (!string.IsNullOrEmpty(excludeParam))
+            {
+                string[] tables = excludeParam.Split(',');
+                foreach (var item in tables)
+                {
+                    exclusions.Add(item);
+                }
+            }
+        }
+
         private static void ShowErrors(System.Data.SqlClient.SqlException e)
         {
             System.Data.SqlClient.SqlErrorCollection errorCollection = e.Errors;
@@ -96,12 +115,13 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[schemaonly]] [[saveimages]]");
-            Console.WriteLine(" (schemaonly and saveimages are optional parameters)");
+            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[saveimages]]");
+            Console.WriteLine(" (exclude, schemaonly and saveimages are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
+            Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql exclude:dbo.Shippers,dbo.Suppliers");
             Console.WriteLine("");
         }
     }

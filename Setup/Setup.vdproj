@@ -1030,7 +1030,7 @@
         "Entry"
         {
         "MsmKey" = "8:_9987EC8D29930F2D7BDD0D24540771D5"
-        "OwnerKey" = "8:_BEB435C6D7CC305A5FF87DC2A129A16C"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2734,6 +2734,12 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_BEB435C6D7CC305A5FF87DC2A129A16C"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_9987EC8D29930F2D7BDD0D24540771D5"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -3591,7 +3597,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:FALSE"
+            "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -3941,7 +3947,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:FALSE"
+            "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -4189,7 +4195,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:FALSE"
+            "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -4228,7 +4234,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ISqlCeScripting, Version=3.5.0.5, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:ISqlCeScripting, Version=3.5.2.0, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_9987EC8D29930F2D7BDD0D24540771D5"
@@ -4755,7 +4761,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:SqlCeScripting, Version=3.5.0.5, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:SqlCeScripting, Version=3.5.2.0, Culture=neutral, PublicKeyToken=3681435cabd17ad2, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_BEB435C6D7CC305A5FF87DC2A129A16C"
@@ -5139,7 +5145,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:FALSE"
+            "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -5788,14 +5794,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ExportSqlCe"
-        "ProductCode" = "8:{98AA6A1F-F748-4F3C-8EC6-E02014C2BD59}"
-        "PackageCode" = "8:{34DB79E9-38FE-4B4E-93CE-E7298971A35E}"
+        "ProductCode" = "8:{BF30E026-4635-4C08-BEFF-C88D850F9A9E}"
+        "PackageCode" = "8:{28A043E5-FA0C-46A1-8136-79ABE1EF3316}"
         "UpgradeCode" = "8:{12E391ED-E6CE-4233-A3DE-584CD3F8288A}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:3.5.5"
+        "ProductVersion" = "8:3.5.6"
         "Manufacturer" = "8:ErikEJ"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.codeplex.com/ExportSqlCE"

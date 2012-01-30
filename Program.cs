@@ -8,7 +8,7 @@ namespace ExportSqlCE
     {
         static int Main(string[] args)
         {
-            if (args.Length < 2 || args.Length > 5)
+            if (args.Length < 2 || args.Length > 6)
             {
                 PrintUsageGuide();
                 return 2;
@@ -24,6 +24,7 @@ namespace ExportSqlCE
                     bool includeSchema = true;
                     bool saveImageFiles = false;
                     bool sqlAzure = false;
+                    System.Collections.Generic.List<string> exclusions = new System.Collections.Generic.List<string>();
 
                     System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                     sw.Start();
@@ -120,6 +121,8 @@ namespace ExportSqlCE
                                 saveImageFiles = true;
                             if (args[i].Contains("sqlazure"))
                                 sqlAzure = true;
+                            if (args[i].StartsWith("exclude:"))
+                                ParseExclusions(exclusions, args[i]);
                         }
 
                         using (IRepository repository = Helper.CreateRepository(connectionString))
@@ -131,6 +134,7 @@ namespace ExportSqlCE
 #else
                             var generator = new Generator(repository, outputFileLocation, sqlAzure);
 #endif
+                            generator.ExcludeTables(exclusions);
                             Console.WriteLine("Generating the tables....");
 #if V31
                             generator.GenerateTable(false);
@@ -184,15 +188,29 @@ namespace ExportSqlCE
             }
         }
 
+        private static void ParseExclusions(System.Collections.Generic.List<string> exclusions, string excludeParam)
+        {
+            excludeParam = excludeParam.Replace("exclude:", string.Empty);
+            if (!string.IsNullOrEmpty(excludeParam))
+            {
+                string[] tables = excludeParam.Split(',');
+                foreach (var item in tables)
+                {
+                    exclusions.Add(item);
+                }
+            }
+        }
+
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : (To script an entire database)");
-            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [schemaonly|dataonly] [saveimages] [sqlazure]");
-            Console.WriteLine(" (schemaonly|dataonly, saveimages and sqlazure are optional parameters)");
+            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [[exclude]] [[schemaonly|dataonly]] [[saveimages]] [[sqlazure]]");
+            Console.WriteLine(" (exclude, schemaonly|dataonly, saveimages and sqlazure are optional parameters)");
             Console.WriteLine("");
-            Console.WriteLine("Example : ");
+            Console.WriteLine("Examples : ");
             Console.WriteLine(" ExportSQLCE.exe \"Data Source=D:\\Northwind.sdf;\" Northwind.sql");
             Console.WriteLine("");
+            Console.WriteLine(" ExportSQLCE.exe \"Data Source=D:\\Northwind.sdf;\" Northwind.sql exclude:Shippers,Suppliers");
             Console.WriteLine("");
 #if V31
 #else
