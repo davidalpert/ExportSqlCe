@@ -556,6 +556,7 @@ End Class
                         if (tableName == string.Empty)
                             tableName = words[3];
                         List<Index> indexList = repository.GetIndexesFromTable(tableName);
+                        List<PrimaryKey> pkList = repository.GetAllPrimaryKeys().Where(pk => pk.TableName == tableName).ToList();
                         //If there are indexes, add them
                         if (indexList.Count > 0)
                         {
@@ -567,6 +568,35 @@ End Class
                                                                           where ind.IndexName == uniqueIndexName
                                                                           orderby ind.OrdinalPosition
                                                                           select ind;
+
+                                // Check if a Unique index overlaps an existing primary key
+                                // If that is the case, do not add the duplicate index
+                                // as this will cause LINQ to SQL to crash 
+                                // when doing updates with rowversion columns
+                                var ixList = indexesByName.ToList();
+                                if (ixList.Count > 0 && ixList[0].Unique)
+                                {
+                                    int i = 0;
+                                    foreach (var pk in pkList)
+                                    {
+                                        if (ixList.Count > i)
+                                        {
+                                            if (pk.ColumnName != ixList[i].ColumnName)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                        i++;
+                                    }
+                                    if (i > 0)
+                                        continue;
+                                }
+
+
                                 bool unique = false;
                                 var idx = indexesByName.First();
                                 if (idx.Unique)
