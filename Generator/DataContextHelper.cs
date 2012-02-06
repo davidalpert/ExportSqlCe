@@ -685,6 +685,24 @@ using Microsoft.Phone.Data.Linq;
 			}
 		}";
 
+            string remove3 =
+@"	public System.Data.Linq.Table<{0}> {0}s
+	{
+		get
+		{
+			return this.GetTable<{0}>();
+		}
+	}
+";
+
+            string remove4 =
+@"		public System.Data.Linq.Table<{0}> {0}s
+		{
+			get
+			{
+				return this.GetTable<{0}>();
+			}
+		}";
             string contextName = string.Empty;
             List<string> systemClasses = new List<string>();
             for (int y = 0; y < dcLines.Count; y++)
@@ -732,6 +750,8 @@ using Microsoft.Phone.Data.Linq;
                 {
                     split[contextName] = split[contextName].Replace(remove1.Replace("{0}", item), string.Empty);
                     split[contextName] = split[contextName].Replace(remove2.Replace("{0}", item), string.Empty);
+                    split[contextName] = split[contextName].Replace(remove3.Replace("{0}", item), string.Empty);
+                    split[contextName] = split[contextName].Replace(remove4.Replace("{0}", item), string.Empty);
                 }
             }
 
