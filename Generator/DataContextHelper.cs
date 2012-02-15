@@ -250,7 +250,13 @@ public class DebugWriter : TextWriter
             if (i > -1)
             {
                 dcLines.RemoveAt(i);
+
                 dcLines.Insert(i++, n + t + "public bool CreateIfNotExists()");
+                dcLines.Insert(i++, n + t + "{");
+                dcLines.Insert(i++, n + T(2) + "return CreateIfNotExists(" + model + ".ConnectionString);");
+                dcLines.Insert(i++, n + t + "}");
+                dcLines.Insert(i++, n + t + "");
+                dcLines.Insert(i++, n + t + "public bool CreateIfNotExists(string connectionString)");
                 dcLines.Insert(i++, n + t + "{");
                 dcLines.Insert(i++, n + T(2) + "bool created = false;");
                 dcLines.Insert(i++, n + T(2) + "using (var db = new " + model + "(" + model + ".ConnectionString))");
