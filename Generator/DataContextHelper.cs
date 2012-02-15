@@ -259,7 +259,7 @@ public class DebugWriter : TextWriter
                 dcLines.Insert(i++, n + t + "public bool CreateIfNotExists(string connectionString)");
                 dcLines.Insert(i++, n + t + "{");
                 dcLines.Insert(i++, n + T(2) + "bool created = false;");
-                dcLines.Insert(i++, n + T(2) + "using (var db = new " + model + "(" + model + ".ConnectionString))");
+                dcLines.Insert(i++, n + T(2) + "using (var db = new " + model + "(connectionString))");
                 dcLines.Insert(i++, n + T(2) + "{");
                 dcLines.Insert(i++, n + T(3) + "if (!db.DatabaseExists())");
                 dcLines.Insert(i++, n + T(3) + "{");
