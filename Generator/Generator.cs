@@ -435,7 +435,7 @@ namespace ErikEJ.SqlCeScripting
                 int i = 0;
                 foreach (string value in values)
                 {
-                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == fields[i]).Single();
+                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToLowerInvariant() == fields[i].ToLowerInvariant()).Single();
                     if (string.IsNullOrEmpty(value))
                     {
                         _sbScript.Append("null");
@@ -506,17 +506,32 @@ namespace ErikEJ.SqlCeScripting
         /// <returns></returns>
         public bool ValidColumns(string tableName, IList<string> columns)
         {
+            string wrongColumns = string.Empty;
+
             List<Column> cols = (from a in _allColumns
                                 where a.TableName == tableName
-                                && columns.Contains(a.ColumnName)
                                 select a).ToList();
-            if (cols.Count == columns.Count)
+
+            var upperColumns = new List<string>();
+            foreach (var column in columns)
+            {
+                upperColumns.Add(column.ToUpperInvariant());
+            }
+            foreach (var col in cols)
+            {
+                if (!upperColumns.Contains(col.ColumnName.ToUpperInvariant()))
+                {
+                    wrongColumns += col.ColumnName + " ";
+                }
+            }
+            if (wrongColumns == string.Empty)
             {
                 return true;
             }
             else
             {
-                _sbScript.Append("-- Cannot create script, one or more field names on first line are invalid");
+                _sbScript.Append("-- Cannot create script, one or more field names on first line are invalid:");
+                _sbScript.Append("-- Wrong column names: " + wrongColumns);
                 _sbScript.Append(Environment.NewLine);
                 _sbScript.Append("-- Also check that correct separator is chosen");
                 return false;

@@ -123,6 +123,29 @@ using ErikEJ.SqlCeScripting;
         //}
 
 
+        //[Test]
+        //public void TestImportValidColUpdate()
+        //{
+        //    using (IRepository repository = new DB4Repository(@"Data Source=C:\Data\SQLCE\Test\test.sdf"))
+        //    {
+        //        var generator = new Generator4(repository);
+        //        using (var reader = new Kent.Boogaart.KBCsv.CsvReader(@"C:\Data\SQLCE\routes.csv"))
+        //        {
+        //            reader.ValueSeparator = ',';
+        //            Kent.Boogaart.KBCsv.HeaderRecord hr = reader.ReadHeaderRecord();
+        //            if (generator.ValidColumns("Routes", hr.Values))
+        //            {
+        //                foreach (Kent.Boogaart.KBCsv.DataRecord record in reader.DataRecords)
+        //                {
+        //                    generator.GenerateTableInsert("Routes", hr.Values, record.Values);
+        //                }
+        //            }
+
+        //        }
+        //        Assert.IsTrue(generator.GeneratedScript.Length == 808);
+        //    }
+        //}
+
 
 
     }
