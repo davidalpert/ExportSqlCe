@@ -19,7 +19,7 @@ using ErikEJ.SqlCeScripting;
         }
 
         private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\ams40.sdf;Max Database Size=512";
-        private const string serverConnectionString = @"data source=(local);Initial Catalog=xavier;Integrated Security=true";
+        private const string serverConnectionString = @"data source=(local);Initial Catalog=Northwind;Integrated Security=true";
         private const string chinookConnectionString = @"Data Source=C:\projects\Chinook\Chinook40.sdf;";
         
 
