@@ -49,7 +49,8 @@ GO";
 
             using (IRepository repo = new DB4Repository(chinookConnectionString))
             {
-                var ds = repo.ExecuteSql(sql);
+                string showPlan = string.Empty;
+                var ds = repo.ExecuteSql(sql, out showPlan);
                 Assert.IsTrue(ds.Tables.Count > 0);
                 Assert.IsTrue(ds.Tables[0].Rows.Count > 0);
             }

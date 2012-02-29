@@ -471,7 +471,7 @@ namespace ErikEJ.SqlCeScripting
                 cmd.Connection = cn;
                 if (checkSyntax)
                 {
-                    cmd.CommandText = "SET SHOWPLAN_XML ON";
+                    cmd.CommandText = "SET SHOWPLAN_XML ON;";
                     cmd.ExecuteNonQuery();
                 }
 
@@ -508,7 +508,7 @@ namespace ErikEJ.SqlCeScripting
                     if (obj.GetType() == typeof(System.String))
                         showPlan = (string)obj;
 
-                    cmd.CommandText = "SET SHOWPLAN_XML OFF";
+                    cmd.CommandText = "SET SHOWPLAN_XML OFF;";
                     cmd.ExecuteNonQuery();
                 }
 
@@ -520,7 +520,7 @@ namespace ErikEJ.SqlCeScripting
                     if (obj.GetType() == typeof(System.String))
                         showPlan = (string)obj;
 
-                    cmd.CommandText = "SET STATISTICS XML OFF";
+                    cmd.CommandText = "SET STATISTICS XML OFF;";
                     cmd.ExecuteNonQuery();
                 }
 
@@ -543,10 +543,12 @@ namespace ErikEJ.SqlCeScripting
                     {
                         string[] tables = new string[1];
                         tables[0] = "table" + dataSet.Tables.Count.ToString();
-                        SqlCeDataReader rdr = cmd.ExecuteReader();
-                        dataSet.Load(cmd.ExecuteReader(), LoadOption.OverwriteChanges, tables);
-                        dataSet.Tables[dataSet.Tables.Count - 1].MinimumCapacity = 0;
-                        dataSet.Tables[dataSet.Tables.Count - 1].Locale = CultureInfo.InvariantCulture;
+                        using (SqlCeDataReader rdr = cmd.ExecuteReader())
+                        {
+                            dataSet.Load(rdr, LoadOption.OverwriteChanges, tables);
+                            dataSet.Tables[dataSet.Tables.Count - 1].MinimumCapacity = 0;
+                            dataSet.Tables[dataSet.Tables.Count - 1].Locale = CultureInfo.InvariantCulture;
+                        }
                     }
                     if (execute == CommandExecute.NonQuery || execute == CommandExecute.NonQuerySchemaChanged)
                     {
