@@ -356,7 +356,7 @@ namespace ErikEJ.SqlCeScripting
 
                 // Remove the last comma and spaces
                 _sbScript.Remove(_sbScript.Length - 7, 7);
-                _sbScript.AppendFormat("  FROM [{0}]{1}", tableName, Environment.NewLine);
+                _sbScript.AppendFormat("  FROM [{0}];{1}", tableName, Environment.NewLine);
                 _sbScript.Append(_sep);
             }
         }
@@ -963,33 +963,33 @@ namespace ErikEJ.SqlCeScripting
             {
                 _sbScript.AppendLine("-- Adding as column with NOT NULL is not allowed, set a default value or allow NULL");
             }
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] ADD {1}{2}", column.TableName, GenerateColumLine(false, column, _batchForAzure), Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ADD {1};{2}", column.TableName, GenerateColumLine(false, column, _batchForAzure), Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
         public void GenerateColumnDropScript(Column column)
         {
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP COLUMN [{1}]{2}", column.TableName, column.ColumnName, Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP COLUMN [{1}];{2}", column.TableName, column.ColumnName, Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
         public void GenerateColumnAlterScript(Column column)
         {
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN {1}{2}", column.TableName, GenerateColumLine(false, column, _batchForAzure), Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN {1};{2}", column.TableName, GenerateColumLine(false, column, _batchForAzure), Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
         public void GenerateColumnSetDefaultScript(Column column)
         {
             // ALTER TABLE MyCustomers ALTER COLUMN CompanyName SET DEFAULT 'A. Datum Corporation'
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN [{1}] SET DEFAULT {2}{3}", column.TableName, column.ColumnName, column.ColumnDefault, Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN [{1}] SET DEFAULT {2};{3}", column.TableName, column.ColumnName, column.ColumnDefault, Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
         public void GenerateColumnDropDefaultScript(Column column)
         {
             //ALTER TABLE MyCustomers ALTER COLUMN CompanyName DROP DEFAULT
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN [{1}] DROP DEFAULT{2}", column.TableName, column.ColumnName, Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] ALTER COLUMN [{1}] DROP DEFAULT;{2}", column.TableName, column.ColumnName, Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
@@ -997,7 +997,7 @@ namespace ErikEJ.SqlCeScripting
         public void GeneratePrimaryKeyDrop(PrimaryKey primaryKey, string tableName)
         {
             //ALTER TABLE xx DROP CONSTRAINT yy
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}]{2}", tableName, primaryKey.KeyName, Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}];{2}", tableName, primaryKey.KeyName, Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
@@ -1027,7 +1027,7 @@ namespace ErikEJ.SqlCeScripting
 
         public void GenerateForeignKeyDrop(Constraint constraint)
         {
-            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}]{2}", constraint.ConstraintTableName, constraint.ConstraintName, Environment.NewLine));
+            _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}];{2}", constraint.ConstraintTableName, constraint.ConstraintName, Environment.NewLine));
             _sbScript.Append(_sep);
         }
 
