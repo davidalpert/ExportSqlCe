@@ -4,6 +4,8 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using QuickGraph.Algorithms;
+using QuickGraph.Data;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -74,9 +76,37 @@ namespace ErikEJ.SqlCeScripting
             {
                 finalTables.Add(GetLocalName(table));
             }
-            _tableNames = finalTables;
+            if (_repository.IsServer())
+            {
+                //No special sorting for server tables for now
+                _tableNames = finalTables;                
+            }
+            else
+            {
+                var sortedTables = new List<string>();
+                var g = FillSchemaDataSet(finalTables).ToGraph();
+                foreach (var table in g.TopologicalSort())
+                {
+                    sortedTables.Add(table.TableName);
+                }
+                _tableNames = sortedTables;
+            }
         }
 
+        internal protected DataSet FillSchemaDataSet( List<string> tables)
+	    {
+            DataSet schemaDataSet = _repository.GetSchemaDataSet(tables);
+            foreach (Constraint fk in _allForeignKeys) 
+            {
+                for (int i = 0; i < fk.Columns.Count; i++)
+                {
+                    schemaDataSet.Relations.Add(fk.ConstraintName, 
+                        schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]], 
+                        schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);                    
+                }
+            }
+		    return schemaDataSet;
+	    }
 
         public string ScriptDatabaseToFile(Scope scope)
         {

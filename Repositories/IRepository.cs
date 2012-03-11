@@ -71,6 +71,13 @@ namespace ErikEJ.SqlCeScripting
         /// </summary>
         /// <returns></returns>
         List<string> GetAllSubscriptionNames();
+
+        /// <summary>
+        /// Gets a DataSet with schema information
+        /// </summary>
+        /// <param name="tables"></param>
+        /// <returns></returns>
+        DataSet GetSchemaDataSet(List<string> tables);
         
     }
 

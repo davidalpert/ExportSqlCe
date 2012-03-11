@@ -328,6 +328,11 @@ namespace ErikEJ.SqlCeScripting
             return new DataSet();
         }
 
+        public DataSet GetSchemaDataSet(List<string> tables)
+        {
+            return new DataSet();
+        }
+
         public DataSet ExecuteSql(string script, out bool schemaChanged)
         {
             schemaChanged = false;

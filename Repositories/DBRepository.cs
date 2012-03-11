@@ -417,6 +417,29 @@ namespace ErikEJ.SqlCeScripting
             return false;
         }
 
+        public DataSet GetSchemaDataSet(List<string> tables)
+        {
+            DataSet schemaSet = new DataSet();
+            SqlCeDataAdapter adapter = new SqlCeDataAdapter();
+            using (SqlCeCommand cmd = new SqlCeCommand())
+            {
+                cmd.Connection = cn;
+                foreach (var table in tables) 
+                {
+	                string strSQL = "SELECT * FROM [" + table + "] WHERE 1 = 0";
+	             
+                    SqlCeDataAdapter adapter1 = new SqlCeDataAdapter(new SqlCeCommand(strSQL, cn));
+	                adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+
+	                //Fill the table in the dataset 
+	                cmd.CommandText = strSQL;
+	                adapter.SelectCommand = cmd;
+	                adapter.Fill(schemaSet, table);
+                }
+            }
+            return schemaSet;
+        }
+
         /// <summary>
         /// Executes the SQL.
         /// </summary>

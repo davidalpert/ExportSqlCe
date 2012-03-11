@@ -136,11 +136,14 @@ namespace ExportSqlCE
 #endif
                             generator.ExcludeTables(exclusions);
                             Console.WriteLine("Generating the tables....");
+                            if (includeSchema)
+                            {
 #if V31
-                            generator.GenerateTable(false);
+                                generator.GenerateTable(false);
 #else
-                            generator.GenerateTable(includeData);
+                                generator.GenerateTable(includeData);
 #endif
+                            }
                             if (sqlAzure && includeSchema)
                             {
                                 Console.WriteLine("Generating the primary keys (SQL Azure)....");
