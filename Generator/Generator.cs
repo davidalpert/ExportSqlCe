@@ -100,9 +100,14 @@ namespace ErikEJ.SqlCeScripting
             {
                 for (int i = 0; i < fk.Columns.Count; i++)
                 {
-                    schemaDataSet.Relations.Add(fk.ConstraintName, 
-                        schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]], 
-                        schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);                    
+                    //Only add relation if both tables are included!
+                    if (tables.Contains(fk.ConstraintTableName) && tables.Contains(fk.UniqueConstraintTableName))
+                    {
+
+                        schemaDataSet.Relations.Add(fk.ConstraintName,
+                            schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
+                            schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
+                    }
                 }
             }
 		    return schemaDataSet;

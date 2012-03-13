@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCeScripting40", "SqlCeScripting40\SqlCeScripting40.csproj", "{A732FB3F-E50F-47FD-A3E7-CB6B4A3E57AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISqlCeScripting", "ISqlCeScripting.csproj", "{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}"
