@@ -81,6 +81,7 @@ GO
         [Test]
         public void TestServerDgml()
         {
+
             using (IRepository sourceRepository = new  ServerDBRepository4(serverConnectionString))
             {
                 var generator = new Generator4(sourceRepository, @"C:\temp\test2.dgml");
