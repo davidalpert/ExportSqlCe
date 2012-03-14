@@ -596,19 +596,19 @@ namespace ErikEJ.SqlCeScripting
 
         private static CommandExecute FindExecuteType(string commandText)
         {
-            //Remove initial comment line if applicable
-            if (commandText.StartsWith("--"))
-            {
-                int pos = commandText.IndexOf("\r\n", 0);
-                if (pos > 0)
-                    commandText = commandText.Substring(pos + 2);
-            }
-
             if (string.IsNullOrEmpty(commandText.Trim()))
             {
                 return CommandExecute.Undefined;
             }
             string test = commandText.Trim();
+
+            //Remove initial comment line if applicable
+            if (test.StartsWith("--"))
+            {
+                int pos = test.IndexOf("\r\n", 0);
+                if (pos > 0)
+                    test = test.Substring(pos + 2);
+            }
 
             if (test.ToUpperInvariant().StartsWith("SELECT ", StringComparison.Ordinal))
             {
