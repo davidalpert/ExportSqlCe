@@ -89,6 +89,15 @@ GO
             }
         }
 
+        [Test]
+        public void TestGraphSort()
+        {
+            using (IRepository sourceRepository = new DB4Repository(sdfConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, @"C:\temp\testAMS40.sqlce");
+                generator.ExcludeTables(new System.Collections.Generic.List<String>());
+            }
+        }
 
         [Test]
         public void TestCeDgml()

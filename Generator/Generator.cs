@@ -103,10 +103,13 @@ namespace ErikEJ.SqlCeScripting
                     //Only add relation if both tables are included!
                     if (tables.Contains(fk.ConstraintTableName) && tables.Contains(fk.UniqueConstraintTableName))
                     {
-
-                        schemaDataSet.Relations.Add(fk.ConstraintName,
-                            schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
-                            schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
+                        // No self references supported 
+                        if (fk.ConstraintTableName != fk.UniqueConstraintTableName)
+                        {
+                            schemaDataSet.Relations.Add(fk.ConstraintName,
+                                schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
+                                schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
+                        }
                     }
                 }
             }
