@@ -473,7 +473,9 @@ namespace ErikEJ.SqlCeScripting
                 int i = 0;
                 foreach (string value in values)
                 {
-                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToLowerInvariant() == fields[i].ToLowerInvariant()).Single();
+                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToLowerInvariant() == fields[i].ToLowerInvariant()).SingleOrDefault();
+                    if (column == null)
+                        throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Could not find column {0} in table {1}", fields[i].ToLowerInvariant(), tableName));
                     if (string.IsNullOrEmpty(value))
                     {
                         _sbScript.Append("null");
