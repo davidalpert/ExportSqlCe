@@ -152,7 +152,7 @@ namespace ExportSqlCE
                             if (includeData)
                             {
                                 Console.WriteLine("Generating the data....");
-                                generator.GenerateTableContent(saveImageFiles);
+                                generator.GenerateTableContent(saveImageFiles, true);
                             }
                             if (!sqlAzure && includeSchema)
                             {

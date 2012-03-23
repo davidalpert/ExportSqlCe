@@ -233,13 +233,9 @@ namespace ErikEJ.SqlCeScripting
                 "AND tab.type = 'U' AND is_ms_shipped = 0 " +
                 "AND cols.is_computed = 0 " +
                 "AND DATA_TYPE <> 'sql_variant' " +
+                "AND DATA_TYPE <> 'hierarchyid' " +
                 "ORDER BY col.TABLE_NAME, col.ORDINAL_POSITION ASC"
                 , new AddToListDelegate<Column>(AddToListColumns));
-        }
-
-        public IDataReader GetDataFromReader(string tableName)
-        {
-            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}]",tableName));
         }
 
         public DataTable GetDataFromTable(string tableName, List<Column> columns)
@@ -253,6 +249,17 @@ namespace ErikEJ.SqlCeScripting
             sb.Remove(sb.Length - 2, 2);
             string schemaName = (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
+        }
+
+        public IDataReader GetDataFromReader(string tableName, List<Column> columns)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(200);
+            foreach (Column col in columns)
+            {
+                sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName));
+            }
+            sb.Remove(sb.Length - 2, 2);
+            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
         }
         
         public List<PrimaryKey> GetAllPrimaryKeys()

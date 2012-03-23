@@ -134,11 +134,11 @@ namespace ErikEJ.SqlCeScripting
             return list;
         }
 
-        private IDataReader ExecuteDataReader(string commandText)
+        private IDataReader ExecuteDataReader(string commandText, CommandType commandType)
         {
             using (var cmd = new SqlCeCommand(commandText, cn))
             {
-                cmd.CommandType = CommandType.TableDirect;
+                cmd.CommandType = commandType;
                 return cmd.ExecuteReader();
             }
         }
@@ -269,11 +269,6 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-
-//        SELECT Publisher + ':' + PublisherDatabase + ':' + Publication as Sub FROM __sysMergeSubscriptions
-//ORDER BY Publisher + ':' + PublisherDatabase + ':' + Publication 
-
-
         /// <summary>
         /// Gets the database info.
         /// </summary>
@@ -298,16 +293,6 @@ namespace ErikEJ.SqlCeScripting
         }
 
         /// <summary>
-        /// Gets the data from reader.
-        /// </summary>
-        /// <param name="tableName">Name of the table.</param>
-        /// <returns></returns>
-        public IDataReader GetDataFromReader(string tableName)
-        {
-            return ExecuteDataReader(tableName);
-        }
-
-        /// <summary>
         /// Gets the data from table.
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
@@ -315,7 +300,6 @@ namespace ErikEJ.SqlCeScripting
         /// <returns></returns>
         public DataTable GetDataFromTable(string tableName, List<Column> columns)
         {
-            // Include the schema name, may not always be dbo!
             System.Text.StringBuilder sb = new System.Text.StringBuilder(200);
             foreach (Column col in columns)
             {
@@ -323,6 +307,17 @@ namespace ErikEJ.SqlCeScripting
             }
             sb.Remove(sb.Length - 2, 2);
             return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
+        }
+
+        public IDataReader GetDataFromReader(string tableName, List<Column> columns)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(200);
+            foreach (Column col in columns)
+            {
+                sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName));
+            }
+            sb.Remove(sb.Length - 2, 2);
+            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName), CommandType.Text);
         }
 
         /// <summary>

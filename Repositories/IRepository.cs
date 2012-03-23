@@ -10,7 +10,8 @@ namespace ErikEJ.SqlCeScripting
         List<string> GetAllTableNamesForExclusion();
         List<Column> GetColumnsFromTable();
         DataTable GetDataFromTable(string tableName, List<Column> columns);
-        IDataReader GetDataFromReader(string tableName);
+        IDataReader GetDataFromReader(string tableName, List<Column> columns);
+        //IDataReader GetDataFromReader(string tableName);
         List<PrimaryKey> GetAllPrimaryKeys();
         List<Constraint> GetAllForeignKeys();
         List<Constraint> GetAllForeignKeys(string tableName);

@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="data_out.ico" />
+    <Content Include="TestTypes.sql" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

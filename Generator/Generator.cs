@@ -204,7 +204,7 @@ namespace ErikEJ.SqlCeScripting
                 {
                     fields.Add(dt.Columns[iColumn].ColumnName);
                 }
-                string scriptPrefix = GetInsertScriptPrefix(tableName, fields);
+                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal);
 
                 for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
                 {
@@ -271,7 +271,7 @@ namespace ErikEJ.SqlCeScripting
                             _sbScript.Append(ts.ToString());
                             _sbScript.Append("'");
                         }
-                        else if (dt.Columns[iColumn].DataType == typeof(Byte[]) || dt.Columns[iColumn].DataType.Name == "SqlHierarchyId")
+                        else if (dt.Columns[iColumn].DataType == typeof(Byte[]))
                         {
                             Byte[] buffer = (Byte[])dt.Rows[iRow][iColumn];
                             if (saveImageFiles)
@@ -372,6 +372,211 @@ namespace ErikEJ.SqlCeScripting
 #endif
             }
         }
+
+        /// <summary>
+        /// Generates the content of the table.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
+        public void GenerateTableContentUsingReader(string tableName, bool saveImageFiles)
+        {
+            bool hasIdentity = _repository.HasIdentityColumn(tableName);
+            // Skip rowversion column
+            Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            using (IDataReader rdr = _repository.GetDataFromReader(tableName, columns))
+            {
+                bool firstRun = true;
+                int rowCount = 0;
+                var fields = new List<string>();
+                for (int iColumn = 0; iColumn < rdr.FieldCount; iColumn++)
+                {
+                    fields.Add(rdr.GetName(iColumn));
+                }
+                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal);
+
+                while (rdr.Read())
+                {
+                    if (firstRun)
+                    {
+#if V31
+#else
+                        if (hasIdentity)
+                        {
+                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+                            _sbScript.Append(Environment.NewLine);
+                            _sbScript.Append(_sep);
+                            firstRun = false;
+                        }
+#endif
+                    }
+                    _sbScript.Append(scriptPrefix);
+                    for (int iColumn = 0; iColumn < rdr.FieldCount; iColumn++)
+                    {
+                        //Skip rowversion column
+                        if (rowVersionOrdinal == iColumn || rdr.GetName(iColumn).StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                        if (rdr.IsDBNull(iColumn))
+                        {
+                            _sbScript.Append("null");
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(String))
+                        {
+                            _sbScript.AppendFormat("N'{0}'", rdr.GetString(iColumn).Replace("'", "''"));
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(DateTime))
+                        {
+                            // see http://msdn.microsoft.com/en-us/library/ms180878.aspx#BackwardCompatibilityforDownlevelClients
+                            Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == rdr.GetName(iColumn)).Single();
+                            DateTime date = rdr.GetDateTime(iColumn);
+                            switch (column.DateFormat)
+                            {
+                                case DateFormat.None:
+                                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                                    _sbScript.Append("{ts '");
+                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+                                    _sbScript.Append("'}");
+                                    break;
+                                case DateFormat.DateTime:
+                                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                                    _sbScript.Append("{ts '");
+                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+                                    _sbScript.Append("'}");
+                                    break;
+                                case DateFormat.Date:
+                                    _sbScript.Append("N'");
+                                    _sbScript.Append(date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                                    _sbScript.Append("'");
+                                    break;
+                                case DateFormat.DateTime2:
+                                    _sbScript.Append("N'");
+                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture));
+                                    _sbScript.Append("'");
+                                    break;
+                            }
+
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(DateTimeOffset))
+                        {
+                            DateTimeOffset dto = (DateTimeOffset)rdr.GetValue(iColumn);
+                            _sbScript.Append("N'");
+                            _sbScript.Append(dto.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", System.Globalization.CultureInfo.InvariantCulture));
+                            _sbScript.Append("'");
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(TimeSpan))
+                        {
+                            TimeSpan ts = (TimeSpan)rdr.GetValue(iColumn);
+                            _sbScript.Append("N'");
+                            _sbScript.Append(ts.ToString());
+                            _sbScript.Append("'");
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(Byte[]))
+                        {
+                            Byte[] buffer = (Byte[])rdr.GetValue(iColumn);
+                            if (saveImageFiles)
+                            {
+                                string id = Guid.NewGuid().ToString("N") + ".blob";
+                                _sbScript.AppendFormat("SqlCeCmd_LoadImage({0})", id);
+                                using (BinaryWriter bw = new BinaryWriter(File.Open(Path.Combine(Path.GetDirectoryName(_outFile), id), FileMode.Create)))
+                                {
+                                    bw.Write(buffer, 0, buffer.Length);
+                                }
+                            }
+                            else
+                            {
+                                _sbScript.Append("0x");
+                                for (int i = 0; i < buffer.Length; i++)
+                                {
+                                    _sbScript.Append(buffer[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture));
+                                }
+                            }
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(Byte) || rdr.GetFieldType(iColumn) == typeof(Int16) || rdr.GetFieldType(iColumn) == typeof(Int32) || 
+                            rdr.GetFieldType(iColumn) == typeof(Int64) || rdr.GetFieldType(iColumn) == typeof(Double) ||
+                            rdr.GetFieldType(iColumn) == typeof(Single) || rdr.GetFieldType(iColumn) == typeof(Decimal))
+                        {
+                            string intString = Convert.ToString(rdr.GetValue(iColumn), System.Globalization.CultureInfo.InvariantCulture);
+                            _sbScript.Append(intString);
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(Boolean))
+                        {
+                            bool boolVal = (Boolean)rdr.GetValue(iColumn);
+                            if (boolVal)
+                            { _sbScript.Append("1"); }
+                            else
+                            { _sbScript.Append("0"); }
+                        }
+                        else
+                        {
+                            //Decimal point globalization
+                            string value = Convert.ToString(rdr.GetValue(iColumn), System.Globalization.CultureInfo.InvariantCulture);
+                            _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
+                        }
+                        _sbScript.Append(",");
+                    }
+                    // remove trailing comma
+                    _sbScript.Remove(_sbScript.Length - 1, 1);
+
+                    _sbScript.Append(");");
+                    _sbScript.Append(Environment.NewLine);
+                    if (_batchForAzure && ((rowCount + 1) % 1000) == 0)
+                    {
+                        _sbScript.Append(_sep);
+                    }
+                    else if (!_batchForAzure)
+                    {
+                        _sbScript.Append(_sep);
+                    }
+                    // Split large output!
+                    if (_sbScript.Length > 9485760 && !string.IsNullOrEmpty(_outFile))
+                    {
+                        if (_batchForAzure)
+                        {
+                            _sbScript.Append(_sep);
+                        }
+#if V31
+#else
+                        if (hasIdentity)
+                        {
+                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
+                            _sbScript.Append(Environment.NewLine);
+                            _sbScript.Append(_sep);
+                        }
+#endif
+
+                        _fileCounter++;
+                        Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
+                        _sbScript.Remove(0, _sbScript.Length);
+#if V31
+#else
+                        if (hasIdentity)
+                        {
+                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+                            _sbScript.Append(Environment.NewLine);
+                            _sbScript.Append(_sep);
+                        }
+#endif
+                    }
+                    rowCount++;
+                }
+                if (_batchForAzure)
+                {
+                    _sbScript.Append(_sep);
+                }
+#if V31
+#else
+                if (hasIdentity)
+                {
+                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
+                    _sbScript.Append(Environment.NewLine);
+                    _sbScript.Append(_sep);
+                }
+#endif
+            }
+        }
+
 
         /// <summary>
         /// Generates the table select statement.
@@ -964,10 +1169,9 @@ namespace ErikEJ.SqlCeScripting
         }
 
 
-        private string GetInsertScriptPrefix(string tableName, List<string> fieldNames)
+        private string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal)
         {
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
-            Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             sbScriptTemplate.AppendFormat("INSERT INTO [{0}] (", tableName);
 
             StringBuilder columnNames = new StringBuilder();
@@ -1339,6 +1543,21 @@ namespace ErikEJ.SqlCeScripting
             return line;
         }
 
+        internal void GenerateTableContent(bool saveImageFiles, bool useReader)
+        {
+            foreach (string tableName in _tableNames)
+            {
+                if (useReader)
+                {
+                    GenerateTableContentUsingReader(tableName, saveImageFiles);
+                }
+                else
+                {
+                    GenerateTableContent(tableName, saveImageFiles);
+                }
+            }
+        }
+
         internal void GenerateTableContent(bool saveImageFiles)
         {
             foreach (string tableName in _tableNames)
@@ -1346,7 +1565,6 @@ namespace ErikEJ.SqlCeScripting
                 GenerateTableContent(tableName, saveImageFiles);
             }
         }
-
 
     }
 }
