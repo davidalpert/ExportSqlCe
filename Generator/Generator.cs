@@ -1293,7 +1293,7 @@ namespace ErikEJ.SqlCeScripting
             }
             if (includeData)
             {
-                GenerateTableContent(saveImages);
+                GenerateTableContent(saveImages, true);
             }
             if (!_batchForAzure)
             {
