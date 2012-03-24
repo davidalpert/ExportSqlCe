@@ -230,6 +230,9 @@ namespace ErikEJ.SqlCeScripting
                             // see http://msdn.microsoft.com/en-us/library/ms180878.aspx#BackwardCompatibilityforDownlevelClients
                             Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == dt.Columns[iColumn].ColumnName).Single();
                             DateTime date = (DateTime)dt.Rows[iRow][iColumn];
+                            DateFormat format = column.DateFormat;
+                            //Work item: 17681 - forcing Date and DateTime2 to be DateFormat.DateTime until anyone complaints
+                            format = DateFormat.DateTime;
                             switch (column.DateFormat)
                             {
                                 case DateFormat.None:

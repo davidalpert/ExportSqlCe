@@ -186,11 +186,14 @@ namespace ErikEJ.SqlCeScripting
                 case "hierarchyid":
                     return "image";
 
+                // Work item 17681 - forcing potential data loss for now         
+                case "datetime2":
+                case "date":
+                    return "datetime";
+
                 //Fallthrough
                 case "time":
-                case "datetime2":
                 case "datetimeoffset":
-                case "date":
                     return "nvarchar";
 
                 default:
