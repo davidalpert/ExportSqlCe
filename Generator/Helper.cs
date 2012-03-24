@@ -63,31 +63,7 @@ namespace ErikEJ.SqlCeScripting
             return connectionString.Replace(string.Format(System.Globalization.CultureInfo.InvariantCulture, ";Timeout = \"{0}\"", timeout), string.Empty);
         }
 
-        //public static string ScriptDatabaseToFile(string fileName, Scope scope, IRepository repository)
-        //{
-        //    Helper.FinalFiles = fileName;
-        //    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-        //    sw.Start();
-        //    var generator = new Generator(repository, fileName);
-        //    switch (scope)
-        //    {
-        //        case Scope.Schema:
-        //            generator.GenerateAllAndSave(false, false);
-        //            break;
-        //        case Scope.SchemaData:
-        //            generator.GenerateAllAndSave(true, false);
-        //            break;
-        //        case Scope.SchemaDataBlobs:
-        //            generator.GenerateAllAndSave(true, true);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    sw.Stop();
-        //    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString(System.Globalization.CultureInfo.CurrentCulture));
-        //}
-
-        internal static string CheckDataType(string dataType, Column col, bool refToIdentity)
+        internal static string CheckDataType(string dataType, Column col, bool refToIdentity, bool preserveDateAndDateTime2)
         {
             switch (dataType)
             {
@@ -186,11 +162,17 @@ namespace ErikEJ.SqlCeScripting
                 case "hierarchyid":
                     return "image";
 
-                // Work item 17681 - forcing potential data loss for now         
+                // Work item 17681         
                 case "datetime2":
                 case "date":
-                    return "datetime";
-
+                    if (preserveDateAndDateTime2)
+                    {
+                        return "nvarchar";
+                    }
+                    else
+                    {
+                        return "datetime";
+                    }
                 //Fallthrough
                 case "time":
                 case "datetimeoffset":

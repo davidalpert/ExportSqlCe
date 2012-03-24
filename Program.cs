@@ -130,9 +130,9 @@ namespace ExportSqlCE
 
                             Helper.FinalFiles = outputFileLocation;
 #if V40
-                            var generator = new Generator4(repository, outputFileLocation, sqlAzure);
+                            var generator = new Generator4(repository, outputFileLocation, sqlAzure, false);
 #else
-                            var generator = new Generator(repository, outputFileLocation, sqlAzure);
+                            var generator = new Generator(repository, outputFileLocation, sqlAzure, false);
 #endif
                             generator.ExcludeTables(exclusions);
                             Console.WriteLine("Generating the tables....");

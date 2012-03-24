@@ -8,7 +8,7 @@ namespace ExportSqlCE
     {
         static int Main(string[] args)
         {
-            if (args.Length < 2 || args.Length > 5)
+            if (args.Length < 2 || args.Length > 6)
             {
                 PrintUsageGuide();
                 return 2;
@@ -22,6 +22,7 @@ namespace ExportSqlCE
 
                     bool includeData = true;
                     bool saveImageFiles = false;
+                    bool preserveDateAndDateTime2 = false;
                     System.Collections.Generic.List<string> exclusions = new System.Collections.Generic.List<string>();
 
                     for (int i = 2; i < args.Length; i++)
@@ -30,17 +31,20 @@ namespace ExportSqlCE
                             includeData = false;
                         if (args[i].StartsWith("saveimages"))
                             saveImageFiles = true;
+                        if (args[i].StartsWith("preservedateanddatetime2"))
+                            preserveDateAndDateTime2 = true;
                         if (args[i].StartsWith("exclude:"))
                             ParseExclusions(exclusions, args[i]);
                     }
+
 
                     using (IRepository repository = new ServerDBRepository(connectionString))
                     {
                         Helper.FinalFiles = outputFileLocation;
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
-                        var generator = new Generator(repository, outputFileLocation);
-                        
+                        var generator = new Generator(repository, outputFileLocation, false, preserveDateAndDateTime2);
+
                         generator.ExcludeTables(exclusions);
 
                         // The execution below has to be in this sequence
@@ -49,7 +53,7 @@ namespace ExportSqlCE
                         if (includeData)
                         {
                             Console.WriteLine("Generating the data....");
-                            generator.GenerateTableContent(saveImageFiles, false);
+                            generator.GenerateTableContent(saveImageFiles, true);
                         }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
@@ -115,8 +119,8 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[saveimages]]");
-            Console.WriteLine(" (exclude, schemaonly and saveimages are optional parameters)");
+            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[saveimages]] [[preservedateanddatetime2]]");
+            Console.WriteLine(" (exclude, schemaonly, saveimages and preservedateanddatetime2 are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
