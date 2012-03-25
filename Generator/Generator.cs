@@ -179,212 +179,212 @@ namespace ErikEJ.SqlCeScripting
             get { return _sbScript.ToString(); }
         }
 
+//        /// <summary>
+//        /// Generates the content of the table.
+//        /// </summary>
+//        /// <param name="tableName">Name of the table.</param>
+//        /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
+//        public void GenerateTableContent(string tableName, bool saveImageFiles)
+//        {
+//            // Skip rowversion column
+//            Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
+//            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+//            using (DataTable dt = _repository.GetDataFromTable(tableName, columns))
+//            {
+//                bool hasIdentity = _repository.HasIdentityColumn(tableName);
+//#if V31
+//#else
+//                if (hasIdentity && dt.Rows.Count > 0)
+//                {
+//                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+//                    _sbScript.Append(Environment.NewLine);
+//                    _sbScript.Append(_sep);
+//                }
+//#endif
+//                var fields = new List<string>();
+//                for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
+//                {
+//                    fields.Add(dt.Columns[iColumn].ColumnName);
+//                }
+//                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal);
+
+//                for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
+//                {
+//                    _sbScript.Append(scriptPrefix);
+//                    for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
+//                    {
+
+//                        //Skip rowversion column
+//                        if (rowVersionOrdinal == iColumn || dt.Columns[iColumn].ColumnName.StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
+//                        {
+//                            continue;
+//                        }
+//                        if (dt.Rows[iRow][iColumn] == DBNull.Value)
+//                        {
+//                            _sbScript.Append("null");
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(String))
+//                        {
+//                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''"));
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(DateTime))
+//                        {
+//                            // see http://msdn.microsoft.com/en-us/library/ms180878.aspx#BackwardCompatibilityforDownlevelClients
+//                            Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == dt.Columns[iColumn].ColumnName).Single();
+//                            DateTime date = (DateTime)dt.Rows[iRow][iColumn];
+//                            DateFormat format = column.DateFormat;
+//                            //Work item: 17681
+//                            if (!_preserveDateAndDateTime2)
+//                                format = DateFormat.DateTime;
+//                            switch (format)
+//                            {
+//                                case DateFormat.None:
+//                                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+//                                    _sbScript.Append("{ts '");
+//                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+//                                    _sbScript.Append("'}");
+//                                    break;
+//                                case DateFormat.DateTime:
+//                                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+//                                    _sbScript.Append("{ts '");
+//                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+//                                    _sbScript.Append("'}");
+//                                    break;
+//                                case DateFormat.Date:
+//                                    _sbScript.Append("N'");
+//                                    _sbScript.Append(date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+//                                    _sbScript.Append("'");
+//                                    break;
+//                                case DateFormat.DateTime2:
+//                                    _sbScript.Append("N'");
+//                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture));
+//                                    _sbScript.Append("'");
+//                                    break;
+//                            }
+
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(DateTimeOffset))
+//                        {
+//                            DateTimeOffset dto = (DateTimeOffset)dt.Rows[iRow][iColumn];
+//                            _sbScript.Append("N'");
+//                            _sbScript.Append(dto.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", System.Globalization.CultureInfo.InvariantCulture));
+//                            _sbScript.Append("'");
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(TimeSpan))
+//                        {
+//                            TimeSpan ts = (TimeSpan)dt.Rows[iRow][iColumn];
+//                            _sbScript.Append("N'");
+//                            _sbScript.Append(ts.ToString());
+//                            _sbScript.Append("'");
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(Byte[]))
+//                        {
+//                            Byte[] buffer = (Byte[])dt.Rows[iRow][iColumn];
+//                            if (saveImageFiles)
+//                            {
+//                                string id = Guid.NewGuid().ToString("N") + ".blob";
+//                                _sbScript.AppendFormat("SqlCeCmd_LoadImage({0})", id);
+//                                using (BinaryWriter bw = new BinaryWriter(File.Open(Path.Combine(Path.GetDirectoryName(_outFile), id), FileMode.Create)))
+//                                {
+//                                    bw.Write(buffer, 0, buffer.Length);
+//                                }
+//                            }
+//                            else
+//                            {
+//                                _sbScript.Append("0x");
+//                                for (int i = 0; i < buffer.Length; i++)
+//                                {
+//                                    _sbScript.Append(buffer[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture));
+//                                }
+//                            }
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(Byte) || dt.Columns[iColumn].DataType == typeof(Int16) || dt.Columns[iColumn].DataType == typeof(Int32) || dt.Columns[iColumn].DataType == typeof(Int64) || dt.Columns[iColumn].DataType == typeof(Double) || dt.Columns[iColumn].DataType == typeof(Single) || dt.Columns[iColumn].DataType == typeof(Decimal))
+//                        {
+//                            string intString = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
+//                            _sbScript.Append(intString);
+//                        }
+//                        else if (dt.Columns[iColumn].DataType == typeof(Boolean))
+//                        {
+//                            bool boolVal = (Boolean)dt.Rows[iRow][iColumn];
+//                            if (boolVal)
+//                            { _sbScript.Append("1"); }
+//                            else
+//                            { _sbScript.Append("0"); }
+//                        }
+//                        else
+//                        {
+//                            //Decimal point globalization
+//                            string value = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
+//                            _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
+//                        }
+//                        _sbScript.Append(",");
+//                    }
+//                    // remove trailing comma
+//                    _sbScript.Remove(_sbScript.Length - 1, 1);
+
+//                    _sbScript.Append(");");
+//                    _sbScript.Append(Environment.NewLine);
+//                    if (_batchForAzure && ((iRow + 1) % 1000) == 0) 
+//                    {
+//                        _sbScript.Append(_sep);
+//                    }
+//                    else if (!_batchForAzure)
+//                    {
+//                        _sbScript.Append(_sep);
+//                    }
+//                    // Split large output!
+//                    if (_sbScript.Length > 9485760 && !string.IsNullOrEmpty(_outFile))
+//                    {
+//                        if (_batchForAzure)
+//                        {
+//                            _sbScript.Append(_sep);
+//                        }
+//#if V31
+//#else
+//                        if (hasIdentity && dt.Rows.Count > 0)
+//                        {
+//                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
+//                            _sbScript.Append(Environment.NewLine);
+//                            _sbScript.Append(_sep);
+//                        }
+//#endif
+
+//                        _fileCounter++;
+//                        Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
+//                        _sbScript.Remove(0, _sbScript.Length);
+//#if V31
+//#else
+//                        if (hasIdentity && dt.Rows.Count > 0)
+//                        {
+//                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+//                            _sbScript.Append(Environment.NewLine);
+//                            _sbScript.Append(_sep);
+//                        }
+//#endif
+//                    }
+//                }
+//                if (_batchForAzure)
+//                {
+//                    _sbScript.Append(_sep);
+//                }
+//#if V31
+//#else
+//                if (hasIdentity && dt.Rows.Count > 0)
+//                {
+//                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
+//                    _sbScript.Append(Environment.NewLine);
+//                    _sbScript.Append(_sep);
+//                }
+//#endif
+//            }
+//        }
+
         /// <summary>
         /// Generates the content of the table.
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
         public void GenerateTableContent(string tableName, bool saveImageFiles)
-        {
-            // Skip rowversion column
-            Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
-            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
-            using (DataTable dt = _repository.GetDataFromTable(tableName, columns))
-            {
-                bool hasIdentity = _repository.HasIdentityColumn(tableName);
-#if V31
-#else
-                if (hasIdentity && dt.Rows.Count > 0)
-                {
-                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
-                    _sbScript.Append(Environment.NewLine);
-                    _sbScript.Append(_sep);
-                }
-#endif
-                var fields = new List<string>();
-                for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
-                {
-                    fields.Add(dt.Columns[iColumn].ColumnName);
-                }
-                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal);
-
-                for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
-                {
-                    _sbScript.Append(scriptPrefix);
-                    for (int iColumn = 0; iColumn < dt.Columns.Count; iColumn++)
-                    {
-
-                        //Skip rowversion column
-                        if (rowVersionOrdinal == iColumn || dt.Columns[iColumn].ColumnName.StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-                        if (dt.Rows[iRow][iColumn] == DBNull.Value)
-                        {
-                            _sbScript.Append("null");
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(String))
-                        {
-                            _sbScript.AppendFormat("N'{0}'", dt.Rows[iRow][iColumn].ToString().Replace("'", "''"));
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(DateTime))
-                        {
-                            // see http://msdn.microsoft.com/en-us/library/ms180878.aspx#BackwardCompatibilityforDownlevelClients
-                            Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName == dt.Columns[iColumn].ColumnName).Single();
-                            DateTime date = (DateTime)dt.Rows[iRow][iColumn];
-                            DateFormat format = column.DateFormat;
-                            //Work item: 17681
-                            if (!_preserveDateAndDateTime2)
-                                format = DateFormat.DateTime;
-                            switch (format)
-                            {
-                                case DateFormat.None:
-                                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
-                                    _sbScript.Append("{ts '");
-                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
-                                    _sbScript.Append("'}");
-                                    break;
-                                case DateFormat.DateTime:
-                                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
-                                    _sbScript.Append("{ts '");
-                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
-                                    _sbScript.Append("'}");
-                                    break;
-                                case DateFormat.Date:
-                                    _sbScript.Append("N'");
-                                    _sbScript.Append(date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
-                                    _sbScript.Append("'");
-                                    break;
-                                case DateFormat.DateTime2:
-                                    _sbScript.Append("N'");
-                                    _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture));
-                                    _sbScript.Append("'");
-                                    break;
-                            }
-
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(DateTimeOffset))
-                        {
-                            DateTimeOffset dto = (DateTimeOffset)dt.Rows[iRow][iColumn];
-                            _sbScript.Append("N'");
-                            _sbScript.Append(dto.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", System.Globalization.CultureInfo.InvariantCulture));
-                            _sbScript.Append("'");
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(TimeSpan))
-                        {
-                            TimeSpan ts = (TimeSpan)dt.Rows[iRow][iColumn];
-                            _sbScript.Append("N'");
-                            _sbScript.Append(ts.ToString());
-                            _sbScript.Append("'");
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(Byte[]))
-                        {
-                            Byte[] buffer = (Byte[])dt.Rows[iRow][iColumn];
-                            if (saveImageFiles)
-                            {
-                                string id = Guid.NewGuid().ToString("N") + ".blob";
-                                _sbScript.AppendFormat("SqlCeCmd_LoadImage({0})", id);
-                                using (BinaryWriter bw = new BinaryWriter(File.Open(Path.Combine(Path.GetDirectoryName(_outFile), id), FileMode.Create)))
-                                {
-                                    bw.Write(buffer, 0, buffer.Length);
-                                }
-                            }
-                            else
-                            {
-                                _sbScript.Append("0x");
-                                for (int i = 0; i < buffer.Length; i++)
-                                {
-                                    _sbScript.Append(buffer[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture));
-                                }
-                            }
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(Byte) || dt.Columns[iColumn].DataType == typeof(Int16) || dt.Columns[iColumn].DataType == typeof(Int32) || dt.Columns[iColumn].DataType == typeof(Int64) || dt.Columns[iColumn].DataType == typeof(Double) || dt.Columns[iColumn].DataType == typeof(Single) || dt.Columns[iColumn].DataType == typeof(Decimal))
-                        {
-                            string intString = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
-                            _sbScript.Append(intString);
-                        }
-                        else if (dt.Columns[iColumn].DataType == typeof(Boolean))
-                        {
-                            bool boolVal = (Boolean)dt.Rows[iRow][iColumn];
-                            if (boolVal)
-                            { _sbScript.Append("1"); }
-                            else
-                            { _sbScript.Append("0"); }
-                        }
-                        else
-                        {
-                            //Decimal point globalization
-                            string value = Convert.ToString(dt.Rows[iRow][iColumn], System.Globalization.CultureInfo.InvariantCulture);
-                            _sbScript.AppendFormat("'{0}'", value.Replace("'", "''"));
-                        }
-                        _sbScript.Append(",");
-                    }
-                    // remove trailing comma
-                    _sbScript.Remove(_sbScript.Length - 1, 1);
-
-                    _sbScript.Append(");");
-                    _sbScript.Append(Environment.NewLine);
-                    if (_batchForAzure && ((iRow + 1) % 1000) == 0) 
-                    {
-                        _sbScript.Append(_sep);
-                    }
-                    else if (!_batchForAzure)
-                    {
-                        _sbScript.Append(_sep);
-                    }
-                    // Split large output!
-                    if (_sbScript.Length > 9485760 && !string.IsNullOrEmpty(_outFile))
-                    {
-                        if (_batchForAzure)
-                        {
-                            _sbScript.Append(_sep);
-                        }
-#if V31
-#else
-                        if (hasIdentity && dt.Rows.Count > 0)
-                        {
-                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
-                            _sbScript.Append(Environment.NewLine);
-                            _sbScript.Append(_sep);
-                        }
-#endif
-
-                        _fileCounter++;
-                        Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
-                        _sbScript.Remove(0, _sbScript.Length);
-#if V31
-#else
-                        if (hasIdentity && dt.Rows.Count > 0)
-                        {
-                            _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
-                            _sbScript.Append(Environment.NewLine);
-                            _sbScript.Append(_sep);
-                        }
-#endif
-                    }
-                }
-                if (_batchForAzure)
-                {
-                    _sbScript.Append(_sep);
-                }
-#if V31
-#else
-                if (hasIdentity && dt.Rows.Count > 0)
-                {
-                    _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
-                    _sbScript.Append(Environment.NewLine);
-                    _sbScript.Append(_sep);
-                }
-#endif
-            }
-        }
-
-        /// <summary>
-        /// Generates the content of the table.
-        /// </summary>
-        /// <param name="tableName">Name of the table.</param>
-        /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
-        public void GenerateTableContentUsingReader(string tableName, bool saveImageFiles)
         {
             bool hasIdentity = _repository.HasIdentityColumn(tableName);
             // Skip rowversion column
@@ -1303,7 +1303,7 @@ namespace ErikEJ.SqlCeScripting
             }
             if (includeData)
             {
-                GenerateTableContent(saveImages, true);
+                GenerateTableContent(saveImages);
             }
             if (!_batchForAzure)
             {
@@ -1551,21 +1551,6 @@ namespace ErikEJ.SqlCeScripting
                     break;
             }
             return line;
-        }
-
-        internal void GenerateTableContent(bool saveImageFiles, bool useReader)
-        {
-            foreach (string tableName in _tableNames)
-            {
-                if (useReader)
-                {
-                    GenerateTableContentUsingReader(tableName, saveImageFiles);
-                }
-                else
-                {
-                    GenerateTableContent(tableName, saveImageFiles);
-                }
-            }
         }
 
         internal void GenerateTableContent(bool saveImageFiles)

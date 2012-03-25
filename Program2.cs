@@ -53,7 +53,7 @@ namespace ExportSqlCE
                         if (includeData)
                         {
                             Console.WriteLine("Generating the data....");
-                            generator.GenerateTableContent(saveImageFiles, true);
+                            generator.GenerateTableContent(saveImageFiles);
                         }
                         Console.WriteLine("Generating the primary keys....");
                         generator.GeneratePrimaryKeys();
