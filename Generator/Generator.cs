@@ -857,13 +857,13 @@ namespace ErikEJ.SqlCeScripting
 
         public void GenerateSchemaGraph(string connectionString)
         {
-            GenerateSchemaGraph(connectionString, true);
+            GenerateSchemaGraph(connectionString, true, true);
         }
 
         /// <summary>
         /// Generates the schema graph.
         /// </summary>
-        public void GenerateSchemaGraph(string connectionString, bool includeSystemTables)
+        public void GenerateSchemaGraph(string connectionString, bool includeSystemTables, bool generateScripts)
         {
             string dgmlFile = _outFile;
             var dgmlHelper = new DgmlHelper(dgmlFile);
@@ -881,18 +881,45 @@ namespace ErikEJ.SqlCeScripting
             dgmlHelper.BeginElement("Nodes");
             var dbdesc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == null).Select(dc => dc.Description).SingleOrDefault();
             dgmlHelper.WriteNode("Database", connectionString, null, "Database", "Expanded", dbdesc);
+            
+            var _serverTableNames = _repository.GetAllTableNamesForExclusion();
+            List<string> schemas = new List<string>();
+            if (_repository.IsServer())
+            {
+                foreach (var table in _serverTableNames)
+                {
+                    string[] split = table.Split('.');
+                    if (!schemas.Contains(split[0]))
+                        schemas.Add(split[0]);
+                }
+                foreach (var schema in schemas)
+                {
+                    dgmlHelper.WriteNode(schema, schema, null, "Schema", "Expanded", null);
+                }
+            }
+            
             foreach (string table in _tableNames)
             {
                 if (!includeSystemTables && table.StartsWith("__"))
                     continue;
                 //Create individual scripts per table
-                _sbScript.Remove(0, _sbScript.Length);
-                GenerateTableScript(table);
-                string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + scriptExt);
-                File.WriteAllText(tableScriptPath, GeneratedScript);
+                if (generateScripts)
+                {
+                    _sbScript.Remove(0, _sbScript.Length);
+                    GenerateTableScript(table);
+                    string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + scriptExt);
+                    File.WriteAllText(tableScriptPath, GeneratedScript);
+                }
                 // Create Nodes
                 var desc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == table).Select(dc => dc.Description).SingleOrDefault();
-                dgmlHelper.WriteNode(table, table, table + scriptExt, "Table", "Collapsed", desc);
+                if (generateScripts)
+                {
+                    dgmlHelper.WriteNode(table, table, table + scriptExt, "Table", "Collapsed", desc);
+                }
+                else
+                {
+                    dgmlHelper.WriteNode(table, table, null, "Table", "Collapsed", desc);
+                }
                 List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
                 foreach (Column col in columns)
                 {
@@ -939,13 +966,26 @@ namespace ErikEJ.SqlCeScripting
             dgmlHelper.EndElement();
 
             dgmlHelper.BeginElement("Links");
+            foreach (var schema in schemas)
+            {
+                dgmlHelper.WriteLink("Database", schema, null, "Contains");
+            }
             foreach (string table in _tableNames)
             {
                 if (!includeSystemTables && table.StartsWith("__"))
                     continue;
-
-                dgmlHelper.WriteLink("Database", table, null, "Contains");
                 
+                if (_repository.IsServer())
+                {
+                    var tableFullName = _serverTableNames.Where(t => t.EndsWith("." + table)).First();
+                    var split = tableFullName.Split('.');
+                    dgmlHelper.WriteLink(split[0], table, null, "Contains");
+                }
+                else
+                {
+                    dgmlHelper.WriteLink("Database", table, null, "Contains");
+                }
+
                 List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
                 foreach (Column col in columns)
                 {

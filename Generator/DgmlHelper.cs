@@ -89,6 +89,24 @@ namespace ErikEJ.SqlCeScripting
             xtw.WriteEndElement();
 
             xtw.WriteStartElement("Style");
+
+            xtw.WriteAttributeString("TargetType", "Node");
+            xtw.WriteAttributeString("GroupLabel", "Schema");
+            xtw.WriteAttributeString("ValueLabel", "True");
+
+            xtw.WriteStartElement("Condition");
+            xtw.WriteAttributeString("Expression", "HasCategory('Schema')");
+            xtw.WriteEndElement();
+
+            xtw.WriteStartElement("Setter");
+            xtw.WriteAttributeString("Property", "Background");
+            xtw.WriteAttributeString("Value", "#FF7F9169");
+            xtw.WriteEndElement();
+            //Style end
+            xtw.WriteEndElement();
+
+
+            xtw.WriteStartElement("Style");
             xtw.WriteAttributeString("TargetType", "Node");
             xtw.WriteAttributeString("GroupLabel", "Field Primary");
             xtw.WriteAttributeString("ValueLabel", "True");
@@ -147,7 +165,7 @@ namespace ErikEJ.SqlCeScripting
 
             xtw.WriteStartElement("Setter");
             xtw.WriteAttributeString("Property", "Background");
-            xtw.WriteAttributeString("Value", "#FFC0C0C0");
+            xtw.WriteAttributeString("Value", "#FFC0A000");
             xtw.WriteEndElement();
             //Style end
             xtw.WriteEndElement();
