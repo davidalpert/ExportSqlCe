@@ -100,6 +100,16 @@ GO
         }
 
         [Test]
+        public void TestGraphSortServer()
+        {
+            using (IRepository sourceRepository = new ServerDBRepository4(serverConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, @"C:\temp\testAMS40.sqlce");
+                generator.ExcludeTables(new System.Collections.Generic.List<String>());
+            }
+        }
+
+        [Test]
         public void TestCeDgml()
         {
             using (IRepository sourceRepository = new DB4Repository(chinookConnectionString))

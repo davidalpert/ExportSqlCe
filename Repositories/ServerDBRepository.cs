@@ -247,8 +247,7 @@ namespace ErikEJ.SqlCeScripting
                 sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName)); 
             }
             sb.Remove(sb.Length - 2, 2);
-            string schemaName = (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
-            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), schemaName, tableName));
+            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), GetSchemaName(tableName), tableName));
         }
 
         public IDataReader GetDataFromReader(string tableName, List<Column> columns)
@@ -259,7 +258,7 @@ namespace ErikEJ.SqlCeScripting
                 sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName));
             }
             sb.Remove(sb.Length - 2, 2);
-            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), tableName));
+            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), GetSchemaName(tableName), tableName));
         }
         
         public List<PrimaryKey> GetAllPrimaryKeys()
@@ -308,13 +307,12 @@ namespace ErikEJ.SqlCeScripting
         /// <returns></returns>
         public List<Index> GetIndexesFromTable(string tableName)
         {
-            string schemaName = (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", tableName));
             return ExecuteReader(
                 "select top 4096	OBJECT_NAME(i.object_id) AS TABLE_NAME, i.name AS INDEX_NAME, 0 AS PRIMARY_KEY, " +
                 "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER " +
                 "from sys.indexes i left outer join     sys.index_columns ic on i.object_id = ic.object_id and i.index_id = ic.index_id " +
                 "left outer join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id " +
-                "where  i.is_disabled = 0 AND i.object_id = object_id('" + schemaName + "." + tableName + "') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
+                "where  i.is_disabled = 0 AND i.object_id = object_id('" + GetSchemaName(tableName) + "." + tableName + "') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
                 "AND i.type <> 3 AND c.is_computed = 0 " +
                 "order by i.name, case key_ordinal when 0 then 256 else ic.key_ordinal end"
                 , new AddToListDelegate<Index>(AddToListIndexes));
@@ -337,7 +335,30 @@ namespace ErikEJ.SqlCeScripting
 
         public DataSet GetSchemaDataSet(List<string> tables)
         {
-            return new DataSet();
+            DataSet schemaSet = new DataSet();
+            SqlDataAdapter adapter = new SqlDataAdapter();
+            using (SqlCommand cmd = new SqlCommand())
+            {
+                cmd.Connection = cn;
+                foreach (var table in tables)
+                {
+                    string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}].[{1}] WHERE 0 = 1", GetSchemaName(table), table);
+
+                    SqlDataAdapter adapter1 = new SqlDataAdapter(new SqlCommand(strSQL, cn));
+                    adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+
+                    //Fill the table in the dataset 
+                    cmd.CommandText = strSQL;
+                    adapter.SelectCommand = cmd;
+                    adapter.Fill(schemaSet, table);
+                }
+            }
+            return schemaSet;
+        }
+
+        private string GetSchemaName(string table)
+        { 
+            return (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", table));
         }
 
         public DataSet ExecuteSql(string script, out bool schemaChanged)

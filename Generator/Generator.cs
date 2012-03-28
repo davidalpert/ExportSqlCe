@@ -24,7 +24,6 @@ namespace ErikEJ.SqlCeScripting
         private StringBuilder _sbScript;
         private String _sep = "GO" + Environment.NewLine;
         private List<string> _tableNames;
-        private List<string> _serverTableNames;
         private Int32 _fileCounter = -1;
         private List<Column> _allColumns;
         private List<Constraint> _allForeignKeys;
@@ -77,26 +76,17 @@ namespace ErikEJ.SqlCeScripting
                 allTables.Remove(tableToExclude);
             }
             var finalTables = new List<string>();
-            _serverTableNames = allTables.ToList();
             foreach (string table in allTables)
             {
                 finalTables.Add(GetLocalName(table));
             }
-            if (_repository.IsServer())
+            var sortedTables = new List<string>();
+            var g = FillSchemaDataSet(finalTables).ToGraph();
+            foreach (var table in g.TopologicalSort())
             {
-                //No special sorting for server tables for now
-                _tableNames = finalTables;                
+                sortedTables.Add(table.TableName);
             }
-            else
-            {
-                var sortedTables = new List<string>();
-                var g = FillSchemaDataSet(finalTables).ToGraph();
-                foreach (var table in g.TopologicalSort())
-                {
-                    sortedTables.Add(table.TableName);
-                }
-                _tableNames = sortedTables;
-            }
+            _tableNames = sortedTables;
         }
 
         internal protected DataSet FillSchemaDataSet( List<string> tables)
@@ -112,6 +102,9 @@ namespace ErikEJ.SqlCeScripting
                         // No self references supported 
                         if (fk.ConstraintTableName != fk.UniqueConstraintTableName)
                         {
+                            fk.Columns[i] = RemoveBrackets(fk.Columns[i]);
+                            fk.UniqueColumns[i] = RemoveBrackets(fk.UniqueColumns[i]);
+
                             schemaDataSet.Relations.Add(fk.ConstraintName,
                                 schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
                                 schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
@@ -395,13 +388,7 @@ namespace ErikEJ.SqlCeScripting
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
-            string readerName = tableName;
-            if (_repository.IsServer())
-            {
-                readerName = _serverTableNames.Where(t => t.EndsWith("." + tableName)).Single();
-                readerName = readerName.Replace(".", "].[");
-            }
-            using (IDataReader rdr = _repository.GetDataFromReader(readerName, columns))
+            using (IDataReader rdr = _repository.GetDataFromReader(tableName, columns))
             {
                 bool firstRun = true;
                 int rowCount = 0;
@@ -997,15 +984,9 @@ namespace ErikEJ.SqlCeScripting
                 foreach (Constraint key in foreignKeys)
                 {
                     var col = key.Columns[0].ToString();
-                    if (col.StartsWith("["))
-                        col = col.Substring(1);
-                    if (col.EndsWith("]"))
-                        col = col.Remove(col.Length -1);
+                    col = RemoveBrackets(col);
                     var uniqueCol = key.UniqueColumns[0].ToString();
-                    if (uniqueCol.StartsWith("["))
-                        uniqueCol = uniqueCol.Substring(1);
-                    if (uniqueCol.EndsWith("]"))
-                        uniqueCol = uniqueCol.Remove(uniqueCol.Length - 1);
+                    uniqueCol = RemoveBrackets(uniqueCol);
                     string source = string.Format("{0}_{1}", table, col);
                     string target =string.Format("{0}_{1}", key.UniqueConstraintTableName, uniqueCol);
                     dgmlHelper.WriteLink(source, target, key.ConstraintName, "Foreign Key");
@@ -1497,6 +1478,15 @@ namespace ErikEJ.SqlCeScripting
                 _sbScript.AppendFormat(");{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
+        }
+
+        private string RemoveBrackets(string columnName)
+        {
+            if (columnName.StartsWith("["))
+                columnName = columnName.Substring(1);
+            if (columnName.EndsWith("]"))
+                columnName = columnName.Remove(columnName.Length - 1);
+            return columnName;
         }
 
         private string GetLocalName(string table)
