@@ -447,6 +447,9 @@ namespace ErikEJ.SqlCeScripting
             return ds;
         }
 
+        public void ExecuteSqlFile(string scriptPath)
+        { }
+
         public DataSet ExecuteSql(string script, out bool schemaChanged)
         {
             schemaHasChanged = false;

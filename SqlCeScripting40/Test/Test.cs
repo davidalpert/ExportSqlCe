@@ -21,7 +21,24 @@ using ErikEJ.SqlCeScripting;
         private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\ams40.sdf;Max Database Size=512";
         private const string serverConnectionString = @"data source=.\SQL2008R2;Initial Catalog=AdventureWorksLT2008R2;Integrated Security=true";
         private const string chinookConnectionString = @"Data Source=C:\projects\Chinook\Chinook40.sdf;";
-        
+        private const string migrateConnectionString = @"data source=.\SQL2008R2;Initial Catalog=MigrateTest;Integrated Security=true";
+
+
+        [Test]
+        public void TestServerMigration()
+        {
+            string path = @"C:\temp\testChinook40.sqlce";
+            using (IRepository sourceRepository = new DB4Repository(chinookConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, path);
+                generator.GenerateAllAndSave(true, false);
+            }
+            Assert.IsTrue(System.IO.File.Exists(path));
+            using (IRepository serverRepository = new ServerDBRepository4(migrateConnectionString))
+            {
+                serverRepository.ExecuteSqlFile(path);
+            }
+        }
 
         [Test]
         public void ExerciseEngineWithTable()
@@ -33,7 +50,6 @@ using ErikEJ.SqlCeScripting;
                 {
                     SqlCeDiff.CreateDiffScript(sourceRepository, targetRepository, generator, false);
                 }
-
             }
         }
 

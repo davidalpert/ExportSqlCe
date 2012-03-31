@@ -31,6 +31,13 @@ namespace ErikEJ.SqlCeScripting
         DataSet ExecuteSql(string script);
 
         /// <summary>
+        /// Runs the supplied script file
+        /// </summary>
+        /// <param name="script"></param>
+        /// <returns></returns>
+        void ExecuteSqlFile(string scriptPath);
+
+        /// <summary>
         /// Execute the supplied script, and return the Actual Execution Plan
         /// </summary>
         /// <param name="script"></param>

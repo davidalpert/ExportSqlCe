@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -380,6 +381,50 @@ namespace ErikEJ.SqlCeScripting
             return new DataSet();
         }
 
+        public void ExecuteSqlFile(string scriptPath)
+        {
+            RunCommands(scriptPath);
+        }
+
+        internal void RunCommands(string scriptPath)
+        {
+            if (!System.IO.File.Exists(scriptPath))
+                return;
+
+            using (System.IO.StreamReader sr = System.IO.File.OpenText(scriptPath))
+            {
+                using (SqlTransaction transaction = cn.BeginTransaction())
+                {
+                    StringBuilder sb = new StringBuilder(10000);
+                    while (!sr.EndOfStream)
+                    {
+                        string line = sr.ReadLine().Trim();
+                        if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
+                        {
+                            RunCommand(sb.ToString(), transaction);
+                            sb.Clear();
+                        }
+                        else
+                        {
+                            sb.Append(line);
+                            sb.Append(Environment.NewLine);
+                        }
+                    }
+                    transaction.Commit();
+                }
+            }
+        }
+
+        internal void RunCommand(string sql, SqlTransaction transaction)
+        {
+            using (SqlCommand cmd = new SqlCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.Connection = cn;
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+            }
+        }
 
         public string ParseSql(string script)
         {
