@@ -1362,7 +1362,7 @@ namespace ErikEJ.SqlCeScripting
             _repository = repository;
             _sbScript = new StringBuilder(10485760);
             _tableNames = _repository.GetAllTableNames();
-            _allColumns = _repository.GetColumnsFromTable();
+            _allColumns = _repository.GetAllColumns();
             _allForeignKeys = repository.GetAllForeignKeys();
             _allPrimaryKeys = repository.GetAllPrimaryKeys();
 

@@ -50,10 +50,10 @@ namespace ErikEJ.SqlCeScripting
             foreach (string tableName in sourceTables.Intersect(targetTables))
             {
                 // Check columns for the table: Dropped, added or changed ?
-                IEnumerable<Column> sourceColumns = from c in sourceRepository.GetColumnsFromTable()
+                IEnumerable<Column> sourceColumns = from c in sourceRepository.GetAllColumns()
                                     where c.TableName == tableName
                                     select c;
-                IEnumerable<Column> targetColumns = from c in targetRepository.GetColumnsFromTable()
+                IEnumerable<Column> targetColumns = from c in targetRepository.GetAllColumns()
                                     where c.TableName == tableName
                                     select c;
 

@@ -245,7 +245,7 @@ namespace ErikEJ.SqlCeScripting
         public List<string> GetAllTableNames()
         {
             return ExecuteReader(
-                "SELECT table_name FROM information_schema.tables WHERE TABLE_TYPE = N'TABLE'"
+                "SELECT table_name FROM information_schema.tables WHERE TABLE_TYPE <> N'SYSTEM TABLE' "
                 , new AddToListDelegate<string>(AddToListString));
         }
 
@@ -282,7 +282,7 @@ namespace ErikEJ.SqlCeScripting
         /// Gets the columns from table.
         /// </summary>
         /// <returns></returns>
-        public List<Column> GetColumnsFromTable()
+        public List<Column> GetAllColumns()
         {
             return ExecuteReader(
                 "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name, autoinc_next  " +

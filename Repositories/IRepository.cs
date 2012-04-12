@@ -8,7 +8,7 @@ namespace ErikEJ.SqlCeScripting
     {
         List<string> GetAllTableNames();
         List<string> GetAllTableNamesForExclusion();
-        List<Column> GetColumnsFromTable();
+        List<Column> GetAllColumns();
         DataTable GetDataFromTable(string tableName, List<Column> columns);
         IDataReader GetDataFromReader(string tableName, List<Column> columns);
         //IDataReader GetDataFromReader(string tableName);

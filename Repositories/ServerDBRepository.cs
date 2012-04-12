@@ -216,7 +216,7 @@ namespace ErikEJ.SqlCeScripting
             return new List<KeyValuePair<string,string>>();
         }
 
-        public List<Column> GetColumnsFromTable()
+        public List<Column> GetAllColumns()
         {
             return ExecuteReader(
                 "SELECT COLUMN_NAME, col.IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, " +
