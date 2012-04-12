@@ -14,7 +14,7 @@ namespace ErikEJ.SqlCeScripting
 #if V40
     public class DB4Repository : IRepository
 #else
-    public class DBRepository : IRepository
+    public sealed class DBRepository : IRepository
 #endif
     {
         private readonly string _connectionString;
@@ -415,21 +415,25 @@ namespace ErikEJ.SqlCeScripting
         public DataSet GetSchemaDataSet(List<string> tables)
         {
             DataSet schemaSet = new DataSet();
-            SqlCeDataAdapter adapter = new SqlCeDataAdapter();
-            using (SqlCeCommand cmd = new SqlCeCommand())
+            using (SqlCeDataAdapter adapter = new SqlCeDataAdapter())
             {
-                cmd.Connection = cn;
-                foreach (var table in tables) 
+                using (SqlCeCommand cmd = new SqlCeCommand())
                 {
-	                string strSQL = "SELECT * FROM [" + table + "] WHERE 1 = 0";
-	             
-                    SqlCeDataAdapter adapter1 = new SqlCeDataAdapter(new SqlCeCommand(strSQL, cn));
-	                adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+                    cmd.Connection = cn;
+                    foreach (var table in tables)
+                    {
+                        string strSQL = "SELECT * FROM [" + table + "] WHERE 1 = 0";
 
-	                //Fill the table in the dataset 
-	                cmd.CommandText = strSQL;
-	                adapter.SelectCommand = cmd;
-	                adapter.Fill(schemaSet, table);
+                        using (SqlCeDataAdapter adapter1 = new SqlCeDataAdapter(new SqlCeCommand(strSQL, cn)))
+                        {
+                            adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+
+                            //Fill the table in the dataset 
+                            cmd.CommandText = strSQL;
+                            adapter.SelectCommand = cmd;
+                            adapter.Fill(schemaSet, table);
+                        }
+                    }
                 }
             }
             return schemaSet;
@@ -461,9 +465,11 @@ namespace ErikEJ.SqlCeScripting
 
         public string ParseSql(string script)
         {
-            DataSet ds = new DataSet();
-            RunCommands(ds, script, true, false);
-            return showPlan;
+            using (DataSet ds = new DataSet())
+            {
+                RunCommands(ds, script, true, false);
+                return showPlan;
+            }
         }
 
         public DataSet ExecuteSql(string script, out string showPlanString)
@@ -612,7 +618,7 @@ namespace ErikEJ.SqlCeScripting
             {
                 return CommandExecute.DataTable;
             }
-            else if (test.ToLowerInvariant().StartsWith("sp_", StringComparison.Ordinal))
+            else if (test.ToUpperInvariant().StartsWith("SP_", StringComparison.Ordinal))
             {
                 return CommandExecute.DataTable;
             }

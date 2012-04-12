@@ -9,7 +9,7 @@ namespace ErikEJ.SqlCeScripting
 #if V40
     public class ServerDBRepository4 : IRepository
 #else
-    public class ServerDBRepository : IRepository
+    public sealed class ServerDBRepository : IRepository
 #endif
     {
         private readonly string _connectionString;
@@ -46,11 +46,11 @@ namespace ErikEJ.SqlCeScripting
             if (!dr.IsDBNull(8))
             {
                 var t = dr.GetString(8);
-                if (t.ToLowerInvariant().Contains("getutcdate()"))
+                if (t.ToUpperInvariant().Contains("GETUTCDATE()"))
                 {
                     t = "(GETDATE())";
                 }
-                if (t.ToLowerInvariant().Contains("newsequentialid()"))
+                if (t.ToUpperInvariant().Contains("NEWSEQUENTIALID()"))
                 {
                     t = "(NEWID())";
                 }
@@ -337,21 +337,28 @@ namespace ErikEJ.SqlCeScripting
         public DataSet GetSchemaDataSet(List<string> tables)
         {
             DataSet schemaSet = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter();
-            using (SqlCommand cmd = new SqlCommand())
+            using (SqlDataAdapter adapter = new SqlDataAdapter())
             {
-                cmd.Connection = cn;
-                foreach (var table in tables)
+                using (SqlCommand cmd = new SqlCommand())
                 {
-                    string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}].[{1}] WHERE 0 = 1", GetSchemaName(table), table);
+                    cmd.Connection = cn;
+                    foreach (var table in tables)
+                    {
+                        string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}].[{1}] WHERE 0 = 1", GetSchemaName(table), table);
 
-                    SqlDataAdapter adapter1 = new SqlDataAdapter(new SqlCommand(strSQL, cn));
-                    adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+                        using (SqlCommand command = new SqlCommand(strSQL, cn))
+                        {
+                            using (SqlDataAdapter adapter1 = new SqlDataAdapter(command))
+                            {
+                                adapter1.FillSchema(schemaSet, SchemaType.Source, table);
 
-                    //Fill the table in the dataset 
-                    cmd.CommandText = strSQL;
-                    adapter.SelectCommand = cmd;
-                    adapter.Fill(schemaSet, table);
+                                //Fill the table in the dataset 
+                                cmd.CommandText = strSQL;
+                                adapter.SelectCommand = cmd;
+                                adapter.Fill(schemaSet, table);
+                            }
+                        }
+                    }
                 }
             }
             return schemaSet;

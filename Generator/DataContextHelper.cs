@@ -120,7 +120,7 @@ namespace ErikEJ.SqlCeScripting
             return new string(a);
         }
 
-        public void FixDataContextCS(string path, string model, string nameSpace, string sdfFileName, IRepository repository)
+        public static void FixDataContextCS(string path, string model, string nameSpace, string sdfFileName, IRepository repository)
         {
             string debugWriter = @"
 public class DebugWriter : TextWriter
@@ -324,7 +324,7 @@ public class DebugWriter : TextWriter
             System.IO.File.WriteAllLines(path, dcLines.ToArray());
         }
 
-        public void FixDataContextVB(string path, string model, string nameSpace, string sdfFileName, IRepository repository)
+        public static void FixDataContextVB(string path, string model, string nameSpace, string sdfFileName, IRepository repository)
         {
             string debugWriter = @"
 #Region ""DebugWriter""
@@ -551,7 +551,7 @@ End Class
                     string[] words = dcLines[y + 1].Split(' ');
                     if (words.Count() > 3)
                     {
-                        if (tableName == string.Empty)
+                        if (string.IsNullOrEmpty(tableName))
                             tableName = words[3];
                         List<Index> indexList = repository.GetIndexesFromTable(tableName);
                         List<PrimaryKey> pkList = repository.GetAllPrimaryKeys().Where(pk => pk.TableName == tableName).ToList();
@@ -625,7 +625,7 @@ End Class
             }
         }
 
-        public Dictionary<string, string> SplitIntoMultipleFiles(string dcPath, string nameSpace, string model)
+        public static Dictionary<string, string> SplitIntoMultipleFiles(string dcPath, string nameSpace, string model)
         {
             //Fist part is the class name, second in the file contents
             Dictionary<string, string> split = new Dictionary<string, string>();
@@ -711,7 +711,7 @@ using Microsoft.Phone.Data.Linq;
                     if (parts.Count() > 3)
                     {
                         string className = parts[3];
-                        if (contextName == string.Empty && !dcLines[y].StartsWith(n + "public class DebugWriter"))
+                        if (string.IsNullOrEmpty(contextName) && !dcLines[y].StartsWith(n + "public class DebugWriter"))
                             contextName = className;
                         if (className == ":")
                             className = parts[2];
@@ -723,7 +723,7 @@ using Microsoft.Phone.Data.Linq;
                         else
                         {
                             int x = y - 1;
-                            while (dcLines[x] != string.Empty)
+                            while (!string.IsNullOrEmpty(dcLines[x]))
                             {
                                 x--;
                             }

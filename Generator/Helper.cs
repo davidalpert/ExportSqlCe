@@ -396,15 +396,15 @@ namespace ErikEJ.SqlCeScripting
             bool isServer = false;
             connectionString = connectionString.Replace(" =", "=");
             connectionString = connectionString.Replace("= ", "=");
-            if (connectionString.ToLowerInvariant().Contains("user id="))
+            if (connectionString.ToUpperInvariant().Contains("USER ID="))
                 isServer = true;
-            if (connectionString.ToLowerInvariant().Contains("uid="))
+            if (connectionString.ToUpperInvariant().Contains("UID="))
                 isServer = true;
-            if (connectionString.ToLowerInvariant().Contains("initial catalog="))
+            if (connectionString.ToUpperInvariant().Contains("INITIAL CATALOG="))
                 isServer = true;
-            if (connectionString.ToLowerInvariant().Contains("integrated security="))
+            if (connectionString.ToUpperInvariant().Contains("INTEGRATED SECURITY="))
                 isServer = true;
-            if (connectionString.ToLowerInvariant().Contains("trusted_connection="))
+            if (connectionString.ToLowerInvariant().Contains("TRUSTED_CONNECTION="))
                 isServer = true;
             if (isServer)
             {

@@ -686,7 +686,7 @@ namespace ErikEJ.SqlCeScripting
                 int i = 0;
                 foreach (string value in values)
                 {
-                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToLowerInvariant() == fields[i].ToLowerInvariant()).SingleOrDefault();
+                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToUpperInvariant() == fields[i].ToUpperInvariant()).SingleOrDefault();
                     if (column == null)
                         throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Could not find column {0} in table {1}", fields[i].ToLowerInvariant(), tableName));
                     if (string.IsNullOrEmpty(value))
@@ -777,7 +777,7 @@ namespace ErikEJ.SqlCeScripting
                     wrongColumns += col.ColumnName + " ";
                 }
             }
-            if (wrongColumns == string.Empty)
+            if (string.IsNullOrEmpty(wrongColumns))
             {
                 return true;
             }
@@ -1211,7 +1211,7 @@ namespace ErikEJ.SqlCeScripting
         }
 
 
-        private string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal)
+        private static string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal)
         {
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
             sbScriptTemplate.AppendFormat("INSERT INTO [{0}] (", tableName);
@@ -1480,7 +1480,7 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        private string RemoveBrackets(string columnName)
+        private static string RemoveBrackets(string columnName)
         {
             if (columnName.StartsWith("["))
                 columnName = columnName.Substring(1);
@@ -1489,7 +1489,7 @@ namespace ErikEJ.SqlCeScripting
             return columnName;
         }
 
-        private string GetLocalName(string table)
+        private static string GetLocalName(string table)
         {
             if (table.Contains("."))
             {

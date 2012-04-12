@@ -10,5 +10,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
+[assembly:ComVisible(false)]
 [assembly: AssemblyVersion("3.5.2.14")]
 [assembly: AssemblyFileVersion("3.5.2.14")]
