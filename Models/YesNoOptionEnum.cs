@@ -11,7 +11,8 @@
         Schema,
         SchemaData,
         SchemaDataBlobs,
-        SchemaDataAzure
+        SchemaDataAzure,
+        DataOnly
     }
 
 }

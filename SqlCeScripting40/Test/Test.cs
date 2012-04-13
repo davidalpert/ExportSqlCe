@@ -31,7 +31,7 @@ using ErikEJ.SqlCeScripting;
             using (IRepository sourceRepository = new DB4Repository(chinookConnectionString))
             {
                 var generator = new Generator4(sourceRepository, path);
-                generator.GenerateAllAndSave(true, false);
+                generator.GenerateAllAndSave(true, false, false);
             }
             Assert.IsTrue(System.IO.File.Exists(path));
             using (IRepository serverRepository = new ServerDBRepository4(migrateConnectionString))

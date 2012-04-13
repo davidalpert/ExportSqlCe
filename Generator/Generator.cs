@@ -123,18 +123,21 @@ namespace ErikEJ.SqlCeScripting
             switch (scope)
             {
                 case Scope.Schema:
-                    GenerateAllAndSave(false, false);
+                    GenerateAllAndSave(false, false, false);
                     break;
                 case Scope.SchemaData:
-                    GenerateAllAndSave(true, false);
+                    GenerateAllAndSave(true, false, false);
                     break;
                 case Scope.SchemaDataBlobs:
-                    GenerateAllAndSave(true, true);
+                    GenerateAllAndSave(true, true,false);
                     break;
                 case Scope.SchemaDataAzure:
                     _batchForAzure = true;
-                    GenerateAllAndSave(true, false);
-                    break;                    
+                    GenerateAllAndSave(true, false, false);
+                    break;
+                case Scope.DataOnly:
+                    GenerateAllAndSave(true, false, true);
+                    break;
                 default:
                     break;
             }
@@ -1326,23 +1329,30 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        internal void GenerateAllAndSave(bool includeData, bool saveImages)
+        internal void GenerateAllAndSave(bool includeData, bool saveImages, bool dataOnly)
         {
-            GenerateTable(includeData);
-            if (_batchForAzure)
+            if (dataOnly)
             {
-                GeneratePrimaryKeys();
+                GenerateTableContent(false);
             }
-            if (includeData)
+            else
             {
-                GenerateTableContent(saveImages);
+                GenerateTable(includeData);
+                if (_batchForAzure)
+                {
+                    GeneratePrimaryKeys();
+                }
+                if (includeData)
+                {
+                    GenerateTableContent(saveImages);
+                }
+                if (!_batchForAzure)
+                {
+                    GeneratePrimaryKeys();
+                }
+                GenerateIndex();
+                GenerateForeignKeys();
             }
-            if (!_batchForAzure)
-            {
-                GeneratePrimaryKeys();
-            }
-            GenerateIndex();
-            GenerateForeignKeys();
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
         }
 
