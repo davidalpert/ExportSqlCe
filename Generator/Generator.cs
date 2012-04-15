@@ -104,10 +104,12 @@ namespace ErikEJ.SqlCeScripting
                         {
                             fk.Columns[i] = RemoveBrackets(fk.Columns[i]);
                             fk.UniqueColumns[i] = RemoveBrackets(fk.UniqueColumns[i]);
-
-                            schemaDataSet.Relations.Add(fk.ConstraintName,
-                                schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
-                                schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
+                            if (!schemaDataSet.Relations.Contains(fk.ConstraintName))
+                            {
+                                schemaDataSet.Relations.Add(fk.ConstraintName,
+                                    schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
+                                    schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
+                            }
                         }
                     }
                 }

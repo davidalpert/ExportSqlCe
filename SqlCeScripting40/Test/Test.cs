@@ -19,7 +19,9 @@ using ErikEJ.SqlCeScripting;
         }
 
         private const string sdfConnectionString = @"Data Source=C:\data\sqlce\test\ams40.sdf;Max Database Size=512";
+        private const string sdfConnectionString2 = @"Data Source=C:\data\sqlce\test\PFIZER_DB40.sdf";
         private const string serverConnectionString = @"data source=.\SQL2008R2;Initial Catalog=AdventureWorksLT2008R2;Integrated Security=true";
+        private const string serverAWConnectionString = @"data source=.;Initial Catalog=AdventureWorks2012;Integrated Security=true";
         private const string chinookConnectionString = @"Data Source=C:\projects\Chinook\Chinook40.sdf;";
         private const string migrateConnectionString = @"data source=.\SQL2008R2;Initial Catalog=MigrateTest;Integrated Security=true";
 
@@ -37,6 +39,17 @@ using ErikEJ.SqlCeScripting;
             using (IRepository serverRepository = new ServerDBRepository4(migrateConnectionString))
             {
                 serverRepository.ExecuteSqlFile(path);
+            }
+        }
+
+        [Test]
+        public void TestServerExport()
+        {
+            string path = @"C:\temp\testAW2012.sqlce";
+            using (IRepository sourceRepository = new ServerDBRepository4(serverAWConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, path);
+                generator.ScriptDatabaseToFile(Scope.SchemaData);
             }
         }
 
@@ -114,6 +127,17 @@ GO
                 generator.ExcludeTables(new System.Collections.Generic.List<String>());
             }
         }
+
+        [Test]
+        public void TestGraphSortComplex()
+        {
+            using (IRepository sourceRepository = new DB4Repository(sdfConnectionString2))
+            {
+                var generator = new Generator4(sourceRepository, @"C:\temp\testPZ.sqlce");
+                generator.ExcludeTables(new System.Collections.Generic.List<String>());
+            }
+        }
+
 
         [Test]
         public void TestGraphSortServer()
