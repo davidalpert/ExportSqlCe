@@ -5,6 +5,7 @@
     using System.Data.SqlClient;
     using System.Data.SqlServerCe;
 using ErikEJ.SqlCeScripting;
+using System.Collections.Generic;
 
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ce"), TestFixture]
@@ -22,6 +23,7 @@ using ErikEJ.SqlCeScripting;
         private const string sdfConnectionString2 = @"Data Source=C:\data\sqlce\test\PFIZER_DB40.sdf";
         private const string serverConnectionString = @"data source=.\SQL2008R2;Initial Catalog=AdventureWorksLT2008R2;Integrated Security=true";
         private const string serverAWConnectionString = @"data source=.;Initial Catalog=AdventureWorks2012;Integrated Security=true";
+        private const string serverApiTestConnectionString = @"data source=.;Initial Catalog=SqlCeApiTester;Integrated Security=true";
         private const string chinookConnectionString = @"Data Source=C:\projects\Chinook\Chinook40.sdf;";
         private const string migrateConnectionString = @"data source=.\SQL2008R2;Initial Catalog=MigrateTest;Integrated Security=true";
 
@@ -52,6 +54,18 @@ using ErikEJ.SqlCeScripting;
                 generator.ScriptDatabaseToFile(Scope.SchemaData);
             }
         }
+
+        [Test]
+        public void TestServerExportDotInTable()
+        {
+            string path = @"C:\temp\API2012.sqlce";
+            using (IRepository sourceRepository = new ServerDBRepository4(serverApiTestConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, path);
+                generator.ExcludeTables(new List<string>());
+            }
+        }
+
 
         [Test]
         public void ExerciseEngineWithTable()

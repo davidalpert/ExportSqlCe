@@ -1503,15 +1503,11 @@ namespace ErikEJ.SqlCeScripting
 
         private static string GetLocalName(string table)
         {
-            if (table.Contains("."))
-            {
-                var split = table.Split('.');
-                return split[1];
-            }
-            else
-            {
-                return table;
-            }
+            int index = table.IndexOf('.');
+            if (index >= 0)
+                return (table.Substring(index + 1));
+
+            return (table);
         }
 
         private static string GenerateColumLine(bool includeData, Column col, bool azure)
