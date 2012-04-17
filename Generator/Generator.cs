@@ -1501,12 +1501,14 @@ namespace ErikEJ.SqlCeScripting
             return columnName;
         }
 
-        private static string GetLocalName(string table)
+        private string GetLocalName(string table)
         {
+            if (!_repository.IsServer())
+                return table;
+ 
             int index = table.IndexOf('.');
             if (index >= 0)
                 return (table.Substring(index + 1));
-
             return (table);
         }
 
