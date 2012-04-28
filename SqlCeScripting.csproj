@@ -94,12 +94,6 @@
     <None Include="Key.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="ISqlCeScripting.csproj">
-      <Project>{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}</Project>
-      <Name>ISqlCeScripting</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
@@ -115,6 +109,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ISqlCeScripting.csproj">
+      <Project>{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}</Project>
+      <Name>ISqlCeScripting</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

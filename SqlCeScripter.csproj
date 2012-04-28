@@ -281,16 +281,6 @@
     <None Include="Resources\saveHS.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="ISqlCeScripting.csproj">
-      <Project>{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}</Project>
-      <Name>ISqlCeScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="SqlCeScripting.csproj">
-      <Project>{09B046AF-A861-4D57-B8B4-40D9371EADB6}</Project>
-      <Name>SqlCeScripting</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
@@ -306,6 +296,16 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ISqlCeScripting.csproj">
+      <Project>{B690CB18-0DC5-4C20-AEB3-F9F4B55B4601}</Project>
+      <Name>ISqlCeScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="SqlCeScripting.csproj">
+      <Project>{09B046AF-A861-4D57-B8B4-40D9371EADB6}</Project>
+      <Name>SqlCeScripting</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

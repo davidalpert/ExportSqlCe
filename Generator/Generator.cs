@@ -94,22 +94,27 @@ namespace ErikEJ.SqlCeScripting
             DataSet schemaDataSet = _repository.GetSchemaDataSet(tables);
             foreach (Constraint fk in _allForeignKeys) 
             {
-                for (int i = 0; i < fk.Columns.Count; i++)
+                //Only add relation if both tables are included!
+                if (tables.Contains(fk.ConstraintTableName) && tables.Contains(fk.UniqueConstraintTableName))
                 {
-                    //Only add relation if both tables are included!
-                    if (tables.Contains(fk.ConstraintTableName) && tables.Contains(fk.UniqueConstraintTableName))
+                    // No self references supported 
+                    if (fk.ConstraintTableName != fk.UniqueConstraintTableName)
                     {
-                        // No self references supported 
-                        if (fk.ConstraintTableName != fk.UniqueConstraintTableName)
-                        {
+                        DataColumn[] fkColumns = new DataColumn[fk.Columns.Count];
+                        DataColumn[] uniqueColumns = new DataColumn[fk.Columns.Count];
+                        for (int i = 0; i < fk.Columns.Count; i++)
+                        {                        
                             fk.Columns[i] = RemoveBrackets(fk.Columns[i]);
                             fk.UniqueColumns[i] = RemoveBrackets(fk.UniqueColumns[i]);
-                            if (!schemaDataSet.Relations.Contains(fk.ConstraintName))
-                            {
-                                schemaDataSet.Relations.Add(fk.ConstraintName,
-                                    schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]],
-                                    schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]]);
-                            }
+                            fkColumns[i] = schemaDataSet.Tables[fk.ConstraintTableName].Columns[fk.Columns[i]];
+                            uniqueColumns[i] = schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]];
+                        }
+
+                        if (!schemaDataSet.Relations.Contains(fk.ConstraintName))
+                        {
+                            schemaDataSet.Relations.Add(fk.ConstraintName,
+                                uniqueColumns,
+                                fkColumns);
                         }
                     }
                 }

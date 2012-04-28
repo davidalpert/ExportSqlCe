@@ -24,6 +24,7 @@ using System.Collections.Generic;
         private const string serverConnectionString = @"data source=.\SQL2008R2;Initial Catalog=AdventureWorksLT2008R2;Integrated Security=true";
         private const string serverAWConnectionString = @"data source=.;Initial Catalog=AdventureWorks2012;Integrated Security=true";
         private const string serverApiTestConnectionString = @"data source=.;Initial Catalog=SqlCeApiTester;Integrated Security=true";
+        private const string BaseballTestConnectionString = @"data source=.;Initial Catalog=BaseballStats;Integrated Security=true";
         private const string chinookConnectionString = @"Data Source=C:\projects\Chinook\Chinook40.sdf;";
         private const string migrateConnectionString = @"data source=.\SQL2008R2;Initial Catalog=MigrateTest;Integrated Security=true";
 
@@ -66,6 +67,16 @@ using System.Collections.Generic;
             }
         }
 
+        [Test]
+        public void TestServerExportConstrainsIssue()
+        {
+            string path = @"C:\temp\Baseball.sqlce";
+            using (IRepository sourceRepository = new ServerDBRepository4(BaseballTestConnectionString))
+            {
+                var generator = new Generator4(sourceRepository, path);
+                generator.ExcludeTables(new List<string>());
+            }
+        }
 
         [Test]
         public void ExerciseEngineWithTable()
