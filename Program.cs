@@ -231,13 +231,15 @@ namespace ExportSqlCE
             Console.WriteLine(" ExportSQLCE.exe dgml \"Data Source=D:\\Northwind.sdf;\" C:\\temp\\northwind.dgml");
             Console.WriteLine("");
             Console.WriteLine("");
-
+#if V40
+#else
             Console.WriteLine("Usage: (To create a Windows Phone DataContext)");
             Console.WriteLine(" ExportSQLCE.exe wpdc [SQL Compact or SQL Server Connection String (source)] [output file location]");
             Console.WriteLine("Example :");
             Console.WriteLine(" ExportSQLCE.exe wpdc \"Data Source=D:\\Northwind.sdf;\" C:\\temp\\Northwind.cs");
             Console.WriteLine("");
             Console.WriteLine("");
+#endif
 
 #endif
         }
