@@ -61,15 +61,26 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        private enum SQLCEVersion
+
+        public string PathFromConnectionString(string connectionString)
         {
-            SQLCE20 = 0,
-            SQLCE30 = 1,
-            SQLCE35 = 2,
-            SQLCE40 = 3
+            SqlCeConnectionStringBuilder sb = new SqlCeConnectionStringBuilder(connectionString);
+            return sb.DataSource;
         }
 
-        private static SQLCEVersion DetermineVersion(string filename)
+#else
+        public void UpgradeTo40(string connectionString)
+        {
+            throw new NotImplementedException("Not implemented");
+        }
+
+        public string PathFromConnectionString(string connectionString)
+        { 
+            throw new NotImplementedException("Not implemented");
+        }
+#endif
+
+        public SQLCEVersion DetermineVersion(string fileName)
         {
             var versionDictionary = new System.Collections.Generic.Dictionary<int, SQLCEVersion> 
         { 
@@ -81,7 +92,7 @@ namespace ErikEJ.SqlCeScripting
             int versionLONGWORD = 0;
             try
             {
-                using (var fs = new System.IO.FileStream(filename, System.IO.FileMode.Open))
+                using (var fs = new System.IO.FileStream(fileName, System.IO.FileMode.Open))
                 {
                     fs.Seek(16, System.IO.SeekOrigin.Begin);
                     using (System.IO.BinaryReader reader = new System.IO.BinaryReader(fs))
@@ -104,25 +115,55 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        public string PathFromConnectionString(string connectionString)
+        public bool IsV40Installed()
         {
-            SqlCeConnectionStringBuilder sb = new SqlCeConnectionStringBuilder(connectionString);
-            return sb.DataSource;
+            try
+            {
+                System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                return false;
+            }
+            try
+            {
+                var factory = System.Data.Common.DbProviderFactories.GetFactory("System.Data.SqlServerCe.4.0");
+            }
+            catch (System.Configuration.ConfigurationException)
+            {
+                return false;
+            }
+            catch (System.ArgumentException)
+            {
+                return false;
+            }
+            return true;
         }
 
-#else
-        public void UpgradeTo40(string connectionString)
+        public bool IsV35Installed()
         {
-            throw new NotImplementedException("Not implemented");
+            try
+            {
+                System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                return false;
+            }
+            try
+            {
+                var factory = System.Data.Common.DbProviderFactories.GetFactory("System.Data.SqlServerCe.3.5");
+            }
+            catch (System.Configuration.ConfigurationException)
+            {
+                return false;
+            }
+            catch (System.ArgumentException)
+            {
+                return false;
+            }
+            return true;
         }
-
-        public string PathFromConnectionString(string connectionString)
-        { 
-            throw new NotImplementedException("Not implemented");
-        }
-#endif
-
-
 
     }
 }
