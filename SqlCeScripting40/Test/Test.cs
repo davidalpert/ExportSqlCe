@@ -199,7 +199,22 @@ GO
                 }
             }
         }
-        
+
+        [Test]
+        public void TestDataDiff()
+        {
+            string target = @"Data Source=C:\projects\ChinookPart2\Chinook40.sdf";
+            string source = @"Data Source=C:\projects\ChinookPart2\Chinook40.sdf";
+
+            using (IRepository sourceRepository = new DB4Repository(source))
+            {
+                var generator = new Generator4(sourceRepository);
+                using (IRepository targetRepository = new DB4Repository(target))
+                {
+                    SqlCeDiff.CreateDataDiffScript(sourceRepository, "Album", targetRepository, "Album", generator);
+                }
+            }
+        }
         
         //[Test]
         //public void TestImportBoolean()

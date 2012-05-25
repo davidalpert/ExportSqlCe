@@ -192,5 +192,66 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public static string CreateDataDiffScript(IRepository sourceRepository, string sourceTable, IRepository targetRepository, string targetTable, IGenerator generator)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            List<Column> sourceColumns = (from c in sourceRepository.GetAllColumns()
+                                                where c.TableName == sourceTable
+                                                select c).ToList();
+            List<Column> targetColumns = (from c in targetRepository.GetAllColumns()
+                                                where c.TableName == targetTable
+                                                select c).ToList();
+
+            var pkList = sourceRepository.GetAllPrimaryKeys().Where(pk => pk.TableName == sourceTable).Select(pk => pk.ColumnName).ToList();
+            if (pkList.Count < 1)
+            {
+                throw new ArgumentException("Source does not have a primary key, this is required");
+            }
+
+            if (sourceColumns.Count() != targetColumns.Count())
+            {
+                throw new ArgumentException("Source and target does not have same number of columns");
+            }
+
+            for (int i = 0; i < sourceColumns.Count() - 1; i++)
+            {
+                if (sourceColumns[i].ShortType != targetColumns[i].ShortType)
+                {
+                    throw new ArgumentException(string.Format("The columm {0} does not have the expected type {1} in the target table", sourceColumns[i].ColumnName, sourceColumns[i].ShortType));
+                }
+            }
+
+            using (var rdr = sourceRepository.GetDataFromReader(sourceTable, sourceColumns))
+            { 
+                while (rdr.Read())
+                {
+                    //Call a method in the target repository that returns a string with either INSERT or UPDATE statement
+                    //Takes 2 parameters, one Dict with primary key columns and values, one Dict with all other columns and values
+                    Dictionary<string, object> keys = new Dictionary<string, object>();
+                    Dictionary<string, object> values = new Dictionary<string, object>();
+
+                    foreach (var pk in pkList)
+                    {
+                        keys.Add(pk, rdr[pk]);
+                    }
+
+                    for (int i = 0; i < rdr.FieldCount; i++)
+                    {
+                        //Add all values other than PK values
+                        if (!pkList.Contains(rdr.GetName(i)))
+                        {
+                            values.Add(rdr.GetName(i), rdr[i]);
+                        }
+                    }
+                    //TODO Make repository call here
+
+                    sb.AppendLine("");
+                    sb.AppendLine("GO");
+                }
+            }
+            return sb.ToString();
+        }
+
     }
 }
