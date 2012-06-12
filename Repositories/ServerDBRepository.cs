@@ -448,6 +448,11 @@ namespace ErikEJ.SqlCeScripting
             return DateTime.MinValue;
         }
 
+        public int GetIdentityOrdinal(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
     }

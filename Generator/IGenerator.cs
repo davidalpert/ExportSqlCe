@@ -11,7 +11,7 @@ namespace ErikEJ.SqlCeScripting
         string ScriptDatabaseToFile(Scope scope);
         void GenerateTableScript(string tableName);
         string GenerateTableData(string tableName, bool saveImageFiles);
-        void GenerateTableContent(string tableName, bool saveImageFiles);
+        void GenerateTableContent(string tableName, bool saveImageFiles, bool ignoreIdentity = false);
         string GeneratedScript {get;}
         void GenerateTableSelect(string tableName);
         void GenerateTableInsert(string tableName);

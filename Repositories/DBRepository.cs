@@ -235,7 +235,17 @@ namespace ErikEJ.SqlCeScripting
         /// </returns>
         public bool HasIdentityColumn(string tableName)
         {
-            return (ExecuteScalar("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME = N'" + tableName + "' AND AUTOINC_SEED IS NOT NULL") != null);
+            return (GetIdentityOrdinal(tableName) > -1);
+        }
+
+        public int GetIdentityOrdinal(string tableName)
+        {
+            object value = ExecuteScalar("SELECT ordinal_position FROM information_schema.columns WHERE TABLE_NAME = N'" + tableName + "' AND AUTOINC_SEED IS NOT NULL");
+            if (value != null)
+            {
+                return (int)value - 1;
+            }
+            return -1;
         }
 
         /// <summary>

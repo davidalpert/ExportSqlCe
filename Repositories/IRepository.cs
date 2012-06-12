@@ -20,6 +20,7 @@ namespace ErikEJ.SqlCeScripting
         Boolean HasIdentityColumn(string tableName);
         Boolean IsServer();
         Int32 GetRowVersionOrdinal(string tableName);
+        Int32 GetIdentityOrdinal(string tableName);
         Int64 GetRowCount(string tableName);
         void RenameTable(string oldName, string newName);
         

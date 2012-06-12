@@ -392,9 +392,12 @@ namespace ErikEJ.SqlCeScripting
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
-        public void GenerateTableContent(string tableName, bool saveImageFiles)
+        public void GenerateTableContent(string tableName, bool saveImageFiles, bool ignoreIdentity = false)
         {
-            bool hasIdentity = _repository.HasIdentityColumn(tableName);
+            int identityOrdinal = _repository.GetIdentityOrdinal(tableName);
+            bool hasIdentity = (identityOrdinal > -1);
+            if (ignoreIdentity)
+                hasIdentity = false;
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -407,7 +410,7 @@ namespace ErikEJ.SqlCeScripting
                 {
                     fields.Add(rdr.GetName(iColumn));
                 }
-                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal);
+                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal);
 
                 while (rdr.Read())
                 {
@@ -429,6 +432,10 @@ namespace ErikEJ.SqlCeScripting
                     {
                         //Skip rowversion column
                         if (rowVersionOrdinal == iColumn || rdr.GetName(iColumn).StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                        if (ignoreIdentity && (identityOrdinal == iColumn))
                         {
                             continue;
                         }
@@ -1221,7 +1228,7 @@ namespace ErikEJ.SqlCeScripting
         }
 
 
-        private static string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal)
+        private static string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal, int identityOrdinal)
         {
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
             sbScriptTemplate.AppendFormat("INSERT INTO [{0}] (", tableName);
@@ -1230,7 +1237,7 @@ namespace ErikEJ.SqlCeScripting
             // Generate the field names first
             for (int iColumn = 0; iColumn < fieldNames.Count; iColumn++)
             {
-                if (iColumn != rowVersionOrdinal && !fieldNames[iColumn].StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
+                if (iColumn != rowVersionOrdinal && iColumn != identityOrdinal && !fieldNames[iColumn].StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
                 {
                     columnNames.AppendFormat("[{0}]{1}", fieldNames[iColumn], ",");
                 }
