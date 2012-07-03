@@ -112,9 +112,14 @@ namespace ErikEJ.SqlCeScripting
 
                         if (!schemaDataSet.Relations.Contains(fk.ConstraintName))
                         {
-                            schemaDataSet.Relations.Add(fk.ConstraintName,
-                                uniqueColumns,
-                                fkColumns);
+                            try
+                            {
+                                schemaDataSet.Relations.Add(fk.ConstraintName,
+                                    uniqueColumns,
+                                    fkColumns);
+                            }
+                            //Handle duplicacated Server foreign keys
+                            catch (ArgumentException) { }
                         }
                     }
                 }
