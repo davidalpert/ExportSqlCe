@@ -118,7 +118,7 @@ namespace ErikEJ.SqlCeScripting
                                     uniqueColumns,
                                     fkColumns);
                             }
-                            //Handle duplicacated Server foreign keys
+                            //"Handle" duplicated Server foreign keys
                             catch (ArgumentException) { }
                         }
                     }

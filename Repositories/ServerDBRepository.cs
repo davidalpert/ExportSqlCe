@@ -450,7 +450,12 @@ namespace ErikEJ.SqlCeScripting
 
         public int GetIdentityOrdinal(string tableName)
         {
-            throw new NotImplementedException();
+            object value = ExecuteScalar("SELECT TOP(1) ic.ORDINAL_POSITION FROM sys.columns INNER JOIN sys.objects ON sys.columns.object_id = sys.objects.object_id  INNER JOIN INFORMATION_SCHEMA.COLUMNS ic ON ic.TABLE_NAME = '" + tableName + "' WHERE sys.objects.name = '" + tableName + "' AND sys.objects.type = 'U' AND sys.columns.is_identity = 1");
+            if (value != null)
+            {
+                return (int)value - 1;
+            }
+            return -1;
         }
 
         #endregion
