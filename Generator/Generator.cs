@@ -79,14 +79,22 @@ namespace ErikEJ.SqlCeScripting
             foreach (string table in allTables)
             {
                 finalTables.Add(GetLocalName(table));
+                _tableNames = finalTables;
             }
-            var sortedTables = new List<string>();
-            var g = FillSchemaDataSet(finalTables).ToGraph();
-            foreach (var table in g.TopologicalSort())
+            try
             {
-                sortedTables.Add(table.TableName);
+                var sortedTables = new List<string>();
+                var g = FillSchemaDataSet(finalTables).ToGraph();
+                foreach (var table in g.TopologicalSort())
+                {
+                    sortedTables.Add(table.TableName);
+                }
+                _tableNames = sortedTables;
             }
-            _tableNames = sortedTables;
+            catch (QuickGraph.NonAcyclicGraphException)
+            {
+                _sbScript.AppendLine("-- Warning - circular reference preventing proper sorting of tables");
+            }
         }
 
         internal protected DataSet FillSchemaDataSet( List<string> tables)
