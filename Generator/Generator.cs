@@ -1340,7 +1340,6 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-
         public void GenerateForeignKeyDrop(Constraint constraint)
         {
             _sbScript.Append(string.Format("ALTER TABLE [{0}] DROP CONSTRAINT [{1}];{2}", constraint.ConstraintTableName, constraint.ConstraintName, Environment.NewLine));
@@ -1356,11 +1355,34 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        internal void GenerateIdentityResets()
+        {
+            foreach (var tableName in _tableNames)
+            {
+                GenerateIdentityReset(tableName);
+            }
+        }
+
+        public void GenerateIdentityReset(string tableName)
+        {
+            int identityOrdinal = _repository.GetIdentityOrdinal(tableName);
+            if (identityOrdinal > -1)
+            {
+                var col = _allColumns.Where(c => c.TableName == tableName && c.AutoIncrementBy > 0).SingleOrDefault();
+                if (col != null)
+                {
+                    _sbScript.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ALTER COLUMN [{1}] IDENTITY ({2},{3})", tableName, col.ColumnName, col.AutoIncrementNext, col.AutoIncrementBy));
+                    _sbScript.Append(_sep);
+                }
+            }
+        }
+
         internal void GenerateAllAndSave(bool includeData, bool saveImages, bool dataOnly)
         {
             if (dataOnly)
             {
                 GenerateTableContent(false);
+                GenerateIdentityResets();
             }
             else
             {

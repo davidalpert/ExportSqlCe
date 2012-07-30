@@ -153,6 +153,11 @@ namespace ExportSqlCE
                             {
                                 Console.WriteLine("Generating the data....");
                                 generator.GenerateTableContent(saveImageFiles);
+                                if (!includeSchema) // ie. DataOnly
+                                {
+                                    Console.WriteLine("Generating IDENTITY reset statements....");
+                                    generator.GenerateIdentityResets();
+                                }
                             }
                             if (!sqlAzure && includeSchema)
                             {
