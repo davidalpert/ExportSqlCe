@@ -410,7 +410,9 @@ namespace ErikEJ.SqlCeScripting
             int identityOrdinal = _repository.GetIdentityOrdinal(tableName);
             bool hasIdentity = (identityOrdinal > -1);
             if (ignoreIdentity)
+            {
                 hasIdentity = false;
+            }
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -423,7 +425,7 @@ namespace ErikEJ.SqlCeScripting
                 {
                     fields.Add(rdr.GetName(iColumn));
                 }
-                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal);
+                string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal, ignoreIdentity);
 
                 while (rdr.Read())
                 {
@@ -1241,15 +1243,18 @@ namespace ErikEJ.SqlCeScripting
         }
 
 
-        private static string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal, int identityOrdinal)
+        private static string GetInsertScriptPrefix(string tableName, List<string> fieldNames, int rowVersionOrdinal, int identityOrdinal, bool ignoreIdentity)
         {
+            if (!ignoreIdentity)
+                identityOrdinal = -1;
+
             StringBuilder sbScriptTemplate = new StringBuilder(1000);
             sbScriptTemplate.AppendFormat("INSERT INTO [{0}] (", tableName);
 
             StringBuilder columnNames = new StringBuilder();
             // Generate the field names first
             for (int iColumn = 0; iColumn < fieldNames.Count; iColumn++)
-            {
+            {                
                 if (iColumn != rowVersionOrdinal && iColumn != identityOrdinal && !fieldNames[iColumn].StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
                 {
                     columnNames.AppendFormat("[{0}]{1}", fieldNames[iColumn], ",");
