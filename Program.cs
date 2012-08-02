@@ -24,6 +24,7 @@ namespace ExportSqlCE
                     bool includeSchema = true;
                     bool saveImageFiles = false;
                     bool sqlAzure = false;
+                    bool sqlite = false;
                     System.Collections.Generic.List<string> exclusions = new System.Collections.Generic.List<string>();
 
                     System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -121,6 +122,8 @@ namespace ExportSqlCE
                                 saveImageFiles = true;
                             if (args[i].Contains("sqlazure"))
                                 sqlAzure = true;
+                            if (args[i].Contains("sqlite"))
+                                sqlite = true;
                             if (args[i].StartsWith("exclude:"))
                                 ParseExclusions(exclusions, args[i]);
                         }
@@ -129,10 +132,11 @@ namespace ExportSqlCE
                         {
 
                             Helper.FinalFiles = outputFileLocation;
+                            //TODO Add sqlite parameter to constructor
 #if V40
-                            var generator = new Generator4(repository, outputFileLocation, sqlAzure, false);
+                            var generator = new Generator4(repository, outputFileLocation, sqlAzure, false, sqlite);
 #else
-                            var generator = new Generator(repository, outputFileLocation, sqlAzure, false);
+                            var generator = new Generator(repository, outputFileLocation, sqlAzure, false, sqlite);
 #endif
                             generator.ExcludeTables(exclusions);
                             Console.WriteLine("Generating the tables....");
@@ -144,32 +148,45 @@ namespace ExportSqlCE
                                 generator.GenerateTable(includeData);
 #endif
                             }
-                            if (sqlAzure && includeSchema)
-                            {
-                                Console.WriteLine("Generating the primary keys (SQL Azure)....");
-                                generator.GeneratePrimaryKeys();
-                            }
-                            if (includeData)
+                            if (sqlite)
                             {
                                 Console.WriteLine("Generating the data....");
-                                generator.GenerateTableContent(saveImageFiles);
-                                if (!includeSchema) // ie. DataOnly
-                                {
-                                    Console.WriteLine("Generating IDENTITY reset statements....");
-                                    generator.GenerateIdentityResets();
-                                }
-                            }
-                            if (!sqlAzure && includeSchema)
-                            {
-                                Console.WriteLine("Generating the primary keys....");
-                                generator.GeneratePrimaryKeys();
-                            }
-                            if (includeSchema)
-                            {
+                                //TODO No GO; statement
+                                //TODO Include primary and foreign keys in CREATE TABLE statement
+                                generator.GenerateTableContent(false);
                                 Console.WriteLine("Generating the indexes....");
                                 generator.GenerateIndex();
-                                Console.WriteLine("Generating the foreign keys....");
-                                generator.GenerateForeignKeys();
+                            }
+                            else
+                            {
+
+                                if (sqlAzure && includeSchema)
+                                {
+                                    Console.WriteLine("Generating the primary keys (SQL Azure)....");
+                                    generator.GeneratePrimaryKeys();
+                                }
+                                if (includeData)
+                                {
+                                    Console.WriteLine("Generating the data....");
+                                    generator.GenerateTableContent(saveImageFiles);
+                                    if (!includeSchema) // ie. DataOnly
+                                    {
+                                        Console.WriteLine("Generating IDENTITY reset statements....");
+                                        generator.GenerateIdentityResets();
+                                    }
+                                }
+                                if (!sqlAzure && includeSchema)
+                                {
+                                    Console.WriteLine("Generating the primary keys....");
+                                    generator.GeneratePrimaryKeys();
+                                }
+                                if (includeSchema)
+                                {
+                                    Console.WriteLine("Generating the indexes....");
+                                    generator.GenerateIndex();
+                                    Console.WriteLine("Generating the foreign keys....");
+                                    generator.GenerateForeignKeys();
+                                }
                             }
                             Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
                         }
@@ -245,7 +262,12 @@ namespace ExportSqlCE
             Console.WriteLine("");
             Console.WriteLine("");
 #endif
-
+            Console.WriteLine("Usage : (To script an entire database to SQLite format)");
+            Console.WriteLine(" ExportSQLCE.exe [SQL CE Connection String] [output file location] [sqlite]");
+            Console.WriteLine("");
+            Console.WriteLine("Examples : ");
+            Console.WriteLine(" ExportSQLCE.exe \"Data Source=D:\\Northwind.sdf;\" Northwind.sql sqlite");
+            Console.WriteLine("");
 #endif
         }
     }

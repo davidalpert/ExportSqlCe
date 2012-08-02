@@ -12,7 +12,8 @@
         SchemaData,
         SchemaDataBlobs,
         SchemaDataAzure,
-        DataOnly
+        DataOnly,
+        SchemaDataSQLite
     }
 
 }
