@@ -220,6 +220,9 @@ namespace ErikEJ.SqlCeScripting
             {
                 hasIdentity = false;
             }
+            string unicodePrefix = "N";
+            if (_sqlite)
+                unicodePrefix = string.Empty;
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
@@ -240,7 +243,7 @@ namespace ErikEJ.SqlCeScripting
                     {
 #if V31
 #else
-                        if (hasIdentity)
+                        if (hasIdentity && !_sqlite)
                         {
                             _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
                             _sbScript.Append(Environment.NewLine);
@@ -267,7 +270,7 @@ namespace ErikEJ.SqlCeScripting
                         }
                         else if (rdr.GetFieldType(iColumn) == typeof(String))
                         {
-                            _sbScript.AppendFormat("N'{0}'", rdr.GetString(iColumn).Replace("'", "''"));
+                            _sbScript.AppendFormat("{0}'{1}'", unicodePrefix, rdr.GetString(iColumn).Replace("'", "''"));
                         }
                         else if (rdr.GetFieldType(iColumn) == typeof(DateTime))
                         {
@@ -287,10 +290,25 @@ namespace ErikEJ.SqlCeScripting
                                     _sbScript.Append("'}");
                                     break;
                                 case DateFormat.DateTime:
+                                    // sqlite: '2007-01-01 00:00:00'
                                     //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
-                                    _sbScript.Append("{ts '");
+                                    if (_sqlite)
+                                    {
+                                        _sbScript.Append("'");
+                                    }
+                                    else
+                                    {
+                                        _sbScript.Append("{ts '");
+                                    }
                                     _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
-                                    _sbScript.Append("'}");
+                                    if (_sqlite)
+                                    {
+                                        _sbScript.Append("'");
+                                    }
+                                    else
+                                    {
+                                        _sbScript.Append("'}");
+                                    }
                                     break;
                                 case DateFormat.Date:
                                     _sbScript.Append("N'");
@@ -333,10 +351,21 @@ namespace ErikEJ.SqlCeScripting
                             }
                             else
                             {
-                                _sbScript.Append("0x");
+                                if (_sqlite)
+                                {
+                                    _sbScript.Append("X'");
+                                }
+                                else
+                                {
+                                    _sbScript.Append("0x");
+                                }
                                 for (int i = 0; i < buffer.Length; i++)
                                 {
                                     _sbScript.Append(buffer[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture));
+                                }
+                                if (_sqlite)
+                                {
+                                    _sbScript.Append("'");
                                 }
                             }
                         }
@@ -385,7 +414,7 @@ namespace ErikEJ.SqlCeScripting
                         }
 #if V31
 #else
-                        if (hasIdentity)
+                        if (hasIdentity && !_sqlite)
                         {
                             _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
                             _sbScript.Append(Environment.NewLine);
@@ -398,7 +427,7 @@ namespace ErikEJ.SqlCeScripting
                         _sbScript.Remove(0, _sbScript.Length);
 #if V31
 #else
-                        if (hasIdentity)
+                        if (hasIdentity && !_sqlite)
                         {
                             _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
                             _sbScript.Append(Environment.NewLine);
@@ -414,7 +443,7 @@ namespace ErikEJ.SqlCeScripting
                 }
 #if V31
 #else
-                if (hasIdentity)
+                if (hasIdentity && !_sqlite)
                 {
                     _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
                     _sbScript.Append(Environment.NewLine);
@@ -582,7 +611,7 @@ namespace ErikEJ.SqlCeScripting
         public void AddIdentityInsert(string tableName)
         {
             bool hasIdentity = _repository.HasIdentityColumn(tableName);
-            if (hasIdentity)
+            if (hasIdentity && !_sqlite)
             {
                 _sbScript.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
                 _sbScript.Append(Environment.NewLine);
@@ -961,6 +990,8 @@ namespace ErikEJ.SqlCeScripting
             {
                 GenerateIndex(tableName);
             }
+            if (_sqlite)
+                _sbScript.AppendLine("COMMIT;");
         }
 
         /// <summary>
@@ -1351,6 +1382,12 @@ namespace ErikEJ.SqlCeScripting
                     _sbScript.AppendLine();
                 }
                 _sbScript.AppendLine();
+                if (_sqlite)
+                {
+                    _sbScript.AppendLine("PRAGMA foreign_keys=OFF;");
+                    _sbScript.AppendLine("BEGIN TRANSACTION;");
+                }
+
             }
         }
 
@@ -1380,7 +1417,8 @@ namespace ErikEJ.SqlCeScripting
                 foreach (Column col in columns)
                 {
                     string line = GenerateColumLine(includeData, col, _batchForAzure);
-                    _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
+                    if (!string.IsNullOrEmpty(line))
+                        _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
                 }
                 // Remove the last comma
                 _sbScript.Remove(_sbScript.Length - 2, 2);                
@@ -1422,6 +1460,10 @@ namespace ErikEJ.SqlCeScripting
         private string GenerateColumLine(bool includeData, Column col, bool azure)
         {
             string line = string.Empty;
+
+            if (_sqlite && col.DataType == "rowversion")
+                return line;
+
             switch (col.DataType)
             {
                 case "nvarchar":

@@ -145,16 +145,13 @@ namespace ExportSqlCE
 #if V31
                                 generator.GenerateTable(false);
 #else
-                                //TODO Sqlite - fix IDENTITY spec...
                                 generator.GenerateTable(includeData);
 #endif
                             }
                             if (sqlite)
                             {
                                 Console.WriteLine("Generating the data....");
-
-                                //TODO Re-enable
-                                //generator.GenerateTableContent(false);
+                                generator.GenerateTableContent(false);
                                 Console.WriteLine("Generating the indexes....");
                                 generator.GenerateIndex();
                             }
