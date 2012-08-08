@@ -30,7 +30,7 @@ namespace ErikEJ.SqlCeScripting
 
         private static string finalFiles;
 
-        public static void WriteIntoFile(string script, string fileLocation, int increment)
+        public static void WriteIntoFile(string script, string fileLocation, int increment, bool sqlite)
         {
             if (increment > -1)
             {
@@ -50,7 +50,11 @@ namespace ErikEJ.SqlCeScripting
             }
             using (FileStream fs = new FileStream(fileLocation, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
-                using (StreamWriter sw = new StreamWriter(fs, Encoding.Unicode))
+                System.Text.Encoding encoder = new System.Text.UTF8Encoding(false);
+                if (!sqlite)
+                    encoder = new System.Text.UnicodeEncoding();
+
+                using (StreamWriter sw = new StreamWriter(fs, encoder))
                 {
                     sw.WriteLine(script);
                     sw.Flush();

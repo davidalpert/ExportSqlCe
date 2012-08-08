@@ -145,15 +145,16 @@ namespace ExportSqlCE
 #if V31
                                 generator.GenerateTable(false);
 #else
+                                //TODO Sqlite - fix IDENTITY spec...
                                 generator.GenerateTable(includeData);
 #endif
                             }
                             if (sqlite)
                             {
                                 Console.WriteLine("Generating the data....");
-                                //TODO No GO; statement
-                                //TODO Include primary and foreign keys in CREATE TABLE statement
-                                generator.GenerateTableContent(false);
+
+                                //TODO Re-enable
+                                //generator.GenerateTableContent(false);
                                 Console.WriteLine("Generating the indexes....");
                                 generator.GenerateIndex();
                             }
@@ -188,7 +189,7 @@ namespace ExportSqlCE
                                     generator.GenerateForeignKeys();
                                 }
                             }
-                            Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
+                            Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter, sqlite);
                         }
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                         return 0;

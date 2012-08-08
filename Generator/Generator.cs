@@ -65,6 +65,8 @@ namespace ErikEJ.SqlCeScripting
         {
             _batchForAzure = azure;
             _sqlite = sqlite;
+            if (sqlite)
+                _sep = string.Empty;
             _preserveDateAndDateTime2 = preserveSqlDates;
             Init(repository, outFile);
         }
@@ -392,7 +394,7 @@ namespace ErikEJ.SqlCeScripting
 #endif
 
                         _fileCounter++;
-                        Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter);
+                        Helper.WriteIntoFile(_sbScript.ToString(), _outFile, _fileCounter, _sqlite);
                         _sbScript.Remove(0, _sbScript.Length);
 #if V31
 #else
@@ -855,8 +857,14 @@ namespace ErikEJ.SqlCeScripting
 
             if (primaryKeys.Count > 0)
             {
-                _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY (", tableName, primaryKeys[0].KeyName);
-
+                if (_sqlite)
+                {
+                    _sbScript.AppendFormat("{0}, CONSTRAINT [{1}] PRIMARY KEY (", Environment.NewLine, primaryKeys[0].KeyName);
+                }
+                else
+                {
+                    _sbScript.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY (", tableName, primaryKeys[0].KeyName);
+                }
                 primaryKeys.ForEach(delegate(PrimaryKey column)
                 {
                     _sbScript.AppendFormat("[{0}]", column.ColumnName);
@@ -865,8 +873,15 @@ namespace ErikEJ.SqlCeScripting
 
                 // Remove the last comma
                 _sbScript.Remove(_sbScript.Length - 1, 1);
-                _sbScript.AppendFormat(");{0}", Environment.NewLine);
-                _sbScript.Append(_sep);
+                if (!_sqlite)
+                {
+                    _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                    _sbScript.Append(_sep);
+                }
+                else
+                {
+                    _sbScript.Append(")");
+                }
             }
             else if (_batchForAzure)
             {
@@ -909,16 +924,29 @@ namespace ErikEJ.SqlCeScripting
 
             foreach (Constraint constraint in foreingKeys)
             {
-                _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
-                    , constraint.ConstraintTableName
-                    , constraint.ConstraintName
-                    , constraint.Columns.ToString()
-                    , constraint.UniqueConstraintTableName
-                    , constraint.UniqueColumns.ToString()
-                    , constraint.DeleteRule
-                    , constraint.UpdateRule
-                    , Environment.NewLine);
-                _sbScript.Append(_sep);
+                if (_sqlite)
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "{0}, FOREIGN KEY ({1}) REFERENCES [{2}] ({3}) ON DELETE {4} ON UPDATE {5}"
+                        , Environment.NewLine
+                        , constraint.Columns.ToString()
+                        , constraint.UniqueConstraintTableName
+                        , constraint.UniqueColumns.ToString()
+                        , constraint.DeleteRule
+                        , constraint.UpdateRule);
+                }
+                else
+                {
+                    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
+                        , constraint.ConstraintTableName
+                        , constraint.ConstraintName
+                        , constraint.Columns.ToString()
+                        , constraint.UniqueConstraintTableName
+                        , constraint.UniqueColumns.ToString()
+                        , constraint.DeleteRule
+                        , constraint.UpdateRule
+                        , Environment.NewLine);
+                    _sbScript.Append(_sep);
+                }
             };
 
         }
@@ -1221,7 +1249,7 @@ namespace ErikEJ.SqlCeScripting
                     GenerateForeignKeys();
                 }
             }
-            Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter);
+            Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter, _sqlite);
         }
 
         public int FileCounter
@@ -1354,11 +1382,20 @@ namespace ErikEJ.SqlCeScripting
                     string line = GenerateColumLine(includeData, col, _batchForAzure);
                     _sbScript.AppendFormat("{0}{1}, ", line.Trim(), Environment.NewLine);
                 }
-
                 // Remove the last comma
-                _sbScript.Remove(_sbScript.Length - 2, 2);
-                _sbScript.AppendFormat(");{0}", Environment.NewLine);
-                _sbScript.Append(_sep);
+                _sbScript.Remove(_sbScript.Length - 2, 2);                
+                if (!_sqlite)
+                {
+                    _sbScript.AppendFormat(");{0}", Environment.NewLine);
+                    _sbScript.Append(_sep);
+                }
+                else
+                {
+                    _sbScript.Remove(_sbScript.Length - 2, 2);
+                    GeneratePrimaryKeys(tableName);
+                    GenerateForeignKeys(tableName);
+                    _sbScript.AppendFormat("{0});{1}", Environment.NewLine, Environment.NewLine);
+                }
             }
         }
 
@@ -1382,7 +1419,7 @@ namespace ErikEJ.SqlCeScripting
             return (table);
         }
 
-        private static string GenerateColumLine(bool includeData, Column col, bool azure)
+        private string GenerateColumLine(bool includeData, Column col, bool azure)
         {
             string line = string.Empty;
             switch (col.DataType)
@@ -1443,6 +1480,13 @@ namespace ErikEJ.SqlCeScripting
                     if (col.RowGuidCol && !azure)
                     {
                         rowGuidCol = "ROWGUIDCOL";
+                    }
+                    // http://www.sqlite.org/lang_createtable.html#rowid
+                    if (_sqlite && col.AutoIncrementBy > 0)
+                    {
+                        col.DataType = "INTEGER";
+                        //Prevent scripting IDENTITY
+                        col.AutoIncrementBy = int.MinValue;
                     }
                     if (includeData)
                     {
