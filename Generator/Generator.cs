@@ -1251,6 +1251,9 @@ namespace ErikEJ.SqlCeScripting
         {
             if (_sqlite)
             {
+                _sbScript.AppendLine("SELECT 1;");
+                _sbScript.AppendLine("PRAGMA foreign_keys=OFF;");
+                _sbScript.AppendLine("BEGIN TRANSACTION;");
                 GenerateTable(true);
                 GenerateTableContent(false);
                 GenerateIndex();
