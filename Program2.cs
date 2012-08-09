@@ -62,7 +62,7 @@ namespace ExportSqlCE
                         Console.WriteLine("Generating the foreign keys....");
                         generator.GenerateForeignKeys();
 
-                        Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter);
+                        Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter, false);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                         return 0;
                     }
