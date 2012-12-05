@@ -462,7 +462,9 @@ namespace ErikEJ.SqlCeScripting
         }
 
         public void ExecuteSqlFile(string scriptPath)
-        { }
+        {
+            RunCommands(scriptPath);
+        }
 
         public DataSet ExecuteSql(string script, out bool schemaChanged)
         {
@@ -498,6 +500,46 @@ namespace ErikEJ.SqlCeScripting
             showPlanString = showPlan;
             schemaChanged = schemaHasChanged;
             return ds;
+        }
+
+        internal void RunCommands(string scriptPath)
+        {
+            if (!System.IO.File.Exists(scriptPath))
+                return;
+
+            using (System.IO.StreamReader sr = System.IO.File.OpenText(scriptPath))
+            {
+                using (SqlCeTransaction transaction = cn.BeginTransaction())
+                {
+                    StringBuilder sb = new StringBuilder(10000);
+                    while (!sr.EndOfStream)
+                    {
+                        string line = sr.ReadLine().Trim();
+                        if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
+                        {
+                            RunCommand(sb.ToString(), transaction);
+                            sb.Clear();
+                        }
+                        else
+                        {
+                            sb.Append(line);
+                            sb.Append(Environment.NewLine);
+                        }
+                    }
+                    transaction.Commit();
+                }
+            }
+        }
+
+        internal void RunCommand(string sql, SqlCeTransaction transaction)
+        {
+            using (SqlCeCommand cmd = new SqlCeCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.Connection = cn;
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+            }
         }
 
         internal void RunCommands(DataSet dataset, string script, bool checkSyntax, bool includePlan)
