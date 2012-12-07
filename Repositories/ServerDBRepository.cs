@@ -17,7 +17,7 @@ namespace ErikEJ.SqlCeScripting
         private bool _keepSchemaName = false;
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlDataReader dr);
 #if V40
-        public ServerDBRepository4(string connectionString)
+        public ServerDBRepository4(string connectionString, bool keepSchemaName = false)
 #else
         public ServerDBRepository(string connectionString, bool keepSchemaName = false)
 #endif
