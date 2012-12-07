@@ -31,6 +31,7 @@ namespace ErikEJ.SqlCeScripting
         private List<PrimaryKey> _allPrimaryKeys;
         private bool _batchForAzure = false;
         private bool _sqlite = false;
+        private bool _keepSchema = false;
         private bool _preserveDateAndDateTime2 = false;
 
 
@@ -61,11 +62,12 @@ namespace ErikEJ.SqlCeScripting
         public Generator4(IRepository repository, string outFile, bool azure, bool preserveSqlDates, bool sqlite = false)
 #else
 
-        public Generator(IRepository repository, string outFile, bool azure, bool preserveSqlDates, bool sqlite = false)
+        public Generator(IRepository repository, string outFile, bool azure, bool preserveSqlDates, bool sqlite = false, bool keepSchema = false)
 #endif
         {
             _batchForAzure = azure;
             _sqlite = sqlite;
+            _keepSchema = keepSchema;
             if (sqlite)
                 _sep = string.Empty;
             _preserveDateAndDateTime2 = preserveSqlDates;
@@ -925,23 +927,6 @@ namespace ErikEJ.SqlCeScripting
             {
                 GenerateForeignKeys(tableName);
             }
-
-            //List<Constraint> foreignKeys = _allForeignKeys;
-
-            //foreignKeys.ForEach(delegate(Constraint constraint)
-            //{
-            //    _sbScript.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "ALTER TABLE [{0}] ADD CONSTRAINT [{1}] FOREIGN KEY ({2}) REFERENCES [{3}]({4}) ON DELETE {5} ON UPDATE {6};{7}"
-            //        , constraint.ConstraintTableName
-            //        , constraint.ConstraintName
-            //        , constraint.Columns.ToString()
-            //        , constraint.UniqueConstraintTableName
-            //        , constraint.UniqueColumns.ToString()
-            //        , constraint.DeleteRule
-            //        , constraint.UpdateRule
-            //        , Environment.NewLine);
-            //    _sbScript.Append(_sep);
-            //});            
-        
         }
 
         /// <summary>
@@ -1455,7 +1440,7 @@ namespace ErikEJ.SqlCeScripting
 
         private string GetLocalName(string table)
         {
-            if (!_repository.IsServer())
+            if (!_repository.IsServer() || _keepSchema)
                 return table;
  
             int index = table.IndexOf('.');

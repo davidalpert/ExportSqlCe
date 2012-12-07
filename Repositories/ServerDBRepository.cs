@@ -14,14 +14,16 @@ namespace ErikEJ.SqlCeScripting
     {
         private readonly string _connectionString;
         private SqlConnection cn;
+        private bool _keepSchemaName = false;
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlDataReader dr);
 #if V40
         public ServerDBRepository4(string connectionString)
 #else
-        public ServerDBRepository(string connectionString)
+        public ServerDBRepository(string connectionString, bool keepSchemaName = false)
 #endif
         {
             _connectionString = connectionString;
+            _keepSchemaName = keepSchemaName;
             cn = new SqlConnection(_connectionString);
             cn.Open();
         }
@@ -40,7 +42,7 @@ namespace ErikEJ.SqlCeScripting
             list.Add(dr.GetString(0));
         }
 
-        private static void AddToListColumns(ref List<Column> list, SqlDataReader dr)
+        private void AddToListColumns(ref List<Column> list, SqlDataReader dr)
         {
             string defValue = string.Empty;
             if (!dr.IsDBNull(8))
@@ -56,6 +58,9 @@ namespace ErikEJ.SqlCeScripting
                 }
                 defValue = t;
             }
+            string table = dr.GetString(11);
+            if (_keepSchemaName)
+                table = dr.GetString(13) + "." + table;
             list.Add(new Column
             {
                 ColumnName = dr.GetString(0)
@@ -70,18 +75,26 @@ namespace ErikEJ.SqlCeScripting
                 , ColumnDefault = defValue
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
                 , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
-                , TableName = dr.GetString(11)
+                , TableName = table
             });
         }
 
-        private static void AddToListConstraints(ref List<Constraint> list, SqlDataReader dr)
+        private void AddToListConstraints(ref List<Constraint> list, SqlDataReader dr)
         {
+            string table = dr.GetString(0);
+            string uniqueTable = dr.GetString(3);
+            if (_keepSchemaName)
+            {
+                table = dr.GetString(10) + "." + table;
+                uniqueTable = dr.GetString(10) + "." + uniqueTable;
+            }
+
             list.Add(new Constraint
             {
-                ConstraintTableName = dr.GetString(0)
+                ConstraintTableName = table
                 , ConstraintName = dr.GetString(1)
                 , ColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(2))
-                , UniqueConstraintTableName = dr.GetString(3)
+                , UniqueConstraintTableName = uniqueTable
                 , UniqueConstraintName = dr.GetString(4)
                 , UniqueColumnName = string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}]", dr.GetString(5))
                 , UpdateRule = dr.GetString(6)
@@ -93,9 +106,14 @@ namespace ErikEJ.SqlCeScripting
 
         private void AddToListIndexes(ref List<Index> list, SqlDataReader dr)
         {
+            string table = dr.GetString(0);
+            if (_keepSchemaName)
+            {
+                table = dr.GetString(8);
+            }
             list.Add(new Index
             {
-                TableName = dr.GetString(0)
+                TableName = table
                 , IndexName = dr.GetString(1)
                 , Unique = dr.GetBoolean(3)
                 , Clustered = dr.GetBoolean(4)
@@ -108,11 +126,14 @@ namespace ErikEJ.SqlCeScripting
 
         private void AddToListPrimaryKeys(ref List<PrimaryKey> list, SqlDataReader dr)
         {
+            string table = dr.GetString(2);
+            if (_keepSchemaName)
+                table = dr.GetString(3) + "." + table;
             list.Add(new PrimaryKey
             {
                 ColumnName = dr.GetString(0),
                 KeyName = dr.GetString(1),
-                TableName = dr.GetString(2)
+                TableName = table
             });
         }
 
@@ -225,7 +246,8 @@ namespace ErikEJ.SqlCeScripting
                 "COLUMN_HASDEFAULT =  CASE WHEN col.COLUMN_DEFAULT IS NULL THEN CAST(0 AS bit) ELSE CAST (1 AS bit) END, COLUMN_DEFAULT, " +
                 "COLUMN_FLAGS = CASE cols.is_rowguidcol WHEN 0 THEN 0 ELSE 378 END, " +
                 "NUMERIC_SCALE, col.TABLE_NAME, " +
-                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']') + IDENT_INCR('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']') END " +
+                "AUTOINC_NEXT = CASE cols.is_identity WHEN 0 THEN 0 WHEN 1 THEN IDENT_CURRENT('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']') + IDENT_INCR('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']') END, " +
+                "col.TABLE_SCHEMA " + 
                 "FROM INFORMATION_SCHEMA.COLUMNS col  " +
                 "JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
                 "AND cols.object_id = OBJECT_ID('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']')  " +
@@ -248,7 +270,7 @@ namespace ErikEJ.SqlCeScripting
                 sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName)); 
             }
             sb.Remove(sb.Length - 2, 2);
-            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), GetSchemaName(tableName), tableName));
+            return ExecuteDataTable(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), GetSchemaAndTableName(tableName)));
         }
 
         public IDataReader GetDataFromReader(string tableName, List<Column> columns)
@@ -259,13 +281,13 @@ namespace ErikEJ.SqlCeScripting
                 sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName));
             }
             sb.Remove(sb.Length - 2, 2);
-            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}].[{2}]", sb.ToString(), GetSchemaName(tableName), tableName));
+            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), GetSchemaAndTableName(tableName)));
         }
         
         public List<PrimaryKey> GetAllPrimaryKeys()
         {
             return ExecuteReader(
-                "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME, c.TABLE_NAME " +
+                "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME, c.TABLE_NAME, c.CONSTRAINT_SCHEMA " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
                 "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME AND u.TABLE_NAME = c.TABLE_NAME " +
                 "where c.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY u.TABLE_NAME, c.CONSTRAINT_NAME, u.ORDINAL_POSITION"
@@ -278,7 +300,8 @@ namespace ErikEJ.SqlCeScripting
                 "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
                 "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME,  " +
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME,  " +
-                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1  " +
+                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
+                " OBJECT_SCHEMA_NAME(f.parent_object_id) " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id  " +
                 "INNER JOIN sys.tables tab ON tab.name = OBJECT_NAME(f.referenced_object_id) " +
                 "WHERE is_disabled = 0  " +
@@ -290,15 +313,35 @@ namespace ErikEJ.SqlCeScripting
 
         public List<Constraint> GetAllForeignKeys(string tableName)
         {
-            var list = ExecuteReader(
-                "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
-                "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
-                "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
-                "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1 " +
-                "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
-                , new AddToListDelegate<Constraint>(AddToListConstraints));
+            var list = new List<Constraint>();
+
+            if (_keepSchemaName)
+            {
+                string[] parts = tableName.Split('.');
+                list = ExecuteReader(
+                    "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
+                    "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
+                    "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
+                    "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
+                    " OBJECT_SCHEMA_NAME(f.parent_object_id) " +
+                    "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
+                    "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + parts[1] + "'" +
+                    "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
+                    , new AddToListDelegate<Constraint>(AddToListConstraints));                        
+            }
+            else
+            {
+                list = ExecuteReader(
+                    "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
+                    "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
+                    "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
+                    "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
+                    " OBJECT_SCHEMA_NAME(f.parent_object_id) " +
+                    "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
+                    "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
+                    "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
+                    , new AddToListDelegate<Constraint>(AddToListConstraints));
+            }
             return Helper.GetGroupForeingKeys(list, GetAllTableNames());
         }
 
@@ -310,10 +353,10 @@ namespace ErikEJ.SqlCeScripting
         {
             return ExecuteReader(
                 "select top 4096	OBJECT_NAME(i.object_id) AS TABLE_NAME, i.name AS INDEX_NAME, 0 AS PRIMARY_KEY, " +
-                "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER " +
+                "i.is_unique AS [UNIQUE], CAST(0 AS bit) AS [CLUSTERED], CAST(ic.key_ordinal AS int) AS ORDINAL_POSITION, c.name AS COLUMN_NAME, ic.is_descending_key AS SORT_ORDER, '" + tableName + "' AS original " +
                 "from sys.indexes i left outer join     sys.index_columns ic on i.object_id = ic.object_id and i.index_id = ic.index_id " +
                 "left outer join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id " +
-                "where  i.is_disabled = 0 AND i.object_id = object_id('" + GetSchemaName(tableName) + "." + tableName + "') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
+                "where  i.is_disabled = 0 AND i.object_id = object_id('[" + GetSchemaAndTableName(tableName) + "]') AND i.name IS NOT NULL AND i.is_primary_key = 0  AND ic.is_included_column  = 0 " +
                 "AND i.type <> 3 AND c.is_computed = 0 " +
                 "order by i.name, case key_ordinal when 0 then 256 else ic.key_ordinal end"
                 , new AddToListDelegate<Index>(AddToListIndexes));
@@ -344,7 +387,7 @@ namespace ErikEJ.SqlCeScripting
                     cmd.Connection = cn;
                     foreach (var table in tables)
                     {
-                        string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}].[{1}] WHERE 0 = 1", GetSchemaName(table), table);
+                        string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}] WHERE 0 = 1", GetSchemaAndTableName(table));
 
                         using (SqlCommand command = new SqlCommand(strSQL, cn))
                         {
@@ -364,9 +407,21 @@ namespace ErikEJ.SqlCeScripting
             return schemaSet;
         }
 
-        private string GetSchemaName(string table)
-        { 
-            return (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", table));
+        private string GetSchemaAndTableName(string table)
+        {
+            if (_keepSchemaName)
+            {
+                var parts = table.Split('.');
+                if (parts.Length == 2)
+                {
+                    return parts[0] + "].[" + parts[1];
+                }
+                return table;
+            }
+            else
+            {
+                return (string)ExecuteScalar(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'", table)) + "].[" + table;
+            }
         }
 
         public DataSet ExecuteSql(string script, out bool schemaChanged)

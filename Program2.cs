@@ -22,6 +22,7 @@ namespace ExportSqlCE
 
                     bool includeData = true;
                     bool saveImageFiles = false;
+                    bool keepSchemaName = false;
                     bool preserveDateAndDateTime2 = false;
                     System.Collections.Generic.List<string> exclusions = new System.Collections.Generic.List<string>();
 
@@ -31,6 +32,8 @@ namespace ExportSqlCE
                             includeData = false;
                         if (args[i].StartsWith("saveimages"))
                             saveImageFiles = true;
+                        if (args[i].StartsWith("keepschema"))
+                            keepSchemaName = true;
                         if (args[i].StartsWith("preservedateanddatetime2"))
                             preserveDateAndDateTime2 = true;
                         if (args[i].StartsWith("exclude:"))
@@ -38,12 +41,12 @@ namespace ExportSqlCE
                     }
 
 
-                    using (IRepository repository = new ServerDBRepository(connectionString))
+                    using (IRepository repository = new ServerDBRepository(connectionString, keepSchemaName))
                     {
                         Helper.FinalFiles = outputFileLocation;
                         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                         sw.Start();
-                        var generator = new Generator(repository, outputFileLocation, false, preserveDateAndDateTime2);
+                        var generator = new Generator(repository, outputFileLocation, false, preserveDateAndDateTime2, false, keepSchemaName);
 
                         generator.ExcludeTables(exclusions);
 
@@ -119,8 +122,8 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[saveimages]] [[preservedateanddatetime2]]");
-            Console.WriteLine(" (exclude, schemaonly, saveimages and preservedateanddatetime2 are optional parameters)");
+            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[saveimages]] [[preservedateanddatetime2]] [[keepschema]]");
+            Console.WriteLine(" (exclude, schemaonly, saveimages, keepschema and preservedateanddatetime2 are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
