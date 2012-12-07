@@ -509,33 +509,28 @@ namespace ErikEJ.SqlCeScripting
 
             using (System.IO.StreamReader sr = System.IO.File.OpenText(scriptPath))
             {
-                using (SqlCeTransaction transaction = cn.BeginTransaction())
+                StringBuilder sb = new StringBuilder(10000);
+                while (!sr.EndOfStream)
                 {
-                    StringBuilder sb = new StringBuilder(10000);
-                    while (!sr.EndOfStream)
+                    string line = sr.ReadLine().Trim();
+                    if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
                     {
-                        string line = sr.ReadLine().Trim();
-                        if (line.Equals("GO", StringComparison.OrdinalIgnoreCase))
-                        {
-                            RunCommand(sb.ToString(), transaction);
-                            sb.Clear();
-                        }
-                        else
-                        {
-                            sb.Append(line);
-                            sb.Append(Environment.NewLine);
-                        }
+                        RunCommand(sb.ToString());
+                        sb.Clear();
                     }
-                    transaction.Commit();
+                    else
+                    {
+                        sb.Append(line);
+                        sb.Append(Environment.NewLine);
+                    }
                 }
             }
         }
 
-        internal void RunCommand(string sql, SqlCeTransaction transaction)
+        internal void RunCommand(string sql)
         {
             using (SqlCeCommand cmd = new SqlCeCommand())
             {
-                cmd.Transaction = transaction;
                 cmd.Connection = cn;
                 cmd.CommandText = sql;
                 cmd.ExecuteNonQuery();
