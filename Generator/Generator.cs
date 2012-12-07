@@ -59,7 +59,7 @@ namespace ErikEJ.SqlCeScripting
         }
 
 #if V40
-        public Generator4(IRepository repository, string outFile, bool azure, bool preserveSqlDates, bool sqlite = false)
+        public Generator4(IRepository repository, string outFile, bool azure, bool preserveSqlDates, bool sqlite = false, bool keepSchema = false)
 #else
 
         public Generator(IRepository repository, string outFile, bool azure, bool preserveSqlDates, bool sqlite = false, bool keepSchema = false)
