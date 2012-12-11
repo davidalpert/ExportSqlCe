@@ -195,6 +195,12 @@ namespace ErikEJ.SqlCeScripting
 
         public Int32 GetRowVersionOrdinal(string tableName)
         {
+            //TODO This could probably be improved
+            if (_keepSchemaName)
+            {
+                var parts = tableName.Split('.');
+                tableName = parts[1];
+            }
             object value = ExecuteScalar("SELECT ordinal_position FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "' AND data_type = 'timestamp'");
             if (value != null)
             {
