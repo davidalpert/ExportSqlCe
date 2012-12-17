@@ -85,7 +85,7 @@ namespace ErikEJ.SqlCeScripting
             string uniqueTable = dr.GetString(3);
             if (_keepSchemaName)
             {
-                table = dr.GetString(10) + "." + table;
+                //table = dr.GetString(10) + "." + table;
                 uniqueTable = dr.GetString(10) + "." + uniqueTable;
             }
 
@@ -307,7 +307,7 @@ namespace ErikEJ.SqlCeScripting
                 "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME,  " +
                 "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME,  " +
                 "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
-                " OBJECT_SCHEMA_NAME(f.parent_object_id) " +
+                " OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id  " +
                 "INNER JOIN sys.tables tab ON tab.name = OBJECT_NAME(f.referenced_object_id) " +
                 "WHERE is_disabled = 0  " +
@@ -329,7 +329,7 @@ namespace ErikEJ.SqlCeScripting
                     "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
                     "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
                     "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
-                    " OBJECT_SCHEMA_NAME(f.parent_object_id) " +
+                    " OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
                     "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
                     "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + parts[1] + "'" +
                     "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
@@ -342,7 +342,7 @@ namespace ErikEJ.SqlCeScripting
                     "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
                     "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
                     "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
-                    " OBJECT_SCHEMA_NAME(f.parent_object_id) " +
+                    " OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
                     "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
                     "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
                     "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"

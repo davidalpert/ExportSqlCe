@@ -744,6 +744,7 @@ namespace ErikEJ.SqlCeScripting
             List<string> schemas = new List<string>();
             if (_repository.IsServer())
             {
+                _tableNames = _serverTableNames;
                 foreach (var table in _serverTableNames)
                 {
                     string[] split = table.Split('.');
@@ -835,8 +836,7 @@ namespace ErikEJ.SqlCeScripting
                 
                 if (_repository.IsServer())
                 {
-                    var tableFullName = _serverTableNames.Where(t => t.EndsWith("." + table)).First();
-                    var split = tableFullName.Split('.');
+                    var split = table.Split('.');
                     dgmlHelper.WriteLink(split[0], table, null, "Contains");
                 }
                 else
@@ -1322,7 +1322,7 @@ namespace ErikEJ.SqlCeScripting
                     if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
                     {
                         var refCol = _allColumns.Where(c => c.TableName == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueConstraintTableName
-                            && string.Format("[{0}]", c.ColumnName) == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueColumnName).Single();
+                            && string.Format("[{0}]", c.ColumnName) == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueColumnName).SingleOrDefault();
                         if (refCol != null && refCol.AutoIncrementBy > 0)
                         {
                             refToIdentity = true;
