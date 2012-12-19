@@ -64,7 +64,7 @@ namespace ErikEJ.SqlCeScripting
 
         public string PathFromConnectionString(string connectionString)
         {
-            SqlCeConnectionStringBuilder sb = new SqlCeConnectionStringBuilder(connectionString);
+            SqlCeConnectionStringBuilder sb = new SqlCeConnectionStringBuilder(GetFullConnectionString(connectionString));
             return sb.DataSource;
         }
 

@@ -215,6 +215,18 @@ GO
                 }
             }
         }
+
+        [Test]
+        public void TestDataDirectory()
+        {
+            string test = @"Data Source=|DataDirectory|\Chinook40.sdf";
+            var helper = new SqlCeHelper4();
+
+            string path = helper.PathFromConnectionString(test);
+            Assert.IsFalse(path.Contains("DataDirectory"));
+        }
+
+
         
         //[Test]
         //public void TestImportBoolean()
