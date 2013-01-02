@@ -10,7 +10,7 @@ c:\data\sqlce\exportsqlce\lib\ilmerge /targetplatform:v4,C:\Windows\Microsoft.NE
 del c:\data\sqlce\exp*.pdb
 pause
 
-echo Copying new Scripting APIU files...
+echo Copying new Scripting API files...
 
 copy C:\Data\SQLCE\exportsqlce\bin\Release\*.dll c:\data\sqlce 
 
