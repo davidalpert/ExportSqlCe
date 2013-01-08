@@ -29,6 +29,7 @@ namespace ErikEJ.SqlCeScripting
         public DateFormat DateFormat { get; set; }
         public int Width { get; set; }
         public bool PadLeft { get; set; }
+        public Int64 Ordinal { get; set; }
         public string ShortType
         {
             get

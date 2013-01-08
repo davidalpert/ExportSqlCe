@@ -5,6 +5,7 @@ using System.Data.SqlServerCe;
 using System.IO;
 using System.Text;
 using System.Globalization;
+using System.Linq;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -57,25 +58,29 @@ namespace ErikEJ.SqlCeScripting
 
         private static void AddToListColumns(ref List<Column> list, SqlCeDataReader dr)
         {
-            list.Add(new Column
+            if (!dr.GetString(11).StartsWith("__sys"))
             {
-                ColumnName = dr.GetString(0)
-                , IsNullable = (YesNoOption)Enum.Parse(typeof(YesNoOption), dr.GetString(1))
-                , DataType = dr.GetString(2)
-                , CharacterMaxLength = (dr.IsDBNull(3) ? 0 : dr.GetInt32(3))
-                , NumericPrecision = (dr.IsDBNull(4) ? 0 : Convert.ToInt32(dr[4], System.Globalization.CultureInfo.InvariantCulture))
+                list.Add(new Column
+                {
+                    ColumnName = dr.GetString(0)
+                    , IsNullable = (YesNoOption)Enum.Parse(typeof(YesNoOption), dr.GetString(1))
+                    , DataType = dr.GetString(2)
+                    , CharacterMaxLength = (dr.IsDBNull(3) ? 0 : dr.GetInt32(3))
+                    , NumericPrecision = (dr.IsDBNull(4) ? 0 : Convert.ToInt32(dr[4], System.Globalization.CultureInfo.InvariantCulture))
 #if V31
 #else
-                , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5], System.Globalization.CultureInfo.InvariantCulture))
-                , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
-                , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
+                    , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5], System.Globalization.CultureInfo.InvariantCulture))
+                    , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
+                    , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
 #endif
-                , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
-                , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
-                , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
-                , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
-                , TableName = dr.GetString(11)
-            });
+                    , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
+                    , ColumnDefault = (dr.IsDBNull(8) ? string.Empty : dr.GetString(8).Trim())
+                    , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
+                    , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
+                    , TableName = dr.GetString(11)
+                    , Ordinal = dr.GetInt32(13)
+                });
+            }
         }
 
         private static void AddToListConstraints(ref List<Constraint> list, SqlCeDataReader dr)
@@ -294,12 +299,15 @@ namespace ErikEJ.SqlCeScripting
         /// <returns></returns>
         public List<Column> GetAllColumns()
         {
-            return ExecuteReader(
-                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name, autoinc_next  " +
-                "FROM         information_schema.columns " +
-                "WHERE      SUBSTRING(COLUMN_NAME, 1,5) <> '__sys'  " +
-                "ORDER BY ordinal_position ASC "
+            var list = ExecuteReader(
+                "SELECT     Column_name, is_nullable, data_type, character_maximum_length, numeric_precision, autoinc_increment, autoinc_seed, column_hasdefault, column_default, column_flags, numeric_scale, table_name, autoinc_next, ordinal_position " +
+                "FROM         information_schema.columns " 
+                //+
+                //"WHERE      SUBSTRING(COLUMN_NAME, 1,5) <> '__sys'  " 
+                //+
+                //"ORDER BY ordinal_position ASC "
                 , new AddToListDelegate<Column>(AddToListColumns));
+            return list.OrderBy(c => c.TableName).ThenBy(c => c.Ordinal).ToList();
         }
 
         /// <summary>
@@ -354,10 +362,11 @@ namespace ErikEJ.SqlCeScripting
         public List<Constraint> GetAllForeignKeys()
         {
             var list = ExecuteReader(
-                "SELECT DISTINCT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
+                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
                 "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
                 "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
                 "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
+                "AND KCU1.TABLE_NAME = RC.CONSTRAINT_TABLE_NAME " +
                 "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
@@ -373,10 +382,11 @@ namespace ErikEJ.SqlCeScripting
         public List<Constraint> GetAllForeignKeys(string tableName)
         {
             var list = ExecuteReader(
-                "SELECT DISTINCT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
+                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
                 "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
                 "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
                 "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
+                "AND KCU1.TABLE_NAME = RC.CONSTRAINT_TABLE_NAME " +
                 "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
                 "WHERE KCU1.TABLE_NAME = '" + tableName + "' " +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
