@@ -1188,7 +1188,7 @@ namespace ErikEJ.SqlCeScripting
 
         public void GenerateForeignKey(string tableName, string keyName)
         {
-            var key = _allForeignKeys.Where(c => c.ConstraintTableName == tableName && c.ConstraintName == keyName).SingleOrDefault();
+            var key = _allForeignKeys.Where(c => c.ConstraintTableName == tableName && c.ConstraintName.StartsWith(keyName)).FirstOrDefault();
             if (key != null)
             {
                 GenerateForeignKey(key);
@@ -1203,7 +1203,7 @@ namespace ErikEJ.SqlCeScripting
 
         public void GenerateForeignKeyDrop(string tableName, string keyName)
         {
-            var key = _allForeignKeys.Where(c => c.ConstraintTableName == tableName && c.ConstraintName == keyName).SingleOrDefault();
+            var key = _allForeignKeys.Where(c => c.ConstraintTableName == tableName && c.ConstraintName.StartsWith(keyName)).FirstOrDefault();
             if (key != null)
             {
                 GenerateForeignKeyDrop(key);
