@@ -58,7 +58,7 @@ namespace ErikEJ.SqlCeScripting
 
         private static void AddToListColumns(ref List<Column> list, SqlCeDataReader dr)
         {
-            if (!dr.GetString(11).StartsWith("__sys"))
+            if (!dr.GetString(0).StartsWith("__sys"))
             {
                 list.Add(new Column
                 {
