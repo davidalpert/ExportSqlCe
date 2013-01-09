@@ -16,6 +16,7 @@ namespace ErikEJ.SqlCeScripting
         List<Constraint> GetAllForeignKeys();
         List<Constraint> GetAllForeignKeys(string tableName);
         List<Index> GetIndexesFromTable(string tableName);
+        List<Index> GetAllIndexes();
         List<KeyValuePair<string, string>> GetDatabaseInfo();
         Boolean HasIdentityColumn(string tableName);
         Boolean IsServer();

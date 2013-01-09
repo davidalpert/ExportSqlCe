@@ -29,6 +29,7 @@ namespace ErikEJ.SqlCeScripting
         private List<Column> _allColumns;
         private List<Constraint> _allForeignKeys;
         private List<PrimaryKey> _allPrimaryKeys;
+        private List<Index> _allIndexes;
         private bool _batchForAzure = false;
         private bool _sqlite = false;
         private bool _keepSchema = false;
@@ -935,7 +936,7 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="tableName">Name of the table.</param>
         public void GenerateForeignKeys(string tableName)
         {
-            List<Constraint> foreingKeys = _repository.GetAllForeignKeys(tableName);
+            List<Constraint> foreingKeys = _allForeignKeys.Where(fk => fk.ConstraintTableName == tableName).ToList();
 
             foreach (Constraint constraint in foreingKeys)
             {
@@ -997,7 +998,16 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="indexName">Name of the index.</param>
         public void GenerateIndexDrop(string tableName, string indexName)
         {
-            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
+            List<Index> tableIndexes = new List<Index>();
+            if (_repository.IsServer())
+            {
+                tableIndexes = _repository.GetIndexesFromTable(tableName);
+            }
+            else
+            {
+                tableIndexes = _allIndexes.Where(i => i.TableName == tableName).ToList();
+            }
+
             IOrderedEnumerable<Index> indexesByName = from i in tableIndexes
                                                       where i.IndexName == indexName
                                                       orderby i.OrdinalPosition
@@ -1041,7 +1051,16 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="tableName">Name of the table.</param>
         private void GenerateIndex(string tableName)
         {
-            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
+            List<Index> tableIndexes = new List<Index>();
+            if (_repository.IsServer())
+            {
+                tableIndexes = _repository.GetIndexesFromTable(tableName);
+            }
+            else
+            {
+                tableIndexes = _allIndexes.Where(i => i.TableName == tableName).ToList();
+            }
+
             if (tableIndexes.Count > 0)
             {
                 IEnumerable<string> uniqueIndexNameList = tableIndexes.Select(i => i.IndexName).Distinct();
@@ -1056,8 +1075,15 @@ namespace ErikEJ.SqlCeScripting
 
         private void GenerateSingleIndex(string tableName, string uniqueIndexName)
         {
-
-            List<Index> tableIndexes = _repository.GetIndexesFromTable(tableName);
+            List<Index> tableIndexes = new List<Index>();
+            if (_repository.IsServer())
+            {
+                tableIndexes = _repository.GetIndexesFromTable(tableName);
+            }
+            else
+            {
+                tableIndexes = _allIndexes.Where(i => i.TableName == tableName).ToList();
+            }
             
             IOrderedEnumerable<Index> indexesByName = from i in tableIndexes
                                                       where i.IndexName == uniqueIndexName
@@ -1291,6 +1317,8 @@ namespace ErikEJ.SqlCeScripting
             _allColumns = _repository.GetAllColumns();
             _allForeignKeys = repository.GetAllForeignKeys();
             _allPrimaryKeys = repository.GetAllPrimaryKeys();
+            if (!repository.IsServer())
+                _allIndexes = repository.GetAllIndexes();
 
             string scriptEngineBuild = FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion.ToString();
 

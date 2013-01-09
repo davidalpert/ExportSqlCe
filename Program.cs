@@ -130,7 +130,7 @@ namespace ExportSqlCE
 
                         using (IRepository repository = Helper.CreateRepository(connectionString))
                         {
-
+                            Console.WriteLine("Initializing....");
                             Helper.FinalFiles = outputFileLocation;
                             //TODO Add sqlite parameter to constructor
 #if V40

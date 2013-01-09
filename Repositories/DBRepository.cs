@@ -411,6 +411,17 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
 
+        public List<Index> GetAllIndexes()
+        {
+            var list = ExecuteReader(
+                "SELECT     TABLE_NAME, INDEX_NAME, PRIMARY_KEY, [UNIQUE], [CLUSTERED], ORDINAL_POSITION, COLUMN_NAME, COLLATION AS SORT_ORDER " + // Weird column name COLLATION FOR SORT_ORDER
+                "FROM         Information_Schema.Indexes " +
+                " WHERE     (PRIMARY_KEY = 0) " +
+                " AND (SUBSTRING(COLUMN_NAME, 1,5) <> '__sys') " 
+                , new AddToListDelegate<Index>(AddToListIndexes));
+            return list.OrderBy(i => i.TableName).ThenBy(i => i.IndexName).ThenBy(i => i.OrdinalPosition).ToList();
+        }
+
         /// <summary>
         /// Renames the table.
         /// </summary>

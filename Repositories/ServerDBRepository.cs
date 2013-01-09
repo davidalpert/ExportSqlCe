@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using System.Linq;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -85,7 +86,7 @@ namespace ErikEJ.SqlCeScripting
             string uniqueTable = dr.GetString(3);
             if (_keepSchemaName)
             {
-                //table = dr.GetString(10) + "." + table;
+                table = dr.GetString(10) + "." + table;
                 uniqueTable = dr.GetString(10) + "." + uniqueTable;
             }
 
@@ -368,6 +369,7 @@ namespace ErikEJ.SqlCeScripting
                 , new AddToListDelegate<Index>(AddToListIndexes));
         }
 
+
         public void RenameTable(string oldName, string newName)
         {
             ExecuteNonQuery(string.Format(System.Globalization.CultureInfo.InvariantCulture, "sp_rename '{0}', '{1}';", oldName, newName));            
@@ -524,8 +526,13 @@ namespace ErikEJ.SqlCeScripting
             }
             return -1;
         }
-
         #endregion
 
+        #region IRepository Members
+        public List<Index> GetAllIndexes()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

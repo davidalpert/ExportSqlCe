@@ -228,14 +228,14 @@ namespace ErikEJ.SqlCeScripting
             var groupedForeingKeys = new List<Constraint>();
 
             var uniqueTables = (from c in foreignKeys
-                                select c.ConstraintTableName).Distinct();
+                                select c.ConstraintTableName).Distinct().ToList();
             int i = 1;
             foreach (string tableName in uniqueTables)
             {
                 {
                     var uniqueConstraints = (from c in foreignKeys
                                              where c.ConstraintTableName == tableName
-                                            select c.ConstraintName).Distinct();
+                                            select c.ConstraintName).Distinct().ToList();
                     foreach (string item in uniqueConstraints)
                     {
                         string value = item;
