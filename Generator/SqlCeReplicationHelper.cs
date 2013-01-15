@@ -66,12 +66,19 @@ namespace ErikEJ.SqlCeScripting
         public delegate void ProgressHandler(object sender, SyncArgs ca);
 #endif
         // event declaration 
-        public event ProgressHandler Progress; 
+        public event ProgressHandler Progress;
+
+        public enum ReinitializeOption
+        { 
+            None,
+            DiscardSubscriberChanges,
+            UploadSubscriberChanges
+        }
 
 #if V40
-        public SqlCeReplicationHelper4(string connectionString, string url, string publisher, string publicationDatabase, string publication, string subscriber, string hostName, bool useNT, string internetUsername, string internetPassword, string publisherUsername, string publisherPassword, bool isNew)
+        public SqlCeReplicationHelper4(string connectionString, string url, string publisher, string publicationDatabase, string publication, string subscriber, string hostName, bool useNT, string internetUsername, string internetPassword, string publisherUsername, string publisherPassword, bool isNew, ReinitializeOption reinitialize)
 #else
-        public SqlCeReplicationHelper(string connectionString, string url, string publisher, string publicationDatabase, string publication, string subscriber, string hostName, bool useNT, string internetUsername, string internetPassword, string publisherUsername, string publisherPassword, bool isNew)
+        public SqlCeReplicationHelper(string connectionString, string url, string publisher, string publicationDatabase, string publication, string subscriber, string hostName, bool useNT, string internetUsername, string internetPassword, string publisherUsername, string publisherPassword, bool isNew, ReinitializeOption reinitialize)
 #endif
         {
             this.repl = new SqlCeReplication();
@@ -80,6 +87,17 @@ namespace ErikEJ.SqlCeScripting
             if (isNew)
             {
                 repl.AddSubscription(AddOption.ExistingDatabase);
+            }
+            else
+            {
+                if (reinitialize == ReinitializeOption.DiscardSubscriberChanges)                    
+                {
+                    repl.ReinitializeSubscription(false);
+                }
+                if (reinitialize == ReinitializeOption.UploadSubscriberChanges)
+                {
+                    repl.ReinitializeSubscription(true);
+                }
             }
             if (useNT)
             {
