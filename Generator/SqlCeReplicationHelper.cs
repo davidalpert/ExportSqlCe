@@ -48,6 +48,8 @@ namespace ErikEJ.SqlCeScripting
         private string tableName;
         private int percentage;
         private SqlCeReplication repl;
+        private bool _isNew;
+        private ReinitializeOption _reinitialize;
 
         // delegate declaration 
 #if V40
@@ -83,21 +85,11 @@ namespace ErikEJ.SqlCeScripting
         {
             this.repl = new SqlCeReplication();
             repl.SubscriberConnectionString = connectionString;
-
+            _isNew = isNew;
+            _reinitialize = reinitialize;
             if (isNew)
             {
                 repl.AddSubscription(AddOption.ExistingDatabase);
-            }
-            else
-            {
-                if (reinitialize == ReinitializeOption.DiscardSubscriberChanges)                    
-                {
-                    repl.ReinitializeSubscription(false);
-                }
-                if (reinitialize == ReinitializeOption.UploadSubscriberChanges)
-                {
-                    repl.ReinitializeSubscription(true);
-                }
             }
             if (useNT)
             {
@@ -246,6 +238,18 @@ namespace ErikEJ.SqlCeScripting
         {
             if (this.repl != null)
             {
+                if (_isNew)
+                {
+                    if (_reinitialize == ReinitializeOption.DiscardSubscriberChanges)
+                    {
+                        repl.ReinitializeSubscription(false);
+                    }
+                    if (_reinitialize == ReinitializeOption.UploadSubscriberChanges)
+                    {
+                        repl.ReinitializeSubscription(true);
+                    }
+                }
+
                 IAsyncResult ar = repl.BeginSynchronize(
                     new AsyncCallback(this.SyncCompletedCallback),
                     new OnStartTableUpload(this.OnStartTableUploadCallback),
