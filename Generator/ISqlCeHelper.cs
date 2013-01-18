@@ -17,7 +17,13 @@ namespace ErikEJ.SqlCeScripting
     {
         string FormatError(Exception ex);
         string GetFullConnectionString(string connectionString);
+        void CompactDatabase(string connectionString);
         void CreateDatabase(string connectionString);
+        void VerifyDatabase(string connectionString);
+        void RepairDatabaseRecoverAllPossibleRows(string connectionString);
+        void RepairDatabaseRecoverAllOrFail(string connectionString);
+        void RepairDatabaseDeleteCorruptedRows(string connectionString);
+        void ShrinkDatabase(string connectionString);
         string PathFromConnectionString(string connectionString);
         void UpgradeTo40(string connectionString);
         SQLCEVersion DetermineVersion(string fileName);

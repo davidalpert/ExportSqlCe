@@ -39,6 +39,56 @@ namespace ErikEJ.SqlCeScripting
                 engine.CreateDatabase();
             }
         }
+
+        public void ShrinkDatabase(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Shrink();
+            }
+        }
+
+        public void CompactDatabase(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Compact(null);
+            }
+        }
+
+        public void RepairDatabaseDeleteCorruptedRows(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Repair(connectionString, RepairOption.DeleteCorruptedRows);
+            }
+        }
+
+        public void RepairDatabaseRecoverAllOrFail(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Repair(connectionString, RepairOption.RecoverAllOrFail);
+            }
+        }
+
+        public void RepairDatabaseRecoverAllPossibleRows(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Repair(connectionString, RepairOption.RecoverAllPossibleRows);
+            }
+        }
+
+        public void VerifyDatabase(string connectionString)
+        {
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Verify(VerifyOption.Enhanced);
+            }
+        }
+
+
 #if V40
         public void UpgradeTo40(string connectionString)
         {
