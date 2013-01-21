@@ -16,6 +16,56 @@ namespace ErikEJ.SqlCeScripting
         private readonly string _connectionString;
         private SqlConnection cn;
         private bool _keepSchemaName = false;
+
+        private List<string> sqlCeFunctions = new List<string>()
+        {
+          "ABS(",
+          "ACOS(",
+          "ASIN(",
+          "ATAN(",
+          "ATN2(",
+          "CEILING(",
+          "CHARINDEX(",
+          "CAST(",
+          "COS(",
+          "COT(",
+          "DATEADD(",
+          "DATEDIFF(",
+          "DATENAME(",
+          "DATEPART(",
+          "DATALENGTH(",
+          "DEGREES(",
+          "EXP(",
+          "FLOOR(",
+          "GETDATE(",
+          "LEN(",
+          "LOG(",
+          "LOG10(",
+          "LOWER(",
+          "LTRIM(",
+          "NCHAR(",
+          "NEWID(",
+          "PATINDEX(",
+          "PI(",
+          "POWER(",
+          "RADIANS(",
+          "RAND(",
+          "REPLACE(",
+          "REPLICATE(",
+          "RTRIM(",
+          "SIGN(",
+          "SIN(",
+          "SPACE(",
+          "SQRT(",
+          "STR(",
+          "STUFF(",
+          "SUBSTRING(",
+          "TAN(",
+          "UNICODE(",
+          "UPPER("
+        };
+
+
         private delegate void AddToListDelegate<T>(ref List<T> list, SqlDataReader dr);
 #if V40
         public ServerDBRepository4(string connectionString, bool keepSchemaName = false)
@@ -46,6 +96,7 @@ namespace ErikEJ.SqlCeScripting
         private void AddToListColumns(ref List<Column> list, SqlDataReader dr)
         {
             string defValue = string.Empty;
+            bool hasDefault = false;
             if (!dr.IsDBNull(8))
             {
                 var t = dr.GetString(8);
@@ -57,7 +108,28 @@ namespace ErikEJ.SqlCeScripting
                 {
                     t = "(NEWID())";
                 }
-                defValue = t;
+                if (t.ToUpperInvariant().ContainsAny(sqlCeFunctions.ToArray()))
+                {
+                    defValue = t;    
+                }
+                if (t.Length > 2)
+                {
+                    var arr = t.ToCharArray(2,1);
+                    if (Char.IsNumber(arr[0]))
+                    {
+                        defValue = t;
+                    }
+                    if (arr[0] == '\'')
+                    {
+                        defValue = t;
+                    }
+                    if (t.StartsWith("N'"))
+                    {
+                        defValue = t;
+                    }
+                }
+                if (!string.IsNullOrEmpty(defValue))
+                    hasDefault = true;
             }
             string table = dr.GetString(11);
             if (_keepSchemaName)
@@ -72,7 +144,7 @@ namespace ErikEJ.SqlCeScripting
                 , AutoIncrementBy = (dr.IsDBNull(5) ? 0 : Convert.ToInt64(dr[5], System.Globalization.CultureInfo.InvariantCulture))
                 , AutoIncrementSeed = (dr.IsDBNull(6) ? 0 : Convert.ToInt64(dr[6], System.Globalization.CultureInfo.InvariantCulture))
                 , AutoIncrementNext = (dr.IsDBNull(12) ? 0 : Convert.ToInt64(dr[12], System.Globalization.CultureInfo.InvariantCulture))
-                , ColumnHasDefault = (dr.IsDBNull(7) ? false : dr.GetBoolean(7))
+                , ColumnHasDefault = hasDefault
                 , ColumnDefault = defValue
                 , RowGuidCol = (dr.IsDBNull(9) ? false : dr.GetInt32(9) == 378 || dr.GetInt32(9) == 282)
                 , NumericScale = (dr.IsDBNull(10) ? 0 : Convert.ToInt32(dr[10], System.Globalization.CultureInfo.InvariantCulture))
@@ -258,7 +330,8 @@ namespace ErikEJ.SqlCeScripting
                 "FROM INFORMATION_SCHEMA.COLUMNS col  " +
                 "JOIN sys.columns cols on col.COLUMN_NAME = cols.name " +
                 "AND cols.object_id = OBJECT_ID('[' + col.TABLE_SCHEMA + '].[' + col.TABLE_NAME + ']')  " +
-                "JOIN sys.tables tab ON col.TABLE_NAME = tab.name " +
+                "JOIN sys.schemas schms on schms.name = col.TABLE_SCHEMA " +               
+                "JOIN sys.tables tab ON col.TABLE_NAME = tab.name and tab.schema_id = schms.schema_id " +
                 "WHERE SUBSTRING(COLUMN_NAME, 1,5) <> '__sys' " +
                 "AND tab.type = 'U' AND is_ms_shipped = 0 " +
                 "AND cols.is_computed = 0 " +
@@ -535,4 +608,37 @@ namespace ErikEJ.SqlCeScripting
         }
         #endregion
     }
+
+    public static class StringExtensions
+    {
+        public static bool ContainsAll(this string str, params string[] values)
+        {
+            if (!string.IsNullOrEmpty(str) || values.Length > 0)
+            {
+                foreach (string value in values)
+                {
+                    if (!str.Contains(value))
+                        return false;
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool ContainsAny(this string str, params string[] values)
+        {
+            if (!string.IsNullOrEmpty(str) || values.Length > 0)
+            {
+                foreach (string value in values)
+                {
+                    if (str.Contains(value))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+    }
+
 }
