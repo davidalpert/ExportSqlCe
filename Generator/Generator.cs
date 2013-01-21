@@ -348,9 +348,21 @@ namespace ErikEJ.SqlCeScripting
                             {
                                 string id = Guid.NewGuid().ToString("N") + ".blob";
                                 _sbScript.AppendFormat("SqlCeCmd_LoadImage({0})", id);
-                                using (BinaryWriter bw = new BinaryWriter(File.Open(Path.Combine(Path.GetDirectoryName(_outFile), id), FileMode.Create)))
+                                FileStream fs = null;
+                                BinaryWriter bw = null;
+                                try
                                 {
+                                    fs = File.Open(Path.Combine(Path.GetDirectoryName(_outFile), id), FileMode.Create);
+                                    bw = new BinaryWriter(fs);
+                                    fs = null;
                                     bw.Write(buffer, 0, buffer.Length);
+                                }
+                                finally
+                                {
+                                    if (bw != null)
+                                        bw.Close();
+                                    if (fs != null)
+                                        fs.Close();
                                 }
                             }
                             else
@@ -725,149 +737,150 @@ namespace ErikEJ.SqlCeScripting
         public void GenerateSchemaGraph(string connectionString, bool includeSystemTables, bool generateScripts)
         {
             string dgmlFile = _outFile;
-            var dgmlHelper = new DgmlHelper(dgmlFile);
-
-            string scriptExt = ".dgml.sqlce";
-            if (_repository.IsServer())
+            using (var dgmlHelper = new DgmlHelper(dgmlFile))
             {
-                scriptExt = ".dgml.sql";
-            }
-
-            var descriptionHelper = new DescriptionHelper();
-
-            List<DbDescription> descriptionCache = descriptionHelper.GetDescriptions(_repository);
-
-            dgmlHelper.BeginElement("Nodes");
-            var dbdesc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == null).Select(dc => dc.Description).SingleOrDefault();
-            dgmlHelper.WriteNode("Database", connectionString, null, "Database", "Expanded", dbdesc);
-            
-            var _serverTableNames = _repository.GetAllTableNamesForExclusion();
-            List<string> schemas = new List<string>();
-            if (_repository.IsServer())
-            {
-                _tableNames = _serverTableNames;
-                foreach (var table in _serverTableNames)
-                {
-                    string[] split = table.Split('.');
-                    if (!schemas.Contains(split[0]))
-                        schemas.Add(split[0]);
-                }
-                foreach (var schema in schemas)
-                {
-                    dgmlHelper.WriteNode(schema, schema, null, "Schema", "Expanded", null);
-                }
-            }
-            
-            foreach (string table in _tableNames)
-            {
-                if (!includeSystemTables && table.StartsWith("__"))
-                    continue;
-                //Create individual scripts per table
-                if (generateScripts)
-                {
-                    _sbScript.Remove(0, _sbScript.Length);
-                    GenerateTableScript(table);
-                    string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + scriptExt);
-                    File.WriteAllText(tableScriptPath, GeneratedScript);
-                }
-                // Create Nodes
-                var desc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == table).Select(dc => dc.Description).SingleOrDefault();
-                if (generateScripts)
-                {
-                    dgmlHelper.WriteNode(table, table, table + scriptExt, "Table", "Collapsed", desc);
-                }
-                else
-                {
-                    dgmlHelper.WriteNode(table, table, null, "Table", "Collapsed", desc);
-                }
-                List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
-                foreach (Column col in columns)
-                {
-
-                    string shortType = col.ShortType.Remove(col.ShortType.Length - 1);
-
-                    string category = "Field";
-                    if (col.IsNullable == YesNoOption.YES)
-                        category = "Field Optional";
-
-                    // Fix for multiple constraints with same columns
-                    Dictionary<string, Constraint> columnForeignKeys = new Dictionary<string, Constraint>();
-
-                    var _tableKeys = _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName);
-                    foreach (var constraint in _tableKeys)
-                    {
-                        if (!columnForeignKeys.ContainsKey(constraint.Columns.ToString()))
-                        {
-                            columnForeignKeys.Add(constraint.Columns.ToString(), constraint);
-                        }
-                    }
-
-                    if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
-                    {
-                        category = "Field Foreign";
-                    }
-
-                    List<PrimaryKey> primaryKeys = _allPrimaryKeys.Where(p => p.TableName == table).ToList();
-                    if (primaryKeys.Count > 0)
-                    {
-                        var keys = (from k in primaryKeys
-                                   where k.ColumnName == col.ColumnName 
-                                   select k.ColumnName).SingleOrDefault();
-                        if (!string.IsNullOrEmpty(keys))
-                            category = "Field Primary";
-
-                    }
-                    var colDesc = descriptionCache.Where(dc => dc.Parent == table && dc.Object == col.ColumnName).Select(dc => dc.Description).SingleOrDefault();
-                    if (!string.IsNullOrEmpty(colDesc))
-                        shortType = shortType + Environment.NewLine + colDesc;
-                    dgmlHelper.WriteNode(string.Format("{0}_{1}", table, col.ColumnName), col.ColumnName, null, category, null, shortType);
-                }
-            }
-            dgmlHelper.EndElement();
-
-            dgmlHelper.BeginElement("Links");
-            foreach (var schema in schemas)
-            {
-                dgmlHelper.WriteLink("Database", schema, null, "Contains");
-            }
-            foreach (string table in _tableNames)
-            {
-                if (!includeSystemTables && table.StartsWith("__"))
-                    continue;
-                
+                string scriptExt = ".dgml.sqlce";
                 if (_repository.IsServer())
                 {
-                    var split = table.Split('.');
-                    dgmlHelper.WriteLink(split[0], table, null, "Contains");
-                }
-                else
-                {
-                    dgmlHelper.WriteLink("Database", table, null, "Contains");
+                    scriptExt = ".dgml.sql";
                 }
 
-                List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
-                foreach (Column col in columns)
+                var descriptionHelper = new DescriptionHelper();
+
+                List<DbDescription> descriptionCache = descriptionHelper.GetDescriptions(_repository);
+
+                dgmlHelper.BeginElement("Nodes");
+                var dbdesc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == null).Select(dc => dc.Description).SingleOrDefault();
+                dgmlHelper.WriteNode("Database", connectionString, null, "Database", "Expanded", dbdesc);
+
+                var _serverTableNames = _repository.GetAllTableNamesForExclusion();
+                List<string> schemas = new List<string>();
+                if (_repository.IsServer())
                 {
-                    dgmlHelper.WriteLink(table, string.Format("{0}_{1}", table, col.ColumnName), 
-                        null, "Contains");
+                    _tableNames = _serverTableNames;
+                    foreach (var table in _serverTableNames)
+                    {
+                        string[] split = table.Split('.');
+                        if (!schemas.Contains(split[0]))
+                            schemas.Add(split[0]);
+                    }
+                    foreach (var schema in schemas)
+                    {
+                        dgmlHelper.WriteNode(schema, schema, null, "Schema", "Expanded", null);
+                    }
                 }
 
-                List<Constraint> foreignKeys = _repository.GetAllForeignKeys(table);
-                foreach (Constraint key in foreignKeys)
+                foreach (string table in _tableNames)
                 {
-                    var col = key.Columns[0].ToString();
-                    col = RemoveBrackets(col);
-                    var uniqueCol = key.UniqueColumns[0].ToString();
-                    uniqueCol = RemoveBrackets(uniqueCol);
-                    string source = string.Format("{0}_{1}", table, col);
-                    string target =string.Format("{0}_{1}", key.UniqueConstraintTableName, uniqueCol);
-                    dgmlHelper.WriteLink(source, target, key.ConstraintName, "Foreign Key");
+                    if (!includeSystemTables && table.StartsWith("__"))
+                        continue;
+                    //Create individual scripts per table
+                    if (generateScripts)
+                    {
+                        _sbScript.Remove(0, _sbScript.Length);
+                        GenerateTableScript(table);
+                        string tableScriptPath = Path.Combine(Path.GetDirectoryName(dgmlFile), table + scriptExt);
+                        File.WriteAllText(tableScriptPath, GeneratedScript);
+                    }
+                    // Create Nodes
+                    var desc = descriptionCache.Where(dc => dc.Parent == null && dc.Object == table).Select(dc => dc.Description).SingleOrDefault();
+                    if (generateScripts)
+                    {
+                        dgmlHelper.WriteNode(table, table, table + scriptExt, "Table", "Collapsed", desc);
+                    }
+                    else
+                    {
+                        dgmlHelper.WriteNode(table, table, null, "Table", "Collapsed", desc);
+                    }
+                    List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
+                    foreach (Column col in columns)
+                    {
+
+                        string shortType = col.ShortType.Remove(col.ShortType.Length - 1);
+
+                        string category = "Field";
+                        if (col.IsNullable == YesNoOption.YES)
+                            category = "Field Optional";
+
+                        // Fix for multiple constraints with same columns
+                        Dictionary<string, Constraint> columnForeignKeys = new Dictionary<string, Constraint>();
+
+                        var _tableKeys = _allForeignKeys.Where(c => c.ConstraintTableName == col.TableName);
+                        foreach (var constraint in _tableKeys)
+                        {
+                            if (!columnForeignKeys.ContainsKey(constraint.Columns.ToString()))
+                            {
+                                columnForeignKeys.Add(constraint.Columns.ToString(), constraint);
+                            }
+                        }
+
+                        if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
+                        {
+                            category = "Field Foreign";
+                        }
+
+                        List<PrimaryKey> primaryKeys = _allPrimaryKeys.Where(p => p.TableName == table).ToList();
+                        if (primaryKeys.Count > 0)
+                        {
+                            var keys = (from k in primaryKeys
+                                        where k.ColumnName == col.ColumnName
+                                        select k.ColumnName).SingleOrDefault();
+                            if (!string.IsNullOrEmpty(keys))
+                                category = "Field Primary";
+
+                        }
+                        var colDesc = descriptionCache.Where(dc => dc.Parent == table && dc.Object == col.ColumnName).Select(dc => dc.Description).SingleOrDefault();
+                        if (!string.IsNullOrEmpty(colDesc))
+                            shortType = shortType + Environment.NewLine + colDesc;
+                        dgmlHelper.WriteNode(string.Format("{0}_{1}", table, col.ColumnName), col.ColumnName, null, category, null, shortType);
+                    }
                 }
+                dgmlHelper.EndElement();
+
+                dgmlHelper.BeginElement("Links");
+                foreach (var schema in schemas)
+                {
+                    dgmlHelper.WriteLink("Database", schema, null, "Contains");
+                }
+                foreach (string table in _tableNames)
+                {
+                    if (!includeSystemTables && table.StartsWith("__"))
+                        continue;
+
+                    if (_repository.IsServer())
+                    {
+                        var split = table.Split('.');
+                        dgmlHelper.WriteLink(split[0], table, null, "Contains");
+                    }
+                    else
+                    {
+                        dgmlHelper.WriteLink("Database", table, null, "Contains");
+                    }
+
+                    List<Column> columns = _allColumns.Where(c => c.TableName == table).ToList();
+                    foreach (Column col in columns)
+                    {
+                        dgmlHelper.WriteLink(table, string.Format("{0}_{1}", table, col.ColumnName),
+                            null, "Contains");
+                    }
+
+                    List<Constraint> foreignKeys = _repository.GetAllForeignKeys(table);
+                    foreach (Constraint key in foreignKeys)
+                    {
+                        var col = key.Columns[0].ToString();
+                        col = RemoveBrackets(col);
+                        var uniqueCol = key.UniqueColumns[0].ToString();
+                        uniqueCol = RemoveBrackets(uniqueCol);
+                        string source = string.Format("{0}_{1}", table, col);
+                        string target = string.Format("{0}_{1}", key.UniqueConstraintTableName, uniqueCol);
+                        dgmlHelper.WriteLink(source, target, key.ConstraintName, "Foreign Key");
+                    }
+                }
+                dgmlHelper.EndElement();
+
+                //Close the DGML document
+                dgmlHelper.Close();
             }
-            dgmlHelper.EndElement();
-
-            //Close the DGML document
-            dgmlHelper.Close();
         }
 
         internal void GeneratePrimaryKeys()

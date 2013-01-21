@@ -150,14 +150,24 @@ namespace ErikEJ.SqlCeScripting
 
         private DataTable ExecuteDataTable(string commandText)
         {
-            DataTable dt = new DataTable();
-            dt.Locale = System.Globalization.CultureInfo.InvariantCulture;
-            using (var cmd = new SqlCeCommand(commandText, cn))
+            DataTable dt = null;
+            try
             {
-                using (var da = new SqlCeDataAdapter(cmd))
+                dt = new DataTable();
+                dt.Locale = System.Globalization.CultureInfo.InvariantCulture;
+                using (var cmd = new SqlCeCommand(commandText, cn))
                 {
-                    da.Fill(dt);
+                    using (var da = new SqlCeDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
                 }
+            }
+            catch
+            {
+                if (dt != null)
+                    dt.Dispose();
+				throw;
             }
             return dt;
         }
@@ -445,27 +455,40 @@ namespace ErikEJ.SqlCeScripting
 
         public DataSet GetSchemaDataSet(List<string> tables)
         {
-            DataSet schemaSet = new DataSet();
-            using (SqlCeDataAdapter adapter = new SqlCeDataAdapter())
+            DataSet schemaSet = null;
+            try
             {
-                using (SqlCeCommand cmd = new SqlCeCommand())
+                schemaSet = new DataSet();
+                using (SqlCeDataAdapter adapter = new SqlCeDataAdapter())
                 {
-                    cmd.Connection = cn;
-                    foreach (var table in tables)
+                    using (SqlCeCommand cmd = new SqlCeCommand())
                     {
-                        string strSQL = "SELECT * FROM [" + table + "] WHERE 1 = 0";
-
-                        using (SqlCeDataAdapter adapter1 = new SqlCeDataAdapter(new SqlCeCommand(strSQL, cn)))
+                        cmd.Connection = cn;
+                        foreach (var table in tables)
                         {
-                            adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+                            string strSQL = "SELECT * FROM [" + table + "] WHERE 1 = 0";
 
-                            //Fill the table in the dataset 
-                            cmd.CommandText = strSQL;
-                            adapter.SelectCommand = cmd;
-                            adapter.Fill(schemaSet, table);
+                            using (SqlCeCommand cmdSet = new SqlCeCommand(strSQL, cn))
+                            {
+                                using (SqlCeDataAdapter adapter1 = new SqlCeDataAdapter(cmdSet))
+                                {
+                                    adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+
+                                    //Fill the table in the dataset 
+                                    cmd.CommandText = strSQL;
+                                    adapter.SelectCommand = cmd;
+                                    adapter.Fill(schemaSet, table);
+                                }
+                            }
                         }
                     }
                 }
+            }
+            catch
+            {
+                if (schemaSet != null)
+                    schemaSet.Dispose();
+				throw;
             }
             return schemaSet;
         }
@@ -477,8 +500,17 @@ namespace ErikEJ.SqlCeScripting
         /// <returns></returns>
         public DataSet ExecuteSql(string script)
         {
-            DataSet ds = new DataSet();
-            RunCommands(ds, script, false, false);
+            DataSet ds = null;
+            try
+            {
+                ds = new DataSet();
+                RunCommands(ds, script, false, false);
+            }
+            finally
+            {
+                if (ds != null)
+                    ds.Dispose();
+            }
             return ds;
         }
 
@@ -490,9 +522,19 @@ namespace ErikEJ.SqlCeScripting
         public DataSet ExecuteSql(string script, out bool schemaChanged)
         {
             schemaHasChanged = false;
-            DataSet ds = new DataSet();
-            RunCommands(ds, script, false, false);
-            schemaChanged = schemaHasChanged;
+            DataSet ds = null;
+            try
+            {
+                ds = new DataSet();
+                RunCommands(ds, script, false, false);
+                schemaChanged = schemaHasChanged;
+            }
+            catch
+            {
+                if (ds != null)
+                    ds.Dispose();
+				throw;
+            }
             return ds;
         }
 
@@ -507,19 +549,39 @@ namespace ErikEJ.SqlCeScripting
 
         public DataSet ExecuteSql(string script, out string showPlanString)
         {
-            DataSet ds = new DataSet();
-            RunCommands(ds, script, false, true);
-            showPlanString = showPlan;
+            DataSet ds = null;
+            try
+            {
+                ds = new DataSet();
+                RunCommands(ds, script, false, true);
+                showPlanString = showPlan;
+            }
+            catch
+            {
+                if (ds != null)
+                    ds.Dispose();
+				throw;
+            }
             return ds;
         }
 
         public DataSet ExecuteSql(string script, out string showPlanString, out bool schemaChanged)
         {
             schemaHasChanged = false;
-            DataSet ds = new DataSet();
-            RunCommands(ds, script, false, true);
-            showPlanString = showPlan;
-            schemaChanged = schemaHasChanged;
+            DataSet ds = null;
+            try
+            {
+                ds = new DataSet();
+                RunCommands(ds, script, false, true);
+                showPlanString = showPlan;
+                schemaChanged = schemaHasChanged;
+            }
+            catch
+            {
+                if (ds != null)
+                    ds.Dispose();
+                throw;
+            }
             return ds;
         }
 
@@ -650,9 +712,20 @@ namespace ErikEJ.SqlCeScripting
                         if (execute == CommandExecute.NonQuerySchemaChanged)
                             schemaHasChanged = true;
                         int rows = cmd.ExecuteNonQuery();
-                        DataTable table = new DataTable();
-                        table.MinimumCapacity = Math.Max(0, rows);
-                        dataSet.Tables.Add(table);
+                        DataTable table = null;
+                        try
+                        {
+
+                            table = new DataTable();
+                            table.MinimumCapacity = Math.Max(0, rows);
+                            dataSet.Tables.Add(table);
+                        }
+                        catch
+                        {
+                            if (table != null)
+                                table.Dispose();
+							throw;
+                        }
                     }
                 }
             }

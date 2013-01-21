@@ -8,7 +8,7 @@ namespace ErikEJ.SqlCeScripting
 {
 #if V40
 #else
-    public class SqlCeReplicationHelper
+    public class SqlCeReplicationHelper : IDisposable
     {
 
         // custom attributes 
@@ -42,13 +42,13 @@ namespace ErikEJ.SqlCeScripting
         private ReinitializeOption _reinitialize;
 
         // delegate declaration 
-        public delegate void CompletedHandler(object sender, SyncArgs ca);
+        public delegate void CompletedHandler(object sender, SyncArgs e);
 
         // event declaration 
         public event CompletedHandler Completed;
 
         // delegate declaration 
-        public delegate void ProgressHandler(object sender, SyncArgs ca);
+        public delegate void ProgressHandler(object sender, SyncArgs e);
 
         // event declaration 
         public event ProgressHandler Progress;
@@ -209,6 +209,18 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+
+        #region IDisposable Members
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (repl != null)
+                repl.Dispose();
+        }
+        #endregion
     }
 
     public struct ReplicationProperties

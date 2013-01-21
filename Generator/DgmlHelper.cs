@@ -1,8 +1,9 @@
 ﻿using System.Xml;
+using System;
 
 namespace ErikEJ.SqlCeScripting
 {
-    internal class DgmlHelper
+    internal class DgmlHelper : IDisposable
     {
         private XmlTextWriter xtw;
 
@@ -194,5 +195,17 @@ namespace ErikEJ.SqlCeScripting
             xtw.WriteEndElement();
             xtw.Close();
         }
+
+        #region IDisposable Members
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (xtw != null)
+                xtw.Close();
+        }
+        #endregion
     }
 }

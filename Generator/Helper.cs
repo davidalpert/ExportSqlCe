@@ -48,17 +48,26 @@ namespace ErikEJ.SqlCeScripting
                     finalFiles = finalFiles + fileLocation + ", ";
                 }
             }
-            using (FileStream fs = new FileStream(fileLocation, FileMode.Create, FileAccess.Write, FileShare.Read))
+            FileStream fs = null;
+            StreamWriter sw = null;
+            try
             {
+                fs = new FileStream(fileLocation, FileMode.Create, FileAccess.Write, FileShare.Read);
                 System.Text.Encoding encoder = new System.Text.UTF8Encoding(false);
                 if (!sqlite)
                     encoder = new System.Text.UnicodeEncoding();
-
-                using (StreamWriter sw = new StreamWriter(fs, encoder))
-                {
-                    sw.WriteLine(script);
-                    sw.Flush();
-                }
+                
+                sw = new StreamWriter(fs, encoder);
+                fs = null;
+                sw.WriteLine(script);
+                sw.Flush();
+            }
+            finally
+            {
+                if (sw != null)
+                    sw.Close();
+                if (fs != null)
+                    fs.Close();
             }
         }
 
@@ -408,7 +417,7 @@ namespace ErikEJ.SqlCeScripting
                 isServer = true;
             if (connectionString.ToUpperInvariant().Contains("INTEGRATED SECURITY="))
                 isServer = true;
-            if (connectionString.ToLowerInvariant().Contains("TRUSTED_CONNECTION="))
+            if (connectionString.ToUpperInvariant().Contains("TRUSTED_CONNECTION="))
                 isServer = true;
             if (isServer)
             {

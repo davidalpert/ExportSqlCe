@@ -234,14 +234,24 @@ namespace ErikEJ.SqlCeScripting
 
         private DataTable ExecuteDataTable(string commandText)
         {
-            DataTable dt = new DataTable();
-            dt.Locale = System.Globalization.CultureInfo.InvariantCulture;
-            using (var cmd = new SqlCommand(commandText, cn))
+            DataTable dt = null;
+            try
             {
-                using (var da = new SqlDataAdapter(cmd))
+                dt = new DataTable();
+                dt.Locale = System.Globalization.CultureInfo.InvariantCulture;
+                using (var cmd = new SqlCommand(commandText, cn))
                 {
-                    da.Fill(dt);
+                    using (var da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
                 }
+            }
+            catch
+            {
+                if (dt != null)
+                    dt.Dispose();
+                throw;
             }
             return dt;
         }
@@ -460,30 +470,39 @@ namespace ErikEJ.SqlCeScripting
 
         public DataSet GetSchemaDataSet(List<string> tables)
         {
-            DataSet schemaSet = new DataSet();
-            using (SqlDataAdapter adapter = new SqlDataAdapter())
+            DataSet schemaSet = null;
+            try
             {
-                using (SqlCommand cmd = new SqlCommand())
+                schemaSet = new DataSet();
+                using (SqlDataAdapter adapter = new SqlDataAdapter())
                 {
-                    cmd.Connection = cn;
-                    foreach (var table in tables)
+                    using (SqlCommand cmd = new SqlCommand())
                     {
-                        string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}] WHERE 0 = 1", GetSchemaAndTableName(table));
-
-                        using (SqlCommand command = new SqlCommand(strSQL, cn))
+                        cmd.Connection = cn;
+                        foreach (var table in tables)
                         {
-                            using (SqlDataAdapter adapter1 = new SqlDataAdapter(command))
-                            {
-                                adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+                            string strSQL = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SELECT * FROM [{0}] WHERE 0 = 1", GetSchemaAndTableName(table));
 
-                                //Fill the table in the dataset 
-                                cmd.CommandText = strSQL;
-                                adapter.SelectCommand = cmd;
-                                adapter.Fill(schemaSet, table);
+                            using (SqlCommand command = new SqlCommand(strSQL, cn))
+                            {
+                                using (SqlDataAdapter adapter1 = new SqlDataAdapter(command))
+                                {
+                                    adapter1.FillSchema(schemaSet, SchemaType.Source, table);
+
+                                    //Fill the table in the dataset 
+                                    cmd.CommandText = strSQL;
+                                    adapter.SelectCommand = cmd;
+                                    adapter.Fill(schemaSet, table);
+                                }
                             }
                         }
                     }
                 }
+            }
+            finally
+            {
+                if (schemaSet != null)
+                    schemaSet.Dispose();
             }
             return schemaSet;
         }
