@@ -384,25 +384,25 @@ namespace ErikEJ.SqlCeScripting
             return Helper.GetGroupForeingKeys(list, GetAllTableNames());
         }
 
-        /// <summary>
-        /// Gets all foreign keys.
-        /// </summary>
-        /// <param name="tableName">Name of the table.</param>
-        /// <returns></returns>
-        public List<Constraint> GetAllForeignKeys(string tableName)
-        {
-            var list = ExecuteReader(
-                "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
-                "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
-                "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
-                "AND KCU1.TABLE_NAME = RC.CONSTRAINT_TABLE_NAME " +
-                "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
-                "WHERE KCU1.TABLE_NAME = '" + tableName + "' " +
-                "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
-                , new AddToListDelegate<Constraint>(AddToListConstraints));
-            return Helper.GetGroupForeingKeys(list, GetAllTableNames());
-        }
+        ///// <summary>
+        ///// Gets all foreign keys.
+        ///// </summary>
+        ///// <param name="tableName">Name of the table.</param>
+        ///// <returns></returns>
+        //public List<Constraint> GetAllForeignKeys(string tableName)
+        //{
+        //    var list = ExecuteReader(
+        //        "SELECT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
+        //        "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
+        //        "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
+        //        "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
+        //        "AND KCU1.TABLE_NAME = RC.CONSTRAINT_TABLE_NAME " +
+        //        "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
+        //        "WHERE KCU1.TABLE_NAME = '" + tableName + "' " +
+        //        "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION"
+        //        , new AddToListDelegate<Constraint>(AddToListConstraints));
+        //    return Helper.GetGroupForeingKeys(list, GetAllTableNames());
+        //}
 
         /// <summary>
         /// Get the query based on http://msdn.microsoft.com/en-us/library/ms174156.aspx

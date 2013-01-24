@@ -864,7 +864,7 @@ namespace ErikEJ.SqlCeScripting
                             null, "Contains");
                     }
 
-                    List<Constraint> foreignKeys = _repository.GetAllForeignKeys(table);
+                    List<Constraint> foreignKeys = _allForeignKeys.Where(c => c.ConstraintTableName == table).ToList();
                     foreach (Constraint key in foreignKeys)
                     {
                         var col = key.Columns[0].ToString();

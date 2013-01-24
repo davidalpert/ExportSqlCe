@@ -11,10 +11,8 @@ namespace ErikEJ.SqlCeScripting
         List<Column> GetAllColumns();
         DataTable GetDataFromTable(string tableName, List<Column> columns);
         IDataReader GetDataFromReader(string tableName, List<Column> columns);
-        //IDataReader GetDataFromReader(string tableName);
         List<PrimaryKey> GetAllPrimaryKeys();
         List<Constraint> GetAllForeignKeys();
-        List<Constraint> GetAllForeignKeys(string tableName);
         List<Index> GetIndexesFromTable(string tableName);
         List<Index> GetAllIndexes();
         List<KeyValuePair<string, string>> GetDatabaseInfo();

@@ -393,45 +393,12 @@ namespace ErikEJ.SqlCeScripting
                 "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
                 " OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
                 "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id  " +
-                "INNER JOIN sys.tables tab ON tab.name = OBJECT_NAME(f.referenced_object_id) " +
+                "JOIN sys.schemas schms on schms.name = OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
+                "JOIN sys.tables tab ON OBJECT_NAME(f.referenced_object_id) = tab.name and tab.schema_id = schms.schema_id " +
                 "WHERE is_disabled = 0  " +
                 "AND tab.is_ms_shipped = 0 AND tab.type = 'U' " +
                 "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
                 , new AddToListDelegate<Constraint>(AddToListConstraints));
-            return Helper.GetGroupForeingKeys(list, GetAllTableNames());
-        }
-
-        public List<Constraint> GetAllForeignKeys(string tableName)
-        {
-            var list = new List<Constraint>();
-
-            if (_keepSchemaName)
-            {
-                string[] parts = tableName.Split('.');
-                list = ExecuteReader(
-                    "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
-                    "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
-                    "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
-                    "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
-                    " OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
-                    "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                    "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + parts[1] + "'" +
-                    "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
-                    , new AddToListDelegate<Constraint>(AddToListConstraints));                        
-            }
-            else
-            {
-                list = ExecuteReader(
-                    "SELECT OBJECT_NAME(f.parent_object_id) AS FK_TABLE_NAME, f.name AS FK_CONSTRAINT_NAME, " +
-                    "COL_NAME(fc.parent_object_id, fc.parent_column_id) AS FK_COLUMN_NAME, OBJECT_NAME(f.referenced_object_id) AS UQ_TABLE_NAME, " +
-                    "'' AS UQ_CONSTRAINT_NAME, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS UQ_COLUMN_NAME, " +
-                    "REPLACE(f.update_referential_action_desc,'_',' ') AS UPDATE_RULE, REPLACE(f.delete_referential_action_desc,'_',' ') AS DELETE_RULE, 1, 1, " +
-                    " OBJECT_SCHEMA_NAME(f.referenced_object_id) " +
-                    "FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id " +
-                    "WHERE is_disabled = 0 AND OBJECT_NAME(f.parent_object_id) = '" + tableName + "'" +
-                    "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, fc.constraint_column_id"
-                    , new AddToListDelegate<Constraint>(AddToListConstraints));
-            }
             return Helper.GetGroupForeingKeys(list, GetAllTableNames());
         }
 

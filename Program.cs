@@ -132,7 +132,6 @@ namespace ExportSqlCE
                         {
                             Console.WriteLine("Initializing....");
                             Helper.FinalFiles = outputFileLocation;
-                            //TODO Add sqlite parameter to constructor
 #if V40
                             var generator = new Generator4(repository, outputFileLocation, sqlAzure, false, sqlite);
 #else
