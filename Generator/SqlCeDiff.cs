@@ -151,8 +151,8 @@ namespace ErikEJ.SqlCeScripting
                 }
 
                 // Check foreign keys
-                List<Constraint> sourceFKs = sourceRepository.GetAllForeignKeys(tableName);
-                List<Constraint> targetFKs = targetRepository.GetAllForeignKeys(tableName);
+                List<Constraint> sourceFKs = sourceRepository.GetAllForeignKeys().Where(fk => fk.ConstraintTableName == tableName).ToList();
+                List<Constraint> targetFKs = targetRepository.GetAllForeignKeys().Where(fk => fk.ConstraintTableName == tableName).ToList();
 
                 // Check added foreign keys (by name only)
                 foreach (var fk in sourceFKs)
