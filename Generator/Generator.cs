@@ -1363,7 +1363,7 @@ namespace ErikEJ.SqlCeScripting
                     if (columnForeignKeys.ContainsKey(string.Format("[{0}]", col.ColumnName)))
                     {
                         var refCol = _allColumns.Where(c => c.TableName == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueConstraintTableName
-                            && string.Format("[{0}]", c.ColumnName) == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueColumnName).SingleOrDefault();
+                            && string.Format("[{0}]", c.ColumnName) == columnForeignKeys[string.Format("[{0}]", col.ColumnName)].UniqueColumnName).FirstOrDefault();
                         if (refCol != null && refCol.AutoIncrementBy > 0)
                         {
                             refToIdentity = true;
