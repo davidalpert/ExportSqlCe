@@ -126,7 +126,7 @@ namespace ErikEJ.SqlCeScripting
                             uniqueColumns[i] = schemaDataSet.Tables[fk.UniqueConstraintTableName].Columns[fk.UniqueColumns[i]];
                         }
 
-                        if (!schemaDataSet.Relations.Contains(fk.ConstraintName))
+                        if (!schemaDataSet.Relations.Contains(fk.ConstraintName) && fkColumns != null)
                         {
                             try
                             {
@@ -136,6 +136,7 @@ namespace ErikEJ.SqlCeScripting
                             }
                             //"Handle" duplicated Server foreign keys
                             catch (ArgumentException) { }
+                            catch (InvalidConstraintException) { }
                         }
                     }
                 }
