@@ -135,8 +135,14 @@ namespace ErikEJ.SqlCeScripting
                                     fkColumns);
                             }
                             //"Handle" duplicated Server foreign keys
-                            catch (ArgumentException) { }
-                            catch (InvalidConstraintException) { }
+                            catch (ArgumentException ex1) 
+                            {
+                                _sbScript.AppendLine("-- Warning - constraint: " + fk.ConstraintTableName + " " + ex1.Message);
+                            }
+                            catch (InvalidConstraintException ex2) 
+                            {
+                                _sbScript.AppendLine("-- Warning - constraint: " + fk.ConstraintTableName + " " +  ex2.Message);
+                            }
                         }
                     }
                 }
