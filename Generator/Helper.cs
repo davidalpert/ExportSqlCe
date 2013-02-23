@@ -350,13 +350,16 @@ namespace ErikEJ.SqlCeScripting
             {
                 bld.Append("Inner Exception: " + inner.ToString());
             }
-            // Enumerate the errors to a message box.
             foreach (System.Data.SqlClient.SqlError err in errorCollection)
             {
-                bld.Append("\n Message   : " + err.Message);
-                bld.Append("\n Source    : " + err.Source);
-                bld.Append("\n Number    : " + err.Number);
-
+                bld.AppendLine("Message   : " + err.Message);
+                bld.AppendLine("Level     : " + err.Class);
+                bld.AppendLine("State     : " + err.State);
+                bld.AppendLine("Procedure : " + err.Procedure);
+                bld.AppendLine("Line      : " + err.LineNumber);
+                bld.AppendLine("Source    : " + err.Source);
+                bld.AppendLine("Number    : " + err.Number);                
+                bld.AppendLine("Server    : " + err.Server);
             }
             return bld.ToString();
         }

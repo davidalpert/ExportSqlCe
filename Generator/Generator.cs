@@ -652,20 +652,17 @@ namespace ErikEJ.SqlCeScripting
         {
             string wrongColumns = string.Empty;
 
-            List<Column> cols = (from a in _allColumns
+            List<string> cols = (from a in _allColumns
                                 where a.TableName == tableName
-                                select a).ToList();
+                                select a.ColumnName.ToUpperInvariant()).ToList();
 
-            var upperColumns = new List<string>();
-            foreach (var column in columns)
+            var upperColumns = columns.Select(i => i.ToUpperInvariant()).ToList();
+            
+            foreach (var name in upperColumns)
             {
-                upperColumns.Add(column.ToUpperInvariant());
-            }
-            foreach (var col in cols)
-            {
-                if (!upperColumns.Contains(col.ColumnName.ToUpperInvariant()))
+                if (!cols.Contains(name))
                 {
-                    wrongColumns += col.ColumnName + " ";
+                    wrongColumns += name + " ";
                 }
             }
             if (string.IsNullOrEmpty(wrongColumns))
