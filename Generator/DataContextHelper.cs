@@ -5,6 +5,7 @@ using System.Text;
 using ErikEJ.SqlCeScripting;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.Win32;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -21,12 +22,17 @@ namespace ErikEJ.SqlCeScripting
                 throw new Exception("DataContext file name must end with either .cs or .vb");
             }
 
-            string sqlMetalPath = (string)Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\WinSDK-NetFx40Tools", "InstallationFolder", null);
-            if (sqlMetalPath == null)
+            string sqlMetalPath = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\WinSDK-NetFx40Tools", "InstallationFolder", null);
+            if (string.IsNullOrEmpty(sqlMetalPath))
             {
-                throw new Exception("Could not find SQLMetal location in registry");
+                sqlMetalPath = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.0A", "InstallationFolder", string.Empty) + "bin\\NETFX 4.0 Tools\\";
+                if (string.IsNullOrEmpty(sqlMetalPath))
+                {
+                    throw new Exception("Could not find SQLMetal location in registry");
+                }
             }
             sqlMetalPath = Path.Combine(sqlMetalPath, "sqlmetal.exe");
+
             if (!File.Exists(sqlMetalPath))
             {
                 throw new Exception("Could not find SqlMetal in the expected location: " + sqlMetalPath);
