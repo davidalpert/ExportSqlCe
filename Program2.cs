@@ -21,6 +21,7 @@ namespace ExportSqlCE
                     string outputFileLocation = args[1];
 
                     bool includeData = true;
+                    bool includeSchema = true;
                     bool saveImageFiles = false;
                     bool keepSchemaName = false;
                     bool preserveDateAndDateTime2 = false;
@@ -28,8 +29,16 @@ namespace ExportSqlCE
 
                     for (int i = 2; i < args.Length; i++)
                     {
+                        if (args[i].StartsWith("dataonly"))
+                        {
+                            includeData = true;
+                            includeSchema = false;
+                        }
                         if (args[i].StartsWith("schemaonly"))
+                        {
                             includeData = false;
+                            includeSchema = true;
+                        }
                         if (args[i].StartsWith("saveimages"))
                             saveImageFiles = true;
                         if (args[i].StartsWith("keepschema"))
@@ -51,20 +60,25 @@ namespace ExportSqlCE
                         generator.ExcludeTables(exclusions);
 
                         // The execution below has to be in this sequence
-                        Console.WriteLine("Generating the tables....");
-                        generator.GenerateTable(includeData);
+                        if (includeSchema)
+                        {
+                            Console.WriteLine("Generating the tables....");
+                            generator.GenerateTable(includeData);
+                        }
                         if (includeData)
                         {
                             Console.WriteLine("Generating the data....");
                             generator.GenerateTableContent(saveImageFiles);
                         }
-                        Console.WriteLine("Generating the primary keys....");
-                        generator.GeneratePrimaryKeys();
-                        Console.WriteLine("Generating the indexes....");
-                        generator.GenerateIndex();
-                        Console.WriteLine("Generating the foreign keys....");
-                        generator.GenerateForeignKeys();
-
+                        if (includeSchema)
+                        {
+                            Console.WriteLine("Generating the primary keys....");
+                            generator.GeneratePrimaryKeys();
+                            Console.WriteLine("Generating the indexes....");
+                            generator.GenerateIndex();
+                            Console.WriteLine("Generating the foreign keys....");
+                            generator.GenerateForeignKeys();
+                        }
                         Helper.WriteIntoFile(generator.GeneratedScript, outputFileLocation, generator.FileCounter, false);
                         Console.WriteLine("Sent script to output file(s) : {0} in {1} ms", Helper.FinalFiles, (sw.ElapsedMilliseconds).ToString());
                         return 0;
@@ -122,12 +136,13 @@ namespace ExportSqlCE
         private static void PrintUsageGuide()
         {
             Console.WriteLine("Usage : ");
-            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[saveimages]] [[preservedateanddatetime2]] [[keepschema]]");
-            Console.WriteLine(" (exclude, schemaonly, saveimages, keepschema and preservedateanddatetime2 are optional parameters)");
+            Console.WriteLine(" Export2SQLCE.exe [SQL Server Connection String] [output file location] [[exclude]] [[schemaonly]] [[dataonly]] [[saveimages]] [[preservedateanddatetime2]] [[keepschema]]");
+            Console.WriteLine(" (exclude, schemaonly, dataonly, saveimages, keepschema and preservedateanddatetime2 are optional parameters)");
             Console.WriteLine("");
             Console.WriteLine("Examples : ");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql schemaonly");
+            Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql dataonly");
             Console.WriteLine(" Export2SQLCE.exe \"Data Source=(local);Initial Catalog=Northwind;Integrated Security=True\" Northwind.sql exclude:dbo.Shippers,dbo.Suppliers");
             Console.WriteLine("");
         }
