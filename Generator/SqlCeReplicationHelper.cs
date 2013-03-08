@@ -89,7 +89,7 @@ namespace ErikEJ.SqlCeScripting
             repl.InternetPassword = internetPassword;
             repl.Subscriber = subscriber;
             repl.HostName = hostName;
-            
+            repl.SaveProperties();            
         }
 
         public static void DropPublication(string connectionString, string publicationLabel)
@@ -147,7 +147,6 @@ namespace ErikEJ.SqlCeScripting
                 SqlCeReplication repl = (SqlCeReplication)ar.AsyncState;
 
                 repl.EndSynchronize(ar);
-                repl.SaveProperties();
                 string result = "Successfully completed sync" + Environment.NewLine;
                 result += string.Format("Number of changes downloaded: {0}{1}", repl.PublisherChanges.ToString(), Environment.NewLine);
                 result += string.Format("Number of changes uploaded: {0}{1}", repl.SubscriberChanges.ToString(), Environment.NewLine);
