@@ -45,6 +45,7 @@ namespace ErikEJ.SqlCeScripting
             parameters += " /conn:\"" + connectionString + "\"";
             parameters += " /context:" + model;
             parameters += " /pluralize";
+            //parameters += " /serialization:Unidirectional";
             string sqlmetalResult = RunSqlMetal(sqlMetalPath, parameters);
             if (!File.Exists(dcPath))
             {
@@ -326,6 +327,7 @@ public class DebugWriter : TextWriter
             }
 
             AddIndexes(repository, dcLines, n, true);
+            FixSerialisation(dcLines, n + t, true);
 
             System.IO.File.WriteAllLines(path, dcLines.ToArray());
         }
@@ -627,6 +629,24 @@ End Class
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private static void FixSerialisation(List<string> dcLines, string n, bool cs)
+        {
+            if (!cs)
+                return;
+            for (int y = 0; y < dcLines.Count; y++)
+            {
+                //TODO Suppport VB
+                //[global::System.Data.Linq.Mapping.AssociationAttribute(
+                string attr = "<Global.System.Data.Linq.Mapping.AssociationAttribute(";
+                if (cs)
+                    attr = "[global::System.Data.Linq.Mapping.AssociationAttribute(";
+                if (dcLines[y].StartsWith(n + attr))
+                {
+                    dcLines[y - 1] += Environment.NewLine + n + "[global::System.Runtime.Serialization.IgnoreDataMember]";
                 }
             }
         }
