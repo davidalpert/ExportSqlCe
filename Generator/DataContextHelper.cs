@@ -536,6 +536,7 @@ End Class
             }
 
             AddIndexes(repository, dcLines, n, false);
+            FixSerialisation(dcLines, n + t, false);
 
             System.IO.File.WriteAllLines(path, dcLines.ToArray());
 
@@ -615,7 +616,7 @@ End Class
                                     colList += string.Format("{0} {1}, ", ToUpperFirst(col.ColumnName.Replace(" ", string.Empty)), col.SortOrder.ToString());
                                 }
                                 colList = colList.Remove(colList.Length - 2, 2);
-                                string indexAttr = "<Index(Name:=\"{0}\", Columns:=\"{1}\", IsUnique:={2})>";
+                                string indexAttr = "<Index(Name:=\"{0}\", Columns:=\"{1}\", IsUnique:={2})> _";
                                 if (cs)
                                     indexAttr = "[Index(Name=\"{0}\", Columns=\"{1}\", IsUnique={2})]";
                                 string falseString = "False";
@@ -635,18 +636,21 @@ End Class
 
         private static void FixSerialisation(List<string> dcLines, string n, bool cs)
         {
-            if (!cs)
-                return;
             for (int y = 0; y < dcLines.Count; y++)
             {
-                //TODO Suppport VB
-                //[global::System.Data.Linq.Mapping.AssociationAttribute(
                 string attr = "<Global.System.Data.Linq.Mapping.AssociationAttribute(";
                 if (cs)
                     attr = "[global::System.Data.Linq.Mapping.AssociationAttribute(";
                 if (dcLines[y].StartsWith(n + attr))
                 {
-                    dcLines[y - 1] += Environment.NewLine + n + "[global::System.Runtime.Serialization.IgnoreDataMember]";
+                    if (cs)
+                    {
+                        dcLines[y - 1] += Environment.NewLine + n + "[global::System.Runtime.Serialization.IgnoreDataMember]";
+                    }
+                    else //VB
+                    {
+                        dcLines[y - 1] += Environment.NewLine + n + "<Global.System.Runtime.Serialization.IgnoreDataMember> _";
+                    }
                 }
             }
         }
