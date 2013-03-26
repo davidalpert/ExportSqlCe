@@ -1325,6 +1325,17 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public string AssemblyFileVersion
+        {
+            get
+            {
+                object[] attributes = System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(System.Reflection.AssemblyFileVersionAttribute), false);
+                if (attributes.Length == 0)
+                    return "";
+                return ((System.Reflection.AssemblyFileVersionAttribute)attributes[0]).Version;
+            }
+        }
+
         private void Init(IRepository repository, string outFile)
         {
             _outFile = outFile;
@@ -1337,7 +1348,7 @@ namespace ErikEJ.SqlCeScripting
             if (!repository.IsServer())
                 _allIndexes = repository.GetAllIndexes();
 
-            string scriptEngineBuild = FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion.ToString();
+            string scriptEngineBuild = AssemblyFileVersion;
 
             if (_repository.IsServer())
             {
