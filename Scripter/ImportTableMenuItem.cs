@@ -150,9 +150,11 @@ namespace SqlCeScripter
                                         HeaderRecord hr = reader.ReadHeaderRecord();
                                         if (generator.ValidColumns(this.Parent.Name, hr.Values))
                                         {
+                                            int i = 1;
                                             foreach (DataRecord record in reader.DataRecords)
                                             {
-                                                generator.GenerateTableInsert(this.Parent.Name, hr.Values, record.Values);
+                                                generator.GenerateTableInsert(this.Parent.Name, hr.Values, record.Values, i);
+                                                i++;
                                             }
                                         }
                                     }                                

@@ -548,7 +548,7 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="tableName">Name of the table.</param>
         /// <param name="fields">The fields.</param>
         /// <param name="values">The values.</param>
-        public void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values)
+        public void GenerateTableInsert(string tableName, IList<string> fields, IList<string> values, int lineNumber)
         {
             if (fields.Count != values.Count)
             {
@@ -560,7 +560,7 @@ namespace ErikEJ.SqlCeScripting
                     valueString.Append(val);
                     valueString.Append(Environment.NewLine);
                 }
-                throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "The number of values ({0}) and fields ({1}) do not match - {2}", values.Count, fields.Count, valueString.ToString()));
+                throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Error on line {0} in the csv file. The number of values ({1}) and fields ({2}) do not match - {3}", lineNumber, values.Count, fields.Count, valueString.ToString()));
             }
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             if (columns.Count > 0)
