@@ -211,7 +211,7 @@ GO
                 var generator = new Generator4(sourceRepository);
                 using (IRepository targetRepository = new DB4Repository(target))
                 {
-                    SqlCeDiff.CreateDataDiffScript(sourceRepository, "Album", targetRepository, "Album", generator);
+                    SqlCeDiff.CreateDataDiffScript(sourceRepository, "Album", targetRepository, "Album");
                 }
             }
         }

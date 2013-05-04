@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -192,8 +193,10 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        public static string CreateDataDiffScript(IRepository sourceRepository, string sourceTable, IRepository targetRepository, string targetTable, IGenerator generator)
+        public static string CreateDataDiffScript(IRepository sourceRepository, string sourceTable, IRepository targetRepository, string targetTable)
         {
+            //more advanced would be a field-mapping to be able to transfer the data between different structures
+
             StringBuilder sb = new StringBuilder();
 
             List<Column> sourceColumns = (from c in sourceRepository.GetAllColumns()
@@ -214,7 +217,7 @@ namespace ErikEJ.SqlCeScripting
                 throw new ArgumentException("Source and target does not have same number of columns");
             }
 
-            for (int i = 0; i < sourceColumns.Count() - 1; i++)
+            for (int i = 0; i < sourceColumns.Count(); i++)
             {
                 if (sourceColumns[i].ShortType != targetColumns[i].ShortType)
                 {
@@ -222,36 +225,99 @@ namespace ErikEJ.SqlCeScripting
                 }
             }
 
-            using (var rdr = sourceRepository.GetDataFromReader(sourceTable, sourceColumns))
-            { 
-                while (rdr.Read())
+            string sourcePkSort = string.Empty;
+            string targetPkSort = string.Empty;
+            List<string> targetPkList = new List<string>();
+
+            for(int i = 0; i < sourceColumns.Count(); i++)
+            {
+                if(pkList.Contains(sourceColumns[i].ColumnName))
                 {
-                    //Call a method in the target repository that returns a string with either INSERT or UPDATE statement
-                    //Takes 2 parameters, one Dict with primary key columns and values, one Dict with all other columns and values
-                    Dictionary<string, object> keys = new Dictionary<string, object>();
-                    Dictionary<string, object> values = new Dictionary<string, object>();
-
-                    foreach (var pk in pkList)
-                    {
-                        keys.Add(pk, rdr[pk]);
-                    }
-
-                    for (int i = 0; i < rdr.FieldCount; i++)
-                    {
-                        //Add all values other than PK values
-                        if (!pkList.Contains(rdr.GetName(i)))
-                        {
-                            values.Add(rdr.GetName(i), rdr[i]);
-                        }
-                    }
-                    //TODO Make repository call here
-
-                    sb.AppendLine("");
-                    sb.AppendLine("GO");
+                    sourcePkSort += (sourcePkSort==string.Empty)?", ":"" + sourceColumns[i].ColumnName;
+                    targetPkSort += (targetPkSort==string.Empty)?", ":"" + targetColumns[i].ColumnName;
+                    targetPkList.Add(targetColumns[i].ColumnName);
                 }
+            }
+
+            //two arrays in the same order, now just compare them
+            DataRow[] targetRows = targetRepository.GetDataFromTable(targetTable, targetColumns).Select(null, targetPkSort);
+            int targetRow = 0;
+            foreach(DataRow sourceRow in sourceRepository.GetDataFromTable(sourceTable, sourceColumns).Select(null, sourcePkSort))
+            {
+                //compare
+                int pkCompare = 0;
+
+                string whereClause = "";
+                for(int i=0; i< pkList.Count; i++)
+                {
+                    if(whereClause.Length>0)
+                        whereClause += " AND ";
+                    //TODO determine by type when to add quotation marks or do special formatting
+                    whereClause += String.Format("{0}={1}", targetPkList[i], sourceRow[pkList[i]]);
+                }
+                while (targetRow < targetRows.Count() 
+                    && (pkCompare = CompareDataRows(sourceRow, pkList, targetRows[targetRow], targetPkList)) > 0)
+                {
+                    //write DELETE statement here
+                    sb.AppendLine(String.Format("DELETE FROM {0} WHERE {1}", targetTable, whereClause));
+                    targetRow++;
+                }
+                if (targetRow >= targetRows.Count() || pkCompare < 0)
+                {
+                    //TODO write INSERT statement here
+                    sb.AppendLine(String.Format("INSERT INTO {0} ({1}) VALUES ({2})", targetTable, "targetColumns", "sourceValues"));
+                }
+                else if (CompareDataRows(sourceRow, null, targetRows[targetRow], null) != 0)
+                {
+                    //TODO write UPDATE statement here
+                    sb.AppendLine(String.Format("UPDATE {0} SET {1} WHERE {2}", targetTable, "targetColumn=sourceValue, ..." ,whereClause));
+                }
+                sb.AppendLine("GO");
             }
             return sb.ToString();
         }
+
+        private static int CompareDataRows(DataRow a, IList<string> aFields, DataRow b, IList<string> bFields)
+        {
+            if (((aFields == null || bFields == null) && aFields != bFields && a.ItemArray.Count() != b.ItemArray.Count()) ||
+                aFields.Count != bFields.Count)
+                throw new ArgumentException("The field count has to be the same in order to compare the DataRows.");
+            if (aFields != null && bFields != null)
+            {
+                for (int i = 0; i < aFields.Count; i++)
+                {
+                    int comparisonResult = CompareObject(a[aFields[i]], b[bFields[i]]);
+                    if (comparisonResult != 0)
+                        return comparisonResult;
+                    continue;
+                }
+                return 0;
+            }
+            else//compare all fields
+            {
+                object[] aArr = a.ItemArray, bArr = b.ItemArray;
+                for (int i = 0; i < aArr.Count(); i++)
+                {
+                    int comparisonResult = CompareObject(aArr[i], bArr[i]);
+                    if (comparisonResult != 0)
+                        return comparisonResult;
+                    continue;
+                }
+                return 0;
+            }
+        }
+
+        private static int CompareObject(object aO, object bO)
+        {
+            if (aO is IComparable && bO is IComparable)
+            {
+                if (!aO.GetType().IsAssignableFrom(bO.GetType()))
+                    throw new ArgumentException("The field types do not match.");
+                return ((IComparable)aO).CompareTo(bO);
+            }
+            throw new ArgumentException("Not all fields implement IComparable.");
+        }
+
 
     }
 }
