@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 
 namespace ErikEJ.SqlCeScripting
 {
@@ -43,6 +44,7 @@ namespace ErikEJ.SqlCeScripting
         void GenerateForeignKeyDrop(Constraint constraint);
         void GenerateForeignKeyDrop(string tableName, string keyName);
         void GenerateForeignKey(string tableName, string keyName);
-        
+        string GenerateInsertFromDataRow(string tableName, DataRow row);
+        string GenerateUpdateFromDataRow(string tableName, DataRow row);
     }
 }

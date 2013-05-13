@@ -193,7 +193,7 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
-        public static string CreateDataDiffScript(IRepository sourceRepository, string sourceTable, IRepository targetRepository, string targetTable)
+        public static string CreateDataDiffScript(IRepository sourceRepository, string sourceTable, IRepository targetRepository, string targetTable, IGenerator generator)
         {
             //more advanced would be a field-mapping to be able to transfer the data between different structures
 
@@ -247,25 +247,28 @@ namespace ErikEJ.SqlCeScripting
                 //compare
                 int pkCompare = 0;
 
-                string whereClause = "";
+                string whereClause = string.Empty;
                 for(int i=0; i< pkList.Count; i++)
                 {
-                    if(whereClause.Length>0)
+                    if(whereClause.Length > 0)
                         whereClause += " AND ";
                     //TODO determine by type when to add quotation marks or do special formatting
-                    whereClause += String.Format("{0}={1}", targetPkList[i], sourceRow[pkList[i]]);
+                    whereClause += String.Format(" [{0}]={1} ", targetPkList[i], sourceRow[pkList[i]]);
                 }
+                if (whereClause.Length > 0)
+                    whereClause += ";";
                 while (targetRow < targetRows.Count() 
                     && (pkCompare = CompareDataRows(sourceRow, pkList, targetRows[targetRow], targetPkList)) > 0)
                 {
                     //write DELETE statement here
-                    sb.AppendLine(String.Format("DELETE FROM {0} WHERE {1}", targetTable, whereClause));
+                    sb.AppendLine(String.Format("DELETE FROM [{0}] WHERE {1};", targetTable, whereClause));
                     targetRow++;
                 }
                 if (targetRow >= targetRows.Count() || pkCompare < 0)
                 {
                     //TODO write INSERT statement here
-                    sb.AppendLine(String.Format("INSERT INTO {0} ({1}) VALUES ({2})", targetTable, "targetColumns", "sourceValues"));
+                    //sb.AppendLine(String.Format("INSERT INTO {0} ({1}) VALUES ({2})", targetTable, "targetColumns", "sourceValues"));
+                    sb.AppendLine(generator.GenerateInsertFromDataRow(targetTable, sourceRow));
                 }
                 else if (CompareDataRows(sourceRow, null, targetRows[targetRow], null) != 0)
                 {
@@ -297,6 +300,7 @@ namespace ErikEJ.SqlCeScripting
             {
                 object[] aArr = a.ItemArray, bArr = b.ItemArray;
                 for (int i = 0; i < aArr.Count(); i++)
+
                 {
                     int comparisonResult = CompareObject(aArr[i], bArr[i]);
                     if (comparisonResult != 0)

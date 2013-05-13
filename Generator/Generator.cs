@@ -476,6 +476,110 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public string GenerateInsertFromDataRow(string tableName, DataRow row)
+        {
+            return GenerateInserOrUpdate(tableName, true, row);
+        }
+
+        public string GenerateUpdateFromDataRow(string tableName, DataRow row)
+        {
+            return GenerateInserOrUpdate(tableName, false, row);
+        }
+
+        private string GenerateInserOrUpdate(string tableName, bool createInsert, DataRow row)
+        {
+            StringBuilder sb = new StringBuilder();
+            int identityOrdinal = _repository.GetIdentityOrdinal(tableName);
+            bool hasIdentity = (identityOrdinal > -1);
+            string unicodePrefix = "N";
+            // Skip rowversion column
+            Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            var fields = columns.Select(c => c.ColumnName).ToList();
+            //TODO Maybe generate UPDATE prefix instead
+            string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal, false);
+
+            if (hasIdentity && !_sqlite)
+            {
+                sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
+                sb.Append(Environment.NewLine);
+                sb.Append(_sep);
+            }
+            sb.Append(scriptPrefix);
+            for (int iColumn = 0; iColumn < row.ItemArray.Count(); iColumn++)
+            {
+                var fieldType = row[iColumn].GetType();
+                //Skip rowversion column
+                if (rowVersionOrdinal == iColumn || row.Table.Columns[iColumn].ColumnName.StartsWith("__sys", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                if (identityOrdinal == iColumn)
+                {
+                    continue;
+                }
+                //TODO If UPDATE Add "columnName =" here
+                if (row.IsNull(iColumn))
+                {
+                    sb.Append("NULL");
+                }
+                else if (row[iColumn].GetType() == typeof(String))
+                {
+                    _sbScript.AppendFormat("{0}'{1}'", unicodePrefix, row[iColumn].ToString().Replace("'", "''"));
+                }
+                else if (fieldType == typeof(DateTime))
+                {
+                    //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                    sb.Append("{ts '");
+                    sb.Append(((DateTime)row[iColumn]).ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append("'}");
+                }
+                else if (fieldType == typeof(Byte[]))
+                {
+                    Byte[] buffer = (Byte[])row[iColumn];
+                    sb.Append("0x");
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        sb.Append(buffer[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                }
+                else if (fieldType == typeof(Byte) || fieldType == typeof(Int16) || fieldType == typeof(Int32) ||
+                    fieldType == typeof(Int64) || fieldType == typeof(Double) ||
+                    fieldType == typeof(Single) || fieldType == typeof(Decimal))
+                {
+                    string intString = Convert.ToString(row[iColumn], System.Globalization.CultureInfo.InvariantCulture);
+                    sb.Append(intString);
+                }
+                else if (fieldType == typeof(Boolean))
+                {
+                    bool boolVal = (Boolean)row[iColumn];
+                    if (boolVal)
+                    { sb.Append("1"); }
+                    else
+                    { sb.Append("0"); }
+                }
+                else
+                {
+                    //Decimal point globalization
+                    string value = Convert.ToString(row[iColumn], System.Globalization.CultureInfo.InvariantCulture);
+                    sb.AppendFormat("'{0}'", value.Replace("'", "''"));
+                }
+                sb.Append(",");
+                // remove trailing comma
+                sb.Remove(_sbScript.Length - 1, 1);
+
+                sb.Append(");");
+                sb.Append(Environment.NewLine);
+                sb.Append(_sep);
+                if (hasIdentity && !_sqlite)
+                {
+                    sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] OFF;", tableName));
+                    sb.Append(Environment.NewLine);
+                    sb.Append(_sep);
+                }
+            }
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Generates the table select statement.
