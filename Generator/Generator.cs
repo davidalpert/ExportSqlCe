@@ -497,9 +497,11 @@ namespace ErikEJ.SqlCeScripting
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             var fields = columns.Select(c => c.ColumnName).ToList();
             //TODO Maybe generate UPDATE prefix instead
-            string scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal, false);
+            var scriptPrefix = string.Empty;
+            if (createInsert)
+                scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal, false);
 
-            if (hasIdentity && !_sqlite)
+            if (createInsert && hasIdentity && !_sqlite)
             {
                 sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "SET IDENTITY_INSERT [{0}] ON;", tableName));
                 sb.Append(Environment.NewLine);
@@ -514,18 +516,21 @@ namespace ErikEJ.SqlCeScripting
                 {
                     continue;
                 }
-                if (identityOrdinal == iColumn)
-                {
-                    continue;
-                }
+                //Never ignore identity
+                //if (ignoreIdentity && (identityOrdinal == iColumn))
+                //{
+                //    continue;
+                //}
                 //TODO If UPDATE Add "columnName =" here
+                if (!createInsert)
+                    sb.Append(string.Format(" [{0}] = ", row.Table.Columns[iColumn].ColumnName));
                 if (row.IsNull(iColumn))
                 {
                     sb.Append("NULL");
                 }
                 else if (row[iColumn].GetType() == typeof(String))
                 {
-                    _sbScript.AppendFormat("{0}'{1}'", unicodePrefix, row[iColumn].ToString().Replace("'", "''"));
+                    sb.AppendFormat("{0}'{1}'", unicodePrefix, row[iColumn].ToString().Replace("'", "''"));
                 }
                 else if (fieldType == typeof(DateTime))
                 {
@@ -560,14 +565,15 @@ namespace ErikEJ.SqlCeScripting
                 }
                 else
                 {
-                    //Decimal point globalization
                     string value = Convert.ToString(row[iColumn], System.Globalization.CultureInfo.InvariantCulture);
                     sb.AppendFormat("'{0}'", value.Replace("'", "''"));
                 }
                 sb.Append(",");
-                // remove trailing comma
-                sb.Remove(_sbScript.Length - 1, 1);
-
+            }
+            // remove trailing comma
+            sb.Remove(sb.Length - 1, 1);
+            if (createInsert)
+            {
                 sb.Append(");");
                 sb.Append(Environment.NewLine);
                 sb.Append(_sep);
@@ -679,52 +685,10 @@ namespace ErikEJ.SqlCeScripting
                 _sbScript.Remove(_sbScript.Length - 1, 1);
                 _sbScript.Append(") VALUES (");
                 int i = 0;
+                var fieldName = fields[i];
                 foreach (string value in values)
                 {
-                    Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToUpperInvariant() == fields[i].ToUpperInvariant()).SingleOrDefault();
-                    if (column == null)
-                        throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Could not find column {0} in table {1}", fields[i].ToLowerInvariant(), tableName));
-                    if (string.IsNullOrEmpty(value))
-                    {
-                        _sbScript.Append("null");
-                    }
-                    //else if (value == string.Empty)
-                    //{
-                    //    _sbScript.Append("''");
-                    //}
-                    else if (column.DataType == "nchar" || column.DataType == "nvarchar" || column.DataType == "ntext")
-                    {
-                        _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''"));
-                    }
-                    else if (column.DataType == "datetime")
-                    {
-                        DateTime date = DateTime.Parse(value);
-                        //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
-                        _sbScript.Append("{ts '");
-                        _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
-                        _sbScript.Append("'}");
-                    }
-                    else if (column.DataType == "bit")
-                    {
-                        if (value == "0" || value == "1")
-                        {
-                            _sbScript.Append(value);
-                        }
-                        else
-                        {
-                            bool boolVal = Boolean.Parse(value);
-                            if (boolVal)
-                            { _sbScript.Append("1"); }
-                            else
-                            { _sbScript.Append("0"); }
-                        }
-                    }
-                    else
-                    {
-                        //Decimal point globalization
-                        string val = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
-                        _sbScript.AppendFormat("'{0}'", val.Replace("'", "''"));
-                    }
+                    _sbScript.Append(SqlFormatValue(tableName, fieldName, value));
                     _sbScript.Append(",");
                     i++;
                 }
@@ -733,6 +697,68 @@ namespace ErikEJ.SqlCeScripting
                 _sbScript.AppendFormat(");{0}", Environment.NewLine);
                 _sbScript.Append(_sep);
             }
+        }
+
+        public string SqlFormatValue(string tableName, string fieldName, string value)
+        {
+            StringBuilder _sbScript = new StringBuilder();
+            Column column = _allColumns.Where(c => c.TableName == tableName && c.ColumnName.ToUpperInvariant() == fieldName.ToUpperInvariant()).SingleOrDefault();
+            if (column == null)
+                throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Could not find column {0} in table {1}", fieldName.ToLowerInvariant(), tableName));
+            if (string.IsNullOrEmpty(value))
+            {
+                _sbScript.Append("null");
+            }
+            //else if (value == string.Empty)
+            //{
+            //    _sbScript.Append("''");
+            //}
+            else if (column.DataType == "nchar" || column.DataType == "nvarchar" || column.DataType == "ntext")
+            {
+                _sbScript.AppendFormat("N'{0}'", value.Replace("'", "''"));
+            }
+            else if (column.DataType == "datetime")
+            {
+                DateTime date = DateTime.Parse(value);
+                //Datetime globalization - ODBC escape: {ts '2004-03-29 19:21:00'}
+                _sbScript.Append("{ts '");
+                _sbScript.Append(date.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+                _sbScript.Append("'}");
+            }
+            else if (column.DataType == "bigint" 
+                || column.DataType == "int"
+                || column.DataType == "float"
+                || column.DataType == "money"
+                || column.DataType == "real"
+                || column.DataType == "tinyint"
+                || column.DataType == "numeric"
+                || column.DataType == "tinyint"
+                || column.DataType == "smallint")
+            {
+                string val = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+                _sbScript.Append(val);                
+            }
+            else if (column.DataType == "bit")
+            {
+                if (value == "0" || value == "1")
+                {
+                    _sbScript.Append(value);
+                }
+                else
+                {
+                    bool boolVal = Boolean.Parse(value);
+                    if (boolVal)
+                    { _sbScript.Append("1"); }
+                    else
+                    { _sbScript.Append("0"); }
+                }
+            }
+            else
+            {
+                string val = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+                _sbScript.AppendFormat("'{0}'", val.Replace("'", "''"));
+            }
+            return _sbScript.ToString();
         }
 
         public void AddIdentityInsert(string tableName)

@@ -193,12 +193,25 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public static string AssemblyFileVersion
+        {
+            get
+            {
+                object[] attributes = System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(System.Reflection.AssemblyFileVersionAttribute), false);
+                if (attributes.Length == 0)
+                    return "";
+                return ((System.Reflection.AssemblyFileVersionAttribute)attributes[0]).Version;
+            }
+        }
+
         public static string CreateDataDiffScript(IRepository sourceRepository, string sourceTable, IRepository targetRepository, string targetTable, IGenerator generator)
         {
             //more advanced would be a field-mapping to be able to transfer the data between different structures
-
             StringBuilder sb = new StringBuilder();
 
+            sb.AppendFormat("-- Script Date: {0} {1}  - ErikEJ.SqlCeScripting version {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), AssemblyFileVersion);
+            sb.Append(Environment.NewLine);
+            sb.AppendLine("-- Data Diff script:");
             List<Column> sourceColumns = (from c in sourceRepository.GetAllColumns()
                                                 where c.TableName == sourceTable
                                                 select c).ToList();
@@ -206,10 +219,21 @@ namespace ErikEJ.SqlCeScripting
                                                 where c.TableName == targetTable
                                                 select c).ToList();
 
-            var pkList = sourceRepository.GetAllPrimaryKeys().Where(pk => pk.TableName == sourceTable).Select(pk => pk.ColumnName).ToList();
-            if (pkList.Count < 1)
+            var sourcePkList = sourceRepository.GetAllPrimaryKeys().Where(pk => pk.TableName == sourceTable).Select(pk => pk.ColumnName).ToList();
+            if (sourcePkList.Count < 1)
             {
                 throw new ArgumentException("Source does not have a primary key, this is required");
+            }
+
+            var targetPkList = targetRepository.GetAllPrimaryKeys().Where(pk => pk.TableName == targetTable).Select(pk => pk.ColumnName).ToList();
+            if (targetPkList.Count < 1)
+            {
+                throw new ArgumentException("Target does not have a primary key, this is required");
+            }
+
+            if (sourcePkList.Count != targetPkList.Count)
+            {
+                throw new ArgumentException("Source and Target primary key are not comparable, this is required");
             }
 
             if (sourceColumns.Count() != targetColumns.Count())
@@ -227,15 +251,14 @@ namespace ErikEJ.SqlCeScripting
 
             string sourcePkSort = string.Empty;
             string targetPkSort = string.Empty;
-            List<string> targetPkList = new List<string>();
-
+            
             for(int i = 0; i < sourceColumns.Count(); i++)
             {
-                if(pkList.Contains(sourceColumns[i].ColumnName))
+                if(sourcePkList.Contains(sourceColumns[i].ColumnName))
                 {
-                    sourcePkSort += (sourcePkSort==string.Empty)?", ":"" + sourceColumns[i].ColumnName;
-                    targetPkSort += (targetPkSort==string.Empty)?", ":"" + targetColumns[i].ColumnName;
-                    targetPkList.Add(targetColumns[i].ColumnName);
+                    string prefix = (sourcePkSort == string.Empty) ? "" : ", ";
+                    sourcePkSort += prefix + sourceColumns[i].ColumnName;
+                    targetPkSort += prefix + targetColumns[i].ColumnName;
                 }
             }
 
@@ -248,43 +271,57 @@ namespace ErikEJ.SqlCeScripting
                 int pkCompare = 0;
 
                 string whereClause = string.Empty;
-                for(int i=0; i< pkList.Count; i++)
+                if (targetRow < targetRows.Count())
                 {
-                    if(whereClause.Length > 0)
-                        whereClause += " AND ";
-                    //TODO determine by type when to add quotation marks or do special formatting
-                    whereClause += String.Format(" [{0}]={1} ", targetPkList[i], sourceRow[pkList[i]]);
+                    for (int i = 0; i < sourcePkList.Count; i++)
+                    {
+                        if (whereClause.Length > 0)
+                            whereClause += " AND ";
+                        whereClause += String.Format(" [{0}] = {1}", targetPkList[i], generator.SqlFormatValue(targetTable, sourcePkList[i], targetRows[targetRow][sourcePkList[i]].ToString()));
+                    }
+                    if (whereClause.Length > 0)
+                        whereClause += ";";
                 }
-                if (whereClause.Length > 0)
-                    whereClause += ";";
-                while (targetRow < targetRows.Count() 
-                    && (pkCompare = CompareDataRows(sourceRow, pkList, targetRows[targetRow], targetPkList)) > 0)
+                while (targetRow < targetRows.Count()
+                    && (pkCompare = CompareDataRows(sourceRow, sourcePkList, targetRows[targetRow], targetPkList)) > 0)
                 {
-                    //write DELETE statement here
-                    sb.AppendLine(String.Format("DELETE FROM [{0}] WHERE {1};", targetTable, whereClause));
+                    sb.AppendLine(String.Format("DELETE FROM [{0}] WHERE {1}", targetTable, whereClause));
+                    sb.AppendLine("GO");
                     targetRow++;
+                    whereClause = string.Empty;
+                    for (int i = 0; i < sourcePkList.Count; i++)
+                    {
+                        if (whereClause.Length > 0)
+                            whereClause += " AND ";
+                        whereClause += String.Format(" [{0}] = {1}", targetPkList[i], generator.SqlFormatValue(targetTable, sourcePkList[i], targetRows[targetRow][sourcePkList[i]].ToString()));
+                    }
+                    if (whereClause.Length > 0)
+                        whereClause += ";";
                 }
                 if (targetRow >= targetRows.Count() || pkCompare < 0)
                 {
-                    //TODO write INSERT statement here
-                    //sb.AppendLine(String.Format("INSERT INTO {0} ({1}) VALUES ({2})", targetTable, "targetColumns", "sourceValues"));
                     sb.AppendLine(generator.GenerateInsertFromDataRow(targetTable, sourceRow));
+                    targetRow++;
                 }
                 else if (CompareDataRows(sourceRow, null, targetRows[targetRow], null) != 0)
                 {
-                    //TODO write UPDATE statement here
-                    sb.AppendLine(String.Format("UPDATE {0} SET {1} WHERE {2}", targetTable, "targetColumn=sourceValue, ..." ,whereClause));
+                    sb.AppendLine(String.Format("UPDATE [{0}] SET {1} WHERE {2}", targetTable, generator.GenerateUpdateFromDataRow(targetTable, sourceRow), whereClause));
+                    sb.AppendLine("GO");
                 }
-                sb.AppendLine("GO");
+                targetRow++;
+                
             }
             return sb.ToString();
         }
 
         private static int CompareDataRows(DataRow a, IList<string> aFields, DataRow b, IList<string> bFields)
         {
-            if (((aFields == null || bFields == null) && aFields != bFields && a.ItemArray.Count() != b.ItemArray.Count()) ||
-                aFields.Count != bFields.Count)
-                throw new ArgumentException("The field count has to be the same in order to compare the DataRows.");
+            if (aFields != null && bFields != null)
+            {
+                if ((aFields != bFields && a.ItemArray.Count() != b.ItemArray.Count()) ||
+                    aFields.Count != bFields.Count)
+                    throw new ArgumentException("The field count has to be the same in order to compare the DataRows.");
+            }
             if (aFields != null && bFields != null)
             {
                 for (int i = 0; i < aFields.Count; i++)

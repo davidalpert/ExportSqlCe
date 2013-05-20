@@ -203,15 +203,36 @@ GO
         [Test]
         public void TestDataDiff()
         {
+            string source = @"Data Source=C:\projects\ChinookPart2\Chinook40Modified.sdf";
             string target = @"Data Source=C:\projects\ChinookPart2\Chinook40.sdf";
-            string source = @"Data Source=C:\projects\ChinookPart2\Chinook40.sdf";
+            
+            string modPath = @"C:\projects\ChinookPart2\Chinook40Modified.sdf";
+            if (File.Exists(modPath))
+                File.Delete(modPath);
+            File.Copy(@"C:\projects\ChinookPart2\Chinook40.sdf", modPath);
 
             using (IRepository sourceRepository = new DB4Repository(source))
             {
-                var generator = new Generator4(sourceRepository);
+                sourceRepository.ExecuteSql("DELETE FROM InvoiceLine WHERE InvoiceLineId = 2;" + System.Environment.NewLine + "GO");
+                sourceRepository.ExecuteSql("DELETE FROM InvoiceLine WHERE InvoiceLineId = 3;" + System.Environment.NewLine + "GO");
+                sourceRepository.ExecuteSql("DELETE FROM InvoiceLine WHERE InvoiceLineId = 4;" + System.Environment.NewLine + "GO");
+
+                sourceRepository.ExecuteSql("DELETE FROM InvoiceLine WHERE InvoiceLineId = 1000;" + System.Environment.NewLine + "GO");
+
+                sourceRepository.ExecuteSql(@"INSERT INTO [InvoiceLine] ([InvoiceId],[TrackId],[UnitPrice],[Quantity]) 
+                            VALUES (100, 500, 10.11, 1)" + System.Environment.NewLine + "GO");
+                sourceRepository.ExecuteSql(@"INSERT INTO [InvoiceLine] ([InvoiceId],[TrackId],[UnitPrice],[Quantity]) 
+                            VALUES (200, 500, 10.11, 1)" + System.Environment.NewLine + "GO");
+                sourceRepository.ExecuteSql(@"INSERT INTO [InvoiceLine] ([InvoiceId],[TrackId],[UnitPrice],[Quantity]) 
+                            VALUES (300, 500, 10.11, 1)" + System.Environment.NewLine + "GO");
+
+                sourceRepository.ExecuteSql("UPDATE InvoiceLine SET [UnitPrice]= 99.99 WHERE InvoiceLineId = 20;" + System.Environment.NewLine + "GO");
+
                 using (IRepository targetRepository = new DB4Repository(target))
                 {
-                    SqlCeDiff.CreateDataDiffScript(sourceRepository, "Album", targetRepository, "Album", generator);
+                    var generator = new Generator4(targetRepository);
+                    var script = SqlCeDiff.CreateDataDiffScript(sourceRepository, "InvoiceLine", targetRepository, "InvoiceLine", generator);
+                    Assert.IsTrue(script.Contains("DELETE"));
                 }
             }
         }
