@@ -496,7 +496,6 @@ namespace ErikEJ.SqlCeScripting
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
             var fields = columns.Select(c => c.ColumnName).ToList();
-            //TODO Maybe generate UPDATE prefix instead
             var scriptPrefix = string.Empty;
             if (createInsert)
                 scriptPrefix = GetInsertScriptPrefix(tableName, fields, rowVersionOrdinal, identityOrdinal, false);
@@ -516,12 +515,11 @@ namespace ErikEJ.SqlCeScripting
                 {
                     continue;
                 }
-                //Never ignore identity
-                //if (ignoreIdentity && (identityOrdinal == iColumn))
-                //{
-                //    continue;
-                //}
-                //TODO If UPDATE Add "columnName =" here
+                //ignore identity for updates
+                if (!createInsert && (identityOrdinal == iColumn))
+                {
+                    continue;
+                }
                 if (!createInsert)
                     sb.Append(string.Format(" [{0}] = ", row.Table.Columns[iColumn].ColumnName));
                 if (row.IsNull(iColumn))
