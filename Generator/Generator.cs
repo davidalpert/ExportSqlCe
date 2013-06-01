@@ -175,6 +175,7 @@ namespace ErikEJ.SqlCeScripting
                     break;
                 case Scope.SchemaDataSQLite:
                     _sqlite = true;
+                    _sep = string.Empty;
                     GenerateAllAndSave(true, false, false);
                     break;
                 default:

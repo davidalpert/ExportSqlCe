@@ -436,7 +436,11 @@ namespace ErikEJ.SqlCeScripting
 #if V40
                 return new DB4Repository(connectionString);
 #else
+#if SERVER
+                return new ServerDBRepository(connectionString);
+#else
                 return new DBRepository(connectionString);
+#endif
 #endif
             }
         }
