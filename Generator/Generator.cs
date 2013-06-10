@@ -1522,46 +1522,50 @@ namespace ErikEJ.SqlCeScripting
             _sbScript.AppendLine();
             if (!string.IsNullOrEmpty(_outFile) && !_repository.IsServer())
             {
-                _sbScript.Append("-- Database information:");
-                _sbScript.AppendLine();
-
-                foreach (var kv in _repository.GetDatabaseInfo())
-                {
-                    _sbScript.Append("-- ");
-                    _sbScript.Append(kv.Key);
-                    _sbScript.Append(": ");
-                    _sbScript.Append(kv.Value);
-                    _sbScript.AppendLine();
-                }
-                _sbScript.AppendLine();
-
-                // Populate all tablenames
-                _sbScript.Append("-- User Table information:");
-                _sbScript.AppendLine();
-                _sbScript.Append("-- ");
-                _sbScript.Append("Number of tables: ");
-                _sbScript.Append(_tableNames.Count);
-                _sbScript.AppendLine();
-
-                foreach (string tableName in _tableNames)
-                {
-                    Int64 rowCount = _repository.GetRowCount(tableName);
-                    _sbScript.Append("-- ");
-                    _sbScript.Append(tableName);
-                    _sbScript.Append(": ");
-                    _sbScript.Append(rowCount);
-                    _sbScript.Append(" row(s)");
-                    _sbScript.AppendLine();
-                }
-                _sbScript.AppendLine();
+                GenerateDatabaseInfo();
                 if (_sqlite)
                 {
                     _sbScript.AppendLine("SELECT 1;");
                     _sbScript.AppendLine("PRAGMA foreign_keys=OFF;");
                     _sbScript.AppendLine("BEGIN TRANSACTION;");
                 }
-
             }
+        }
+
+        public void GenerateDatabaseInfo()
+        {
+            _sbScript.Append("-- Database information:");
+            _sbScript.AppendLine();
+
+            foreach (var kv in _repository.GetDatabaseInfo())
+            {
+                _sbScript.Append("-- ");
+                _sbScript.Append(kv.Key);
+                _sbScript.Append(": ");
+                _sbScript.Append(kv.Value);
+                _sbScript.AppendLine();
+            }
+            _sbScript.AppendLine();
+
+            // Populate all tablenames
+            _sbScript.Append("-- User Table information:");
+            _sbScript.AppendLine();
+            _sbScript.Append("-- ");
+            _sbScript.Append("Number of tables: ");
+            _sbScript.Append(_tableNames.Count);
+            _sbScript.AppendLine();
+
+            foreach (string tableName in _tableNames)
+            {
+                Int64 rowCount = _repository.GetRowCount(tableName);
+                _sbScript.Append("-- ");
+                _sbScript.Append(tableName);
+                _sbScript.Append(": ");
+                _sbScript.Append(rowCount);
+                _sbScript.Append(" row(s)");
+                _sbScript.AppendLine();
+            }
+            _sbScript.AppendLine();
         }
 
         /// <summary>

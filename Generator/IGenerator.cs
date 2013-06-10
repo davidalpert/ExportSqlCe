@@ -47,5 +47,6 @@ namespace ErikEJ.SqlCeScripting
         string GenerateInsertFromDataRow(string tableName, DataRow row);
         string GenerateUpdateFromDataRow(string tableName, DataRow row);
         string SqlFormatValue(string tableName, string fieldName, string value);
+        void GenerateDatabaseInfo();
     }
 }
