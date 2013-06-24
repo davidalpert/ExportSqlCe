@@ -393,9 +393,18 @@ namespace ErikEJ.SqlCeScripting
                                 }
                             }
                         }
+                        else if (rdr.GetFieldType(iColumn) == typeof(Single))
+                        {
+                            string intString = rdr.GetFloat(iColumn).ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+                            _sbScript.Append(intString);
+                        }
+                        else if (rdr.GetFieldType(iColumn) == typeof(Double) || rdr.GetFieldType(iColumn) == typeof(Single))
+                        {
+                            string intString = rdr.GetDouble(iColumn).ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+                            _sbScript.Append(intString);
+                        }
                         else if (rdr.GetFieldType(iColumn) == typeof(Byte) || rdr.GetFieldType(iColumn) == typeof(Int16) || rdr.GetFieldType(iColumn) == typeof(Int32) ||
-                            rdr.GetFieldType(iColumn) == typeof(Int64) || rdr.GetFieldType(iColumn) == typeof(Double) ||
-                            rdr.GetFieldType(iColumn) == typeof(Single) || rdr.GetFieldType(iColumn) == typeof(Decimal))
+                            rdr.GetFieldType(iColumn) == typeof(Int64) || rdr.GetFieldType(iColumn) == typeof(Decimal))
                         {
                             string intString = Convert.ToString(rdr.GetValue(iColumn), System.Globalization.CultureInfo.InvariantCulture);
                             _sbScript.Append(intString);
@@ -547,9 +556,19 @@ namespace ErikEJ.SqlCeScripting
                         sb.Append(buffer[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture));
                     }
                 }
+                //TODO Test this!
+                else if (fieldType == typeof(Single))
+                {
+                    string intString = Convert.ToSingle(row[iColumn]).ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+                    _sbScript.Append(intString);
+                }
+                else if (fieldType == typeof(Double) || fieldType == typeof(Single))
+                {
+                    string intString = Convert.ToDouble(row[iColumn]).ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+                    _sbScript.Append(intString);
+                }
                 else if (fieldType == typeof(Byte) || fieldType == typeof(Int16) || fieldType == typeof(Int32) ||
-                    fieldType == typeof(Int64) || fieldType == typeof(Double) ||
-                    fieldType == typeof(Single) || fieldType == typeof(Decimal))
+                    fieldType == typeof(Int64) || fieldType == typeof(Decimal))
                 {
                     string intString = Convert.ToString(row[iColumn], System.Globalization.CultureInfo.InvariantCulture);
                     sb.Append(intString);
@@ -1442,6 +1461,14 @@ namespace ErikEJ.SqlCeScripting
                 }
             }
             Helper.WriteIntoFile(GeneratedScript, _outFile, this.FileCounter, _sqlite);
+        }
+
+        public IList<string> GeneratedFiles 
+        { 
+            get 
+            { 
+                return Helper.FinalFiles.Replace(", ", ",").Split(','); 
+            } 
         }
 
         public int FileCounter

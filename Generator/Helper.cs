@@ -8,7 +8,6 @@ namespace ErikEJ.SqlCeScripting
 {
     public static class Helper
     {
-
         public static string FinalFiles
         {
             get
