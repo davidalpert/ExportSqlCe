@@ -203,7 +203,8 @@ namespace ErikEJ.SqlCeScripting
             if (System.IO.File.Exists(cn.Database))
             { 
                 System.IO.FileInfo fi = new System.IO.FileInfo(cn.Database);
-                valueList.Add(new KeyValuePair<string, string>("DatabaseSize", fi.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                valueList.Add(new KeyValuePair<string, string>("DatabaseSize",  Helper.GetSizeReadable(fi.Length)));
+                valueList.Add(new KeyValuePair<string, string>("SpaceAvailable", Helper.GetSizeReadable(4294967296 - fi.Length)));
                 valueList.Add(new KeyValuePair<string, string>("Created", fi.CreationTime.ToShortDateString() + " " + fi.CreationTime.ToShortTimeString()));
             }
             return valueList;
