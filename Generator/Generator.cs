@@ -1611,9 +1611,19 @@ namespace ErikEJ.SqlCeScripting
             GenerateTableCreate(tableName, false);
         }
 
+        public void GenerateTableCreate(string tableName, List<Column> columns)
+        {
+            GenerateTableCreate(tableName, false, columns);
+        }
+
         internal void GenerateTableCreate(string tableName, bool includeData)
         {
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            GenerateTableCreate(tableName, includeData, columns);
+        }
+
+        internal void GenerateTableCreate(string tableName, bool includeData, List<Column> columns)
+        {
             if (columns.Count > 0)
             {
                 _sbScript.AppendFormat("CREATE TABLE [{0}] ({1}  ", tableName, Environment.NewLine);
