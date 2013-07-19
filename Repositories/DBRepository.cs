@@ -760,6 +760,10 @@ namespace ErikEJ.SqlCeScripting
             {
                 return CommandExecute.DataTable;
             }
+            else if (test.ToUpperInvariant().StartsWith("SELECT" + Environment.NewLine, StringComparison.Ordinal))
+            {
+                return CommandExecute.DataTable;
+            }
             else if (test.ToUpperInvariant().StartsWith("SP_", StringComparison.Ordinal))
             {
                 return CommandExecute.DataTable;

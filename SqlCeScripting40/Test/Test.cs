@@ -133,6 +133,25 @@ GO
         }
 
         [Test]
+        //https://sqlcetoolbox.codeplex.com/workitem/11165
+        public void TestSqlParse1()
+        {
+            string sql = @"select 
+    count(*)
+from 
+    Album
+GO
+";
+
+            using (IRepository repo = new DB4Repository(chinookConnectionString))
+            {
+                string showPlan = string.Empty;
+                var ds = repo.ExecuteSql(sql, out showPlan);
+            }
+
+        }
+
+        [Test]
         public void TestServerDgml()
         {
 
