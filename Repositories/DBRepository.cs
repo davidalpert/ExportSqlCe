@@ -756,11 +756,7 @@ namespace ErikEJ.SqlCeScripting
                     test = test.Substring(pos + 2);
             }
 
-            if (test.ToUpperInvariant().StartsWith("SELECT ", StringComparison.Ordinal))
-            {
-                return CommandExecute.DataTable;
-            }
-            else if (test.ToUpperInvariant().StartsWith("SELECT" + Environment.NewLine, StringComparison.Ordinal))
+            if (test.ToUpperInvariant().StartsWith("SELECT", StringComparison.Ordinal) && test.Length > 6 && char.IsWhiteSpace(test[6]))
             {
                 return CommandExecute.DataTable;
             }
