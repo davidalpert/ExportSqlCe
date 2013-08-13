@@ -1677,66 +1677,51 @@ namespace ErikEJ.SqlCeScripting
 
             if (_sqlite && col.DataType == "rowversion")
                 return line;
-
+            string colDefault = col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault + " " : string.Empty;
+            string colNull = col.IsNullable == YesNoOption.YES ? "NULL " : "NOT NULL ";
             switch (col.DataType)
             {
                 case "nvarchar":
+                case "nchar":
+                case "binary":
+                case "varbinary":
                     line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "[{0}] {1}({2}) {3} {4}"
+                        "[{0}] {1}({2}) {3}{4}"
                         , col.ColumnName
                         , col.DataType
                         , col.CharacterMaxLength
-                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                        );
-                    break;
-                case "nchar":
-                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "[{0}] {1}({2}) {3} {4}"
-                        , col.ColumnName
-                        , "nchar"
-                        , col.CharacterMaxLength
-                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        , colDefault
+                        , colNull
                         );
                     break;
                 case "numeric":
                     line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "[{0}] {1}({2},{3}) {4} {5}"
+                        "[{0}] {1}({2},{3}) {4}{5}"
                         , col.ColumnName
                         , col.DataType
                         , col.NumericPrecision
                         , col.NumericScale
-                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
+                        , colDefault
+                        , colNull
                         );
                     break;
-                case "binary":
-                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "[{0}] {1}({2}) {3} {4}"
-                        , col.ColumnName
-                        , col.DataType
-                        , col.CharacterMaxLength
-                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                        );
-                    break;
-                case "varbinary":
-                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "[{0}] {1}({2}) {3} {4}"
-                        , col.ColumnName
-                        , col.DataType
-                        , col.CharacterMaxLength
-                        , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                        , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                        );
-                    break;
-                default:
+                case "uniqueidentifier":
                     string rowGuidCol = string.Empty;
                     if (col.RowGuidCol && !azure)
                     {
-                        rowGuidCol = "ROWGUIDCOL";
+                        rowGuidCol = "ROWGUIDCOL ";
                     }
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1} {2}{3}{4}"
+                        , col.ColumnName
+                        , col.DataType
+                        , colDefault
+                        , rowGuidCol
+                        , colNull
+                        );
+                    break;
+                case "int":
+                case "bigint":
                     // http://www.sqlite.org/lang_createtable.html#rowid
                     if (_sqlite && col.AutoIncrementBy > 0)
                     {
@@ -1747,28 +1732,34 @@ namespace ErikEJ.SqlCeScripting
                     if (includeData)
                     {
                         line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                            "[{0}] {1} {2} {3} {4}{5}"
+                            "[{0}] {1} {2}{3}{4}"
                             , col.ColumnName
                             , col.DataType
-                            , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                            , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                            , rowGuidCol
-                            , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
+                            , colDefault
+                            , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1}) ", col.AutoIncrementNext, col.AutoIncrementBy) : string.Empty)
+                            , colNull
                             );
                     }
                     else
                     {
                         line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                            "[{0}] {1} {2} {3} {4}{5}"
+                            "[{0}] {1} {2}{3}{4}"
                             , col.ColumnName
                             , col.DataType
-                            , (col.IsNullable == YesNoOption.YES ? "NULL" : "NOT NULL")
-                            , (col.ColumnHasDefault ? "DEFAULT " + col.ColumnDefault : string.Empty)
-                            , rowGuidCol
-                            , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1})", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                            , colDefault
+                            , (col.AutoIncrementBy > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "IDENTITY ({0},{1}) ", col.AutoIncrementSeed, col.AutoIncrementBy) : string.Empty)
+                            , colNull
                             );
                     }
-
+                    break;
+                default:
+                    line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "[{0}] {1} {2}{3}"
+                        , col.ColumnName
+                        , col.DataType
+                        , colDefault
+                        , colNull
+                        );
                     break;
             }
             return line;
