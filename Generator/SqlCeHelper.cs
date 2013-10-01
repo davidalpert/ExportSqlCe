@@ -88,6 +88,15 @@ namespace ErikEJ.SqlCeScripting
             }
         }
 
+        public void ChangeDatabasePassword(string connectionString, string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                throw new NullReferenceException("Password missing");
+            using (SqlCeEngine engine = new SqlCeEngine(connectionString))
+            {
+                engine.Compact(string.Format("Data Source=;Password={0}", password));
+            }            
+        }
 
 #if V40
         public void UpgradeTo40(string connectionString)
