@@ -227,7 +227,17 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="ignoreIdentity"></param>
         public void GenerateTableContent(string tableName, bool saveImageFiles, bool ignoreIdentity = false)
         {
-            GenerateTableContent(tableName, null, saveImageFiles, ignoreIdentity);
+            GenerateTableContent(tableName, null, IncludeAllColumns, saveImageFiles, ignoreIdentity);
+        }
+
+        public void GenerateTableContent(string tableName, string sortByColumnName, bool saveImageFiles, bool ignoreIdentity = false)
+        {
+            GenerateTableContent(tableName, sortByColumnName, IncludeAllColumns, saveImageFiles, ignoreIdentity);
+        }
+
+        private bool IncludeAllColumns(Column col)
+        {
+            return true;
         }
 
         /// <summary>
@@ -237,7 +247,7 @@ namespace ErikEJ.SqlCeScripting
         /// <param name="sortByColumnName"></param>
         /// <param name="saveImageFiles"></param>
         /// <param name="ignoreIdentity"></param>
-        public void GenerateTableContent(string tableName, string sortByColumnName, bool saveImageFiles, bool ignoreIdentity = false)
+        public void GenerateTableContent(string tableName, string sortByColumnName, Func<Column, bool> includeColumn, bool saveImageFiles = false, bool ignoreIdentity = false)
         {
             int identityOrdinal = _repository.GetIdentityOrdinal(tableName);
             bool hasIdentity = (identityOrdinal > -1);
@@ -250,7 +260,9 @@ namespace ErikEJ.SqlCeScripting
                 unicodePrefix = string.Empty;
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
-            List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
+            List<Column> columns = _allColumns.Where(c => c.TableName == tableName)
+                                              .Where(includeColumn ?? IncludeAllColumns)
+                                              .ToList();
 
             using (IDataReader rdr = _repository.GetDataFromReader(tableName, sortByColumnName, columns))
             {
@@ -265,7 +277,7 @@ namespace ErikEJ.SqlCeScripting
 
                 while (rdr.Read())
                 {
-                    if (firstRun)
+                   if (firstRun)
                     {
 #if V31
 #else
