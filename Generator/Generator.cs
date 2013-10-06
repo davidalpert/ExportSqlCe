@@ -224,7 +224,20 @@ namespace ErikEJ.SqlCeScripting
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="saveImageFiles">if set to <c>true</c> [save image files].</param>
+        /// <param name="ignoreIdentity"></param>
         public void GenerateTableContent(string tableName, bool saveImageFiles, bool ignoreIdentity = false)
+        {
+            GenerateTableContent(tableName, null, saveImageFiles, ignoreIdentity);
+        }
+
+        /// <summary>
+        /// Generates the content of the table, optionally sorted by <paramref name="sortByColumnName"/>
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="sortByColumnName"></param>
+        /// <param name="saveImageFiles"></param>
+        /// <param name="ignoreIdentity"></param>
+        public void GenerateTableContent(string tableName, string sortByColumnName, bool saveImageFiles, bool ignoreIdentity = false)
         {
             int identityOrdinal = _repository.GetIdentityOrdinal(tableName);
             bool hasIdentity = (identityOrdinal > -1);
@@ -238,7 +251,8 @@ namespace ErikEJ.SqlCeScripting
             // Skip rowversion column
             Int32 rowVersionOrdinal = _repository.GetRowVersionOrdinal(tableName);
             List<Column> columns = _allColumns.Where(c => c.TableName == tableName).ToList();
-            using (IDataReader rdr = _repository.GetDataFromReader(tableName, columns))
+
+            using (IDataReader rdr = _repository.GetDataFromReader(tableName, sortByColumnName, columns))
             {
                 bool firstRun = true;
                 int rowCount = 0;

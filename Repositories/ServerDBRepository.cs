@@ -365,15 +365,26 @@ namespace ErikEJ.SqlCeScripting
 
         public IDataReader GetDataFromReader(string tableName, List<Column> columns)
         {
+            return GetDataFromReader(tableName, null, columns);
+        }
+
+        public IDataReader GetDataFromReader(string tableName, string sortByColumnName, List<Column> columns)
+        {
             System.Text.StringBuilder sb = new System.Text.StringBuilder(200);
             foreach (Column col in columns)
             {
                 sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "[{0}], ", col.ColumnName));
             }
             sb.Remove(sb.Length - 2, 2);
-            return ExecuteDataReader(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), GetSchemaAndTableName(tableName)));
+
+            var schemaAndTableName = GetSchemaAndTableName(tableName);
+            var query = string.IsNullOrWhiteSpace(sortByColumnName)
+                            ? string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}]", sb.ToString(), schemaAndTableName)
+                            : string.Format(System.Globalization.CultureInfo.InvariantCulture, "Select {0} From [{1}] Order By [{2}]", sb.ToString(), schemaAndTableName, sortByColumnName);
+
+            return ExecuteDataReader(query);
         }
-        
+
         public List<PrimaryKey> GetAllPrimaryKeys()
         {
             return ExecuteReader(
